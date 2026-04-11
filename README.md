@@ -14,6 +14,26 @@
 * Download dm3270.jar from the [releases](https://github.com/dmolony/dm3270/releases) page.
 * Double-click the jar file, or enter 'java -jar dm3270.jar' in the terminal.
 
+### Build With Maven
+* Requires JDK 17+ and Maven 3.9+.
+* Compile the project:
+
+```bash
+mvn clean compile
+```
+
+* Run the JavaFX application:
+
+```bash
+mvn javafx:run
+```
+
+* Build the jar artifact:
+
+```bash
+mvn clean package
+```
+
 ### Connection
 Select a server from the drop-down list and click OK. If there are no servers listed yet, click the edit button.  
 ![Default Connection](resources/connect1.png?raw=true "default connection")
