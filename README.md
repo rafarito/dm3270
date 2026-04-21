@@ -15,7 +15,7 @@
 * Double-click the jar file, or enter 'java -jar dm3270.jar' in the terminal.
 
 ### Build With Maven
-* Requires JDK 17+ and Maven 3.9+.
+* Requires JDK 26 and Maven 3.9+.
 * Compile the project:
 
 ```bash
@@ -32,6 +32,12 @@ mvn javafx:run
 
 ```bash
 mvn clean package
+```
+
+* Run the single executable jar (includes dependencies):
+
+```bash
+java -jar target/dm3270-1.0.0-SNAPSHOT-all.jar
 ```
 
 ### Connection
