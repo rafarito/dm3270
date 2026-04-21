@@ -12,9 +12,9 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>17</maven.compiler.release>
+    <maven.compiler.release>26</maven.compiler.release>
     <javafx.version>21.0.7</javafx.version>
-    <main.class>com.bytezone.dm3270.application.Console</main.class>
+    <main.class>com.bytezone.dm3270.application.Launcher</main.class>
   </properties>
 
   <dependencies>
@@ -58,6 +58,7 @@
         <version>0.0.8</version>
         <configuration>
           <mainClass>${main.class}</mainClass>
+          <jvmArgs>--enable-native-access=javafx.graphics</jvmArgs>
         </configuration>
       </plugin>
 
@@ -72,6 +73,30 @@
             </manifest>
           </archive>
         </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.5.3</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>all</shadedClassifierName>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>${main.class}</mainClass>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
