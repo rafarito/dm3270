@@ -386,13 +386,24 @@ public class FieldManager implements Initiator
     ScreenContext defaultContext =
         startFieldAttribute.process (contextManager, null, null);
 
-    if (startFieldAttribute.isExtended ())
+    // Some hosts use SF + SA (Set Attribute) instead of SFE. In that case the
+    // field is not marked extended, but attributes are still present on positions.
+    // Apply extended context whenever any position carries attributes.
+    if (startFieldAttribute.isExtended () || hasAttributes (positions))
       setExtendedContext (defaultContext, positions);
     else
       positions.forEach (sp -> sp.setScreenContext (defaultContext));
 
     if (startFieldAttribute.isHidden ())
       positions.forEach (sp -> sp.setVisible (false));
+  }
+
+  private boolean hasAttributes (List<ScreenPosition> positions)
+  {
+    for (ScreenPosition screenPosition : positions)
+      if (!screenPosition.getAttributes ().isEmpty ())
+        return true;
+    return false;
   }
 
   private void setExtendedContext (ScreenContext defaultContext,
