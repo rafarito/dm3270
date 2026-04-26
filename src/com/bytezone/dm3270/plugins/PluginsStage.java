@@ -190,6 +190,10 @@ public class PluginsStage extends PreferencesStage
   // ---------------------------------------------------------------------------------//
   {
     menu = new Menu ("Plugins");
+    MenuItem managerMenuItem = new MenuItem (editMenuItem.getText ());
+    managerMenuItem.setOnAction (e -> this.show ());
+    menu.getItems ().add (managerMenuItem);
+    menu.getItems ().add (new SeparatorMenuItem ());
 
     int activeCount = 0;
     for (PluginEntry pluginEntry : plugins)
@@ -217,6 +221,7 @@ public class PluginsStage extends PreferencesStage
       }
     }
 
+    // Keep static items (manager + plugin toggles) when rebuilding dynamic request items.
     baseMenuSize = menu.getItems ().size ();
 
     if (activeCount > 0)
@@ -468,22 +473,72 @@ public class PluginsStage extends PreferencesStage
     public Plugin instantiate ()
     {
       plugin = null;
+      String classNameText = className.getText ().trim ();
+      if (classNameText.isEmpty ())
+        return null;
 
-      try
+      for (String candidate : getClassCandidates (classNameText))
       {
-        String classNameText = className.getText ();
-        if (!classNameText.isEmpty ())
+        try
         {
-          Class<?> c = Class.forName (classNameText);
-          if (c != null)
-            plugin = (Plugin) c.newInstance ();
+          Class<?> c = Class.forName (candidate);
+          if (!Plugin.class.isAssignableFrom (c))
+          {
+            System.out.printf ("Plugin does not implement Plugin: %s%n", candidate);
+            return null;
+          }
+
+          plugin = (Plugin) c.getDeclaredConstructor ().newInstance ();
+
+          // Persist a successful fallback so next runs don't depend on heuristics.
+          if (!candidate.equals (classNameText))
+            className.setText (candidate);
+
+          return plugin;
+        }
+        catch (ClassNotFoundException e)
+        {
+          // Try next candidate.
+        }
+        catch (ReflectiveOperationException | LinkageError e)
+        {
+          System.out.printf ("Instantiation failed: %s - %s (%s)%n", name.getText (),
+              candidate, e.getClass ().getSimpleName ());
+          return null;
         }
       }
-      catch (ClassNotFoundException | InstantiationException | IllegalAccessException e)
-      {
-        System.out.printf ("Instantiation failed: %s - %s%n", name, className);
-      }
+
+      System.out.printf ("Plugin class not found: %s - %s%n", name.getText (),
+          classNameText);
       return plugin;
+    }
+
+    private List<String> getClassCandidates (String classNameText)
+    {
+      List<String> candidates = new ArrayList<> ();
+      candidates.add (classNameText);
+
+      if (!classNameText.contains ("."))
+      {
+        candidates.add ("com.bytezone.plugins." + classNameText);
+        candidates.add ("com.bytezone.dm3270.plugins." + classNameText);
+      }
+      else if (classNameText.startsWith ("com.bytezone.dm3270.plugins."))
+      {
+        candidates.add (
+            classNameText.replaceFirst ("com\\.bytezone\\.dm3270\\.plugins\\.",
+                "com.bytezone.plugins."));
+      }
+
+      if (classNameText.startsWith ("com.bytezone.plugin."))
+        candidates.add (classNameText.replaceFirst ("com\\.bytezone\\.plugin\\.",
+            "com.bytezone.plugins."));
+
+      if (classNameText.contains (".plugin."))
+        candidates
+            .add (classNameText.replaceFirst ("\\.plugin\\.", ".plugins."));
+
+      return candidates;
     }
   }
 }
