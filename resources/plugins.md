@@ -25,6 +25,31 @@ public interface Plugin
   {}
 }
 ```
+
+#### External Plugin Creation (JAR-based)
+You can create plugins externally and add them to the `plugins/` folder to be auto-discovered. The `dm3270` JAR is required on your classpath to resolve the plugin interfaces.
+
+1. **Create the plugin directory structure:**
+   ```bash
+   mkdir -p meu-plugin/src/com/meuplugin
+   ```
+2. **Create your Plugin classes** in `src/com/meuplugin/`, ensuring they implement `com.bytezone.dm3270.plugins.Plugin` or extend `DefaultPlugin`.
+
+3. **Compile the plugin** using the fat JAR from `dm3270` in the classpath:
+   ```bash
+   mkdir meu-plugin/out
+   javac -cp dm3270-1.0.0-SNAPSHOT-all.jar -d meu-plugin/out meu-plugin/src/com/meuplugin/*.java
+   ```
+
+4. **Package the plugin into a JAR file:**
+   ```bash
+   jar cf meu-plugin.jar -C meu-plugin/out .
+   ```
+
+5. **Installation (Plug-and-Play):**
+   Copy `meu-plugin.jar` into a folder named `plugins/` located in the same directory where you execute the `dm3270` JAR.
+   When the emulator starts, it will automatically discover the JAR, load the classes, and auto-register them in the Plugin Manager.
+
 #### Linking
 Use the Plugin Manager to connect the class name to a command name. The command will appear as a menu item on the Plugins menu.
 ##### Plugin Manager
