@@ -14,10 +14,12 @@ public class DocumentPage implements Comparable<DocumentPage>
       "***************************** Top of Dat" + "a ******************************";
   private static final String END_DATA =
       "**************************** Bottom of D" + "ata ****************************";
-  private static String pattern = "([A-Z0-9]{1,8}(\\.[A-Z0-9]{1,8})*)" // dataset name
-      + "(\\([A-Z0-9]{1,8}\\))?"                        // member name
-      + "( - [0-9]{2}\\.[0-9]{2})?";                    // editing data
-  private static final Pattern p = Pattern.compile (pattern);
+    private static final Pattern EDIT_PATTERN = Pattern.compile (
+      "(?i).*\\BEDIT\\b.*");
+  private static final Pattern p = Pattern.compile (
+      "([A-Z0-9]{1,8}(\\.[A-Z0-9]{1,8})*)" // dataset name
+          + "(\\([A-Z0-9]{1,8}\\))?"      // member name
+          + "( - [0-9]{2}\\.[0-9]{2})?");  // editing data
 
   String datasetName;
   String memberName;
@@ -38,17 +40,35 @@ public class DocumentPage implements Comparable<DocumentPage>
   public static DocumentPage createPage (PluginData data,
       List<PluginField> modifiableFields)
   {
-    PluginField editField = findField ("EDIT", data);
+    PluginField editField = findFieldMatching (EDIT_PATTERN, data);
     if (editField == null)
+    {
+      System.out.println ("Can't find editor mode field");
       return null;
+    }
 
-    PluginField commandField = findField ("Command ===>", data);
-    if (commandField == null || commandField.sequence < editField.sequence)
+    PluginField commandLabelField = findFieldContaining ("command", data);
+    PluginField commandInputField = getNextModifiableField (commandLabelField, data);
+    if (commandLabelField == null || commandInputField == null)
+    {
+      System.out.println ("Can't find command field");
       return null;
+    }
 
-    PluginField scrollField = findField ("Scroll ===>", data);
-    if (scrollField == null || scrollField.sequence < commandField.sequence)
+    if (editField.sequence > commandLabelField.sequence)
+    {
+      System.out.println ("Command field is before editor mode field");
       return null;
+    }
+
+    PluginField scrollLabelField = findFieldContaining ("scroll", data);
+    PluginField scrollInputField = getNextModifiableField (scrollLabelField, data);
+    if (scrollLabelField == null || scrollInputField == null
+        || scrollLabelField.sequence < commandLabelField.sequence)
+    {
+      System.out.println ("Can't find valid scroll field");
+      return null;
+    }
 
     return new DocumentPage (data, modifiableFields);
   }
@@ -108,7 +128,6 @@ public class DocumentPage implements Comparable<DocumentPage>
 
   private void getDatasetName (PluginData data)
   {
-
     datasetName = data.trimField (12);
     Matcher m = p.matcher (datasetName);
     if (m.matches ())
@@ -164,6 +183,37 @@ public class DocumentPage implements Comparable<DocumentPage>
     for (PluginField screenField : data.screenFields)
       if (text.equals (screenField.getFieldValue ().trim ()))
         return screenField;
+    return null;
+  }
+
+  private static PluginField findFieldContaining (String text, PluginData data)
+  {
+    for (PluginField screenField : data.screenFields)
+    {
+      String value = screenField.getFieldValue ().trim ().toLowerCase ();
+      if (value.contains (text))
+        return screenField;
+    }
+    return null;
+  }
+
+  private static PluginField findFieldMatching (Pattern pattern, PluginData data)
+  {
+    for (PluginField screenField : data.screenFields)
+      if (pattern.matcher (screenField.getFieldValue ().trim ()).matches ())
+        return screenField;
+    return null;
+  }
+
+  private static PluginField getNextModifiableField (PluginField field, PluginData data)
+  {
+    if (field == null)
+      return null;
+
+    PluginField nextField = data.getField (field.sequence + 1);
+    if (nextField != null && nextField.isModifiable)
+      return nextField;
+
     return null;
   }
 
