@@ -295,6 +295,9 @@ public class Console extends Application
 
     if (screen != null)
       screen.close ();
+
+    if (pluginsStage != null)
+      pluginsStage.closeClassLoader ();
   }
 
   private void savePreferences ()

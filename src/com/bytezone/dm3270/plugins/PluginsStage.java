@@ -1,9 +1,21 @@
 package com.bytezone.dm3270.plugins;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.prefs.Preferences;
 
 import com.bytezone.dm3270.application.ConsolePane;
@@ -39,6 +51,7 @@ public class PluginsStage extends PreferencesStage
 // -----------------------------------------------------------------------------------//
 {
   private static final int MAX_PLUGINS = 10;
+  private static final String PLUGINS_DIR = "plugins";
   private static KeyCode[] keyCodes =
       { KeyCode.DIGIT1, KeyCode.DIGIT2, KeyCode.DIGIT3, KeyCode.DIGIT4, KeyCode.DIGIT5,
         KeyCode.DIGIT6, KeyCode.DIGIT7, KeyCode.DIGIT8, KeyCode.DIGIT9, KeyCode.DIGIT0 };
@@ -52,6 +65,7 @@ public class PluginsStage extends PreferencesStage
   private ScreenDimensions screenDimensions;
   private int sequence;
   private ConsolePane consolePane;
+  private URLClassLoader pluginClassLoader;
 
   // ---------------------------------------------------------------------------------//
   public PluginsStage (Preferences prefs)
@@ -60,7 +74,10 @@ public class PluginsStage extends PreferencesStage
     super (prefs);
     setTitle ("Plugin Manager");
 
+    buildPluginClassLoader ();
     readPrefs ();
+    autoRegisterDiscoveredPlugins ();
+    savePrefs ();
 
     editMenuItem.setOnAction (e -> this.show ());
 
@@ -481,7 +498,23 @@ public class PluginsStage extends PreferencesStage
       {
         try
         {
-          Class<?> c = Class.forName (candidate);
+          // Try the plugin classloader first (JARs in plugins/ folder),
+          // then fall back to the default application classloader.
+          Class<?> c = null;
+          if (pluginClassLoader != null)
+          {
+            try
+            {
+              c = pluginClassLoader.loadClass (candidate);
+            }
+            catch (ClassNotFoundException ignored)
+            {
+              // Not found in external JARs, will try app classloader below.
+            }
+          }
+          if (c == null)
+            c = Class.forName (candidate);
+
           if (!Plugin.class.isAssignableFrom (c))
           {
             System.out.printf ("Plugin does not implement Plugin: %s%n", candidate);
@@ -540,5 +573,184 @@ public class PluginsStage extends PreferencesStage
 
       return candidates;
     }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  // Plugin ClassLoader — loads JARs from the plugins/ directory
+  // ---------------------------------------------------------------------------------//
+
+  // ---------------------------------------------------------------------------------//
+  private void buildPluginClassLoader ()
+  // ---------------------------------------------------------------------------------//
+  {
+    Path pluginsPath = Paths.get (PLUGINS_DIR).toAbsolutePath ();
+
+    if (!Files.isDirectory (pluginsPath))
+    {
+      try
+      {
+        Files.createDirectories (pluginsPath);
+        System.out.println ("Created plugins directory: " + pluginsPath);
+      }
+      catch (IOException e)
+      {
+        System.out.println ("Could not create plugins directory: " + e.getMessage ());
+        return;
+      }
+    }
+
+    File[] jarFiles = pluginsPath.toFile ().listFiles (
+        (dir, name) -> name.toLowerCase ().endsWith (".jar"));
+
+    if (jarFiles == null || jarFiles.length == 0)
+    {
+      System.out.println ("No plugin JARs found in: " + pluginsPath);
+      return;
+    }
+
+    try
+    {
+      URL[] urls = new URL[jarFiles.length];
+      for (int i = 0; i < jarFiles.length; i++)
+      {
+        urls[i] = jarFiles[i].toURI ().toURL ();
+        System.out.println ("Loaded plugin JAR: " + jarFiles[i].getName ());
+      }
+      pluginClassLoader = new URLClassLoader (urls, getClass ().getClassLoader ());
+    }
+    catch (IOException e)
+    {
+      System.out.println ("Error loading plugin JARs: " + e.getMessage ());
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  // Auto-discovery — scans JARs for classes implementing Plugin
+  // ---------------------------------------------------------------------------------//
+
+  // ---------------------------------------------------------------------------------//
+  private List<String[]> discoverPluginsInJars ()
+  // ---------------------------------------------------------------------------------//
+  {
+    List<String[]> discovered = new ArrayList<> ();
+
+    if (pluginClassLoader == null)
+      return discovered;
+
+    Path pluginsPath = Paths.get (PLUGINS_DIR).toAbsolutePath ();
+    File[] jarFiles = pluginsPath.toFile ().listFiles (
+        (dir, name) -> name.toLowerCase ().endsWith (".jar"));
+
+    if (jarFiles == null)
+      return discovered;
+
+    for (File jarFile : jarFiles)
+    {
+      try (JarFile jar = new JarFile (jarFile))
+      {
+        Enumeration<JarEntry> entries = jar.entries ();
+        while (entries.hasMoreElements ())
+        {
+          JarEntry entry = entries.nextElement ();
+          String entryName = entry.getName ();
+
+          if (!entryName.endsWith (".class") || entryName.contains ("$"))
+            continue;
+
+          String className =
+              entryName.replace ('/', '.').substring (0, entryName.length () - 6);
+
+          try
+          {
+            Class<?> c = pluginClassLoader.loadClass (className);
+            if (Plugin.class.isAssignableFrom (c)
+                && !c.isInterface ()
+                && !java.lang.reflect.Modifier.isAbstract (c.getModifiers ()))
+            {
+              String simpleName = c.getSimpleName ();
+              discovered.add (new String[] { simpleName, className });
+              System.out.println ("Discovered plugin: " + className);
+            }
+          }
+          catch (ClassNotFoundException | LinkageError e)
+          {
+            // class cannot be loaded, skip it
+          }
+        }
+      }
+      catch (IOException e)
+      {
+        System.out.println ("Error scanning JAR: " + jarFile.getName ());
+      }
+    }
+
+    return discovered;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private void autoRegisterDiscoveredPlugins ()
+  // ---------------------------------------------------------------------------------//
+  {
+    List<String[]> discovered = discoverPluginsInJars ();
+    if (discovered.isEmpty ())
+      return;
+
+    // collect class names that are already registered
+    Set<String> registered = new HashSet<> ();
+    for (PluginEntry entry : plugins)
+    {
+      String cls = entry.className.getText ().trim ();
+      if (!cls.isEmpty ())
+        registered.add (cls);
+    }
+
+    // fill empty slots with newly discovered plugins
+    for (String[] pluginInfo : discovered)
+    {
+      String simpleName = pluginInfo[0];
+      String fullClassName = pluginInfo[1];
+
+      if (registered.contains (fullClassName))
+        continue;
+
+      // find the first empty slot
+      for (PluginEntry entry : plugins)
+      {
+        if (entry.name.getText ().trim ().isEmpty ()
+            && entry.className.getText ().trim ().isEmpty ())
+        {
+          entry.name.setText (simpleName);
+          entry.className.setText (fullClassName);
+          entry.activate.setSelected (true);
+          registered.add (fullClassName);
+          System.out.println ("Auto-registered plugin: " + fullClassName);
+          break;
+        }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public void closeClassLoader ()
+  // ---------------------------------------------------------------------------------//
+  {
+    if (pluginClassLoader != null)
+    {
+      try
+      {
+        pluginClassLoader.close ();
+      }
+      catch (IOException e)
+      {
+        e.printStackTrace ();
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public Path getPluginsDirectory ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return Paths.get (PLUGINS_DIR).toAbsolutePath ();
   }
 }
