@@ -245,7 +245,7 @@ public class PluginsStage extends PreferencesStage
     {
       menu.getItems ().add (new SeparatorMenuItem ());
       for (PluginEntry pluginEntry : plugins)
-        if (pluginEntry.isAutoActivate () && pluginEntry.plugin.doesRequest ())
+        if (pluginEntry.isAutoActivate () && pluginEntry.plugin != null && pluginEntry.plugin.doesRequest ())
           menu.getItems ().add (pluginEntry.requestMenuItem);
     }
   }
