@@ -41,6 +41,8 @@ public class SiteListStage extends PreferencesStage
     fields.add (new PreferenceField ("Ext", 50, Type.BOOLEAN));
     fields.add (new PreferenceField ("Model", 40, Type.NUMBER));
     fields.add (new PreferenceField ("Plugins", 50, Type.BOOLEAN));
+    fields.add (new PreferenceField ("SSL", 50, Type.BOOLEAN));
+    fields.add (new PreferenceField ("Trust All", 70, Type.BOOLEAN));
     fields.add (new PreferenceField ("Save folder", 80, Type.TEXT));
 
     VBox vbox = getHeadings ();
@@ -71,6 +73,14 @@ public class SiteListStage extends PreferencesStage
           hbox.getChildren ().add (box);
         }
       }
+
+      site.ssl.selectedProperty().addListener((obs, oldVal, newVal) -> {
+          if (newVal && "23".equals(site.port.getText()))
+              site.port.setText("992");
+          else if (!newVal && "992".equals(site.port.getText()))
+              site.port.setText("23");
+      });
+
       vbox.getChildren ().add (hbox);
     }
 
@@ -107,6 +117,8 @@ public class SiteListStage extends PreferencesStage
       boolean extended = prefs.getBoolean (keyName + "Extended", true);
       int model = prefs.getInt (keyName + "Model", 2);
       boolean plugins = prefs.getBoolean (keyName + "Plugins", false);
+      boolean ssl = prefs.getBoolean (keyName + "Ssl", false);
+      boolean trustAll = prefs.getBoolean (keyName + "TrustAll", false);
       String folder = prefs.get (keyName + "Folder", "");
 
       if (port <= 0)
@@ -116,10 +128,10 @@ public class SiteListStage extends PreferencesStage
 
       Site site = null;
       if (name.isEmpty () || url.isEmpty ())
-        site = new Site ("", "", 23, false, 2, false, "");
+        site = new Site ("", "", 23, false, 2, false, false, false, "");
       else
       {
-        site = new Site (name, url, port, extended, model, plugins, folder);
+        site = new Site (name, url, port, extended, model, plugins, ssl, trustAll, folder);
         siteNames.add (name);
       }
       sites.add (site);
@@ -141,6 +153,8 @@ public class SiteListStage extends PreferencesStage
       String folder = site.folder.getText ();
       boolean extended = site.getExtended ();
       boolean plugins = site.getPlugins ();
+      boolean ssl = site.getSsl ();
+      boolean trustAll = site.getTrustAll ();
 
       prefs.put (keyName + "Name", name);
       prefs.put (keyName + "URL", site.url.getText ());
@@ -148,6 +162,8 @@ public class SiteListStage extends PreferencesStage
       prefs.putBoolean (keyName + "Extended", extended);
       prefs.put (keyName + "Model", site.model.getText ());
       prefs.putBoolean (keyName + "Plugins", plugins);
+      prefs.putBoolean (keyName + "Ssl", ssl);
+      prefs.putBoolean (keyName + "TrustAll", trustAll);
       prefs.put (keyName + "Folder", folder);
 
       if (name != null && !name.isEmpty ())

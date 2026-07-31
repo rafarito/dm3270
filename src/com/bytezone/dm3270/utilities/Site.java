@@ -14,16 +14,18 @@ public class Site
   public final CheckBox extended = new CheckBox ();
   public final TextField model = new TextField ();
   public final CheckBox plugins = new CheckBox ();
+  public final CheckBox ssl = new CheckBox ();
+  public final CheckBox trustAll = new CheckBox ();
   public final TextField folder = new TextField ();
 
   private final TextField[] textFieldList =
-      { name, url, port, null, model, null, folder };
+      { name, url, port, null, model, null, null, null, folder };
   private final CheckBox[] checkBoxFieldList =
-      { null, null, null, extended, null, plugins, null };
+      { null, null, null, extended, null, plugins, ssl, trustAll, null };
 
   // ---------------------------------------------------------------------------------//
   public Site (String name, String url, int port, boolean extended, int model,
-      boolean plugins, String folder)
+      boolean plugins, boolean ssl, boolean trustAll, String folder)
   // ---------------------------------------------------------------------------------//
   {
     this.name.setText (name);
@@ -32,6 +34,8 @@ public class Site
     this.extended.setSelected (extended);
     this.model.setText (model == 2 && name.isEmpty () ? "" : model + "");
     this.plugins.setSelected (plugins);
+    this.ssl.setSelected (ssl);
+    this.trustAll.setSelected (trustAll);
     this.folder.setText (folder);
   }
 
@@ -114,6 +118,20 @@ public class Site
   // ---------------------------------------------------------------------------------//
   {
     return folder.getText ();
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public boolean getSsl ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return ssl.isSelected ();
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public boolean getTrustAll ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return trustAll.isSelected ();
   }
 
   // ---------------------------------------------------------------------------------//

@@ -320,11 +320,15 @@ public class ConsolePane extends BorderPane
 
     telnetListener = new TelnetListener (screen, telnetState);
     terminalServer =
-        new TerminalServer (server.getURL (), server.getPort (), telnetListener);
+        new TerminalServer (server.getURL (), server.getPort (), telnetListener,
+                            server.getSsl (), server.getTrustAll ());
     telnetState.setTerminalServer (terminalServer);
 
     terminalServerThread = new Thread (terminalServer);
     terminalServerThread.start ();
+
+    if (server.getSsl () && server.getTrustAll ())
+      setStatusText ("⚠ SSL sem validação de certificado (Trust All)");
   }
 
   public void disconnect ()

@@ -6,6 +6,8 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.time.LocalDateTime;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 
 import com.bytezone.dm3270.streams.TelnetSocket.Source;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
@@ -16,7 +18,9 @@ public class TerminalServer implements Runnable
 {
   private final int serverPort;
   private final String serverURL;
-  private final Socket serverSocket = new Socket ();
+  private final boolean useTls;
+  private final boolean trustAll;
+  private Socket serverSocket;
   private InputStream serverIn;
   private OutputStream serverOut;
 
@@ -28,12 +32,15 @@ public class TerminalServer implements Runnable
   private final boolean debug = false;
 
   // ---------------------------------------------------------------------------------//
-  public TerminalServer (String serverURL, int serverPort, BufferListener listener)
+  public TerminalServer (String serverURL, int serverPort, BufferListener listener,
+      boolean useTls, boolean trustAll)
   // ---------------------------------------------------------------------------------//
   {
     this.serverPort = serverPort;
     this.serverURL = serverURL;
     this.telnetListener = listener;
+    this.useTls = useTls;
+    this.trustAll = trustAll;
   }
 
   // ---------------------------------------------------------------------------------//
@@ -43,7 +50,7 @@ public class TerminalServer implements Runnable
   {
     try
     {
-      serverSocket.connect (new InetSocketAddress (serverURL, serverPort));
+      serverSocket = createSocket ();
 
       serverIn = serverSocket.getInputStream ();
       serverOut = serverSocket.getOutputStream ();
@@ -90,6 +97,35 @@ public class TerminalServer implements Runnable
   }
 
   // ---------------------------------------------------------------------------------//
+  private Socket createSocket () throws IOException
+  // ---------------------------------------------------------------------------------//
+  {
+    if (!useTls)
+    {
+      Socket s = new Socket ();
+      s.connect (new InetSocketAddress (serverURL, serverPort));
+      return s;
+    }
+
+    try
+    {
+      SSLSocketFactory factory = trustAll
+          ? (SSLSocketFactory) SslContextFactory.createTrustAll ().getSocketFactory ()
+          : (SSLSocketFactory) SslContextFactory.createDefault ().getSocketFactory ();
+
+      SSLSocket sslSocket = (SSLSocket) factory.createSocket (serverURL, serverPort);
+      sslSocket.setEnabledProtocols (new String[] { "TLSv1.2", "TLSv1.3" });
+      sslSocket.startHandshake ();
+      return sslSocket;
+    }
+    catch (Exception e)
+    {
+      throw new IOException ("Falha no handshake TLS com " + serverURL
+          + ":" + serverPort + " — " + e.getMessage (), e);
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
   synchronized void write (byte[] buffer)
   // ---------------------------------------------------------------------------------//
   {
@@ -129,7 +165,7 @@ public class TerminalServer implements Runnable
       serverIn = null;
       serverOut = null;
 
-      if (serverSocket != null)
+      if (serverSocket != null && !serverSocket.isClosed ())
         serverSocket.close ();
 
       if (telnetListener != null)
