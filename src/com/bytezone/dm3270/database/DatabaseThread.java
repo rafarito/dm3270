@@ -2,6 +2,7 @@ package com.bytezone.dm3270.database;
 
 import static com.bytezone.dm3270.database.DatabaseRequest.Command.LIST;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -52,19 +53,21 @@ public class DatabaseThread extends Thread
   // ---------------------------------------------------------------------------------//
   {
     this.databaseName = databaseName;
+    this.queue = queue;
 
     try
     {
       Class.forName ("org.sqlite.JDBC");     // add sqlite JDBC Driver to DriverManager
       Path path = Paths.get (System.getProperty ("user.home"), "dm3270", "databases",
           databaseName);
+      Files.createDirectories (path.getParent ());
       String connectionName = "jdbc:sqlite:" + path.toString ();
       connection = DriverManager.getConnection (connectionName);
       connection.setAutoCommit (true);
-      this.queue = queue;
     }
-    catch (ClassNotFoundException | SQLException e)
+    catch (Exception e)
     {
+      cancelled = true;
       e.printStackTrace ();
     }
   }
