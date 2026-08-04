@@ -2,8 +2,8 @@ name: Build and Release CI
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*' # A pipeline vai rodar sempre que você enviar uma tag que comece com 'v' (ex: v1.0.0)
 
 jobs:
   build-and-release:
@@ -25,17 +25,13 @@ jobs:
       - name: Build with Maven
         run: mvn clean package
 
-      - name: Extract version from pom.xml
-        id: get_version
-        run: |
-          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          echo "TAG_NAME=v${VERSION}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+      - name: Renomear o executavel
+        run: mv target/dm3270-*-all.jar target/dm3270-${{ github.ref_name }}.jar
 
       - name: Create Release and Upload JAR
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.TAG_NAME }}
-          name: Release ${{ env.TAG_NAME }}
-          files: target/dm3270-*-all.jar 
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: target/dm3270-${{ github.ref_name }}.jar 
           generate_release_notes: true
