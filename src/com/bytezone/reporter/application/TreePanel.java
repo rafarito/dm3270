@@ -44,7 +44,15 @@ class TreePanel
   {
     if (Files.notExists (path) || !Files.isDirectory (path))
     {
-      System.out.println (path + " not valid");
+      try
+      {
+        Files.createDirectories (path);
+      }
+      catch (java.io.IOException e)
+      {
+        System.out.println ("Could not create " + path);
+        e.printStackTrace ();
+      }
     }
 
     treePath = path;
