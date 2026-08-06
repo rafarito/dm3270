@@ -29,6 +29,7 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 
 public class ConsolePane extends BorderPane
@@ -60,6 +61,7 @@ public class ConsolePane extends BorderPane
   private HBox historyBox;                          // status display area
   private final Label historyLabel = new Label ();  // status text
   private final BorderPane statusPane;
+  private StackPane canvasContainer;
 
   private final MenuBar menuBar = new MenuBar ();
   private MenuItem menuItemAssistant;
@@ -80,7 +82,9 @@ public class ConsolePane extends BorderPane
     screen.getScreenCursor ().addFieldChangeListener (this);
     screen.getScreenCursor ().addCursorMoveListener (this);
 
-    setMargin (screen, new Insets (MARGIN, MARGIN, 0, MARGIN));
+    canvasContainer = new StackPane (screen);
+    canvasContainer.setStyle ("-fx-background-color: black;");
+    setMargin (canvasContainer, new Insets (MARGIN, MARGIN, 0, MARGIN));
 
     menuBar.getMenus ().addAll (getCommandsMenu (), fontManager.getFontMenu ());
 
@@ -89,7 +93,7 @@ public class ConsolePane extends BorderPane
       menuBar.getMenus ().add (pluginsStage.getMenu (server));
 
     setTop (menuBar);
-    setCenter (screen);
+    setCenter (canvasContainer);
     setBottom (statusPane = getStatusBar ());
     menuBar.setUseSystemMenuBar (SYSTEM_MENUBAR);
 
@@ -246,7 +250,7 @@ public class ConsolePane extends BorderPane
     else                                        // in screen history mode
     {
       screenHistory = null;
-      setCenter (screen);
+      setCenter (canvasContainer);
       setBottom (statusPane);
       screen.resume ();
       setStyle (null);
@@ -384,5 +388,19 @@ public class ConsolePane extends BorderPane
   {
     setStatusText (evt.keyboardLocked ? evt.keyName : "       ");
     insertMode.setText (evt.insertMode ? "Insert" : "      ");
+  }
+
+  // called by Console resize listener when the user resizes the window
+  public void handleResize (double sceneWidth, double sceneHeight)
+  {
+    double menuHeight = menuBar.getHeight ();
+    double statusHeight = statusPane.getHeight ();
+    double margins = MARGIN * 2;
+
+    double availableWidth = sceneWidth - margins;
+    double availableHeight = sceneHeight - menuHeight - statusHeight - MARGIN;
+
+    if (availableWidth > 0 && availableHeight > 0)
+      screen.resizeToFit (availableWidth, availableHeight);
   }
 }
