@@ -25,4 +25,6 @@ public interface FontManager
   public Font getStatusBarFont ();
 
   public FontDetails getFontDetails ();
+
+  public void setFontToFit (double maxCharWidth, double maxCharHeight);
 }

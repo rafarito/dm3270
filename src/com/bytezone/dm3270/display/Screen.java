@@ -483,6 +483,12 @@ public class Screen extends Canvas
   // called from FontManager.setFont()
   void fontChanged (FontDetails fontDetails)
   {
+    fontChanged (fontDetails, true);
+  }
+
+  // called with adjustStage=false when resize comes from user dragging the window
+  void fontChanged (FontDetails fontDetails, boolean adjustStage)
+  {
     contextManager.setFontDetails (fontDetails);
 
     // always use the largest available screen
@@ -498,10 +504,24 @@ public class Screen extends Canvas
 
     if (screenPositions != null)
     {
-      ((Stage) getScene ().getWindow ()).sizeToScene ();
+      if (adjustStage && getScene () != null && getScene ().getWindow () != null)
+        ((Stage) getScene ().getWindow ()).sizeToScene ();
       eraseScreen ();
       draw ();
     }
+  }
+
+  // called by ConsolePane.handleResize() when the user resizes the window
+  public void resizeToFit (double availableWidth, double availableHeight)
+  {
+    ScreenDimensions dims = alternateScreenDimensions == null
+        ? defaultScreenDimensions : alternateScreenDimensions;
+
+    double maxCharWidth = (availableWidth - dims.xOffset * 2) / dims.columns;
+    double maxCharHeight = (availableHeight - dims.yOffset * 2) / dims.rows;
+
+    if (maxCharWidth > 0 && maxCharHeight > 0)
+      fontManager.setFontToFit (maxCharWidth, maxCharHeight);
   }
 
   // ---------------------------------------------------------------------------------//
