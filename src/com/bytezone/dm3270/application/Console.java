@@ -75,7 +75,7 @@ public class Console extends Application
   {
     this.primaryStage = primaryStage;
     primaryStage.setOnCloseRequest (e -> Platform.exit ());
-    primaryStage.setResizable (false);
+    primaryStage.setResizable (true);
 
     pluginsStage = new PluginsStage (prefs);
     optionStage = new OptionStage (prefs, pluginsStage);
@@ -246,6 +246,14 @@ public class Console extends Application
     scene.setOnKeyTyped (new ConsoleKeyEvent (screen));
 
     primaryStage.sizeToScene ();
+    primaryStage.setMinWidth (640);
+    primaryStage.setMinHeight (480);
+
+    scene.widthProperty ().addListener ((obs, oldVal, newVal) ->
+        consolePane.handleResize (newVal.doubleValue (), scene.getHeight ()));
+    scene.heightProperty ().addListener ((obs, oldVal, newVal) ->
+        consolePane.handleResize (scene.getWidth (), newVal.doubleValue ()));
+
     primaryStage.show ();
   }
 
