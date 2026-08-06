@@ -65,7 +65,7 @@ class FontManagerType1 implements FontManager
   @Override
   public int getFontSize ()
   {
-    return fontDetails.size;
+    return (int) fontDetails.size;
   }
 
   @Override
@@ -184,16 +184,58 @@ class FontManagerType1 implements FontManager
   {
     String name = getSelectedFont ();
     int size = getSelectedSize ();
-    if (name.equals (fontDetails.name) && size == fontDetails.size)
+    if (name.equals (fontDetails.name) && (int) fontDetails.size == size)
       return;
 
     setFont (name, size);
   }
 
-  private void setFont (String name, int size)
+  private void setFont (String name, double size)
   {
     fontDetails = new FontDetails (name, size, Font.font (name, size));
-    statusBarFont = Font.font (name, size - 2);
+    statusBarFont = Font.font (name, Math.max (size - 2, 8));
     screen.fontChanged (fontDetails);
+  }
+
+  @Override
+  public void setFontToFit (double maxCharWidth, double maxCharHeight)
+  {
+    String name = getSelectedFont ();
+
+    // binary search for the largest font size that fits
+    double low = 4.0;
+    double high = 200.0;
+    double bestSize = low;
+
+    while (high - low > 0.5)
+    {
+      double mid = (low + high) / 2.0;
+      FontDetails test = new FontDetails (name, mid, Font.font (name, mid));
+
+      if (test.width <= maxCharWidth && test.height <= maxCharHeight)
+      {
+        bestSize = mid;
+        low = mid;
+      }
+      else
+      {
+        high = mid;
+      }
+    }
+
+    if (bestSize < 4.0)
+      bestSize = 4.0;
+
+    FontDetails newFontDetails = new FontDetails (name, bestSize, Font.font (name, bestSize));
+
+    // only update if the size changed meaningfully (avoid redraw loops)
+    if (fontDetails != null
+        && Math.abs (newFontDetails.width - fontDetails.width) < 1
+        && Math.abs (newFontDetails.height - fontDetails.height) < 1)
+      return;
+
+    fontDetails = newFontDetails;
+    statusBarFont = Font.font (name, Math.max (bestSize - 2, 8));
+    screen.fontChanged (fontDetails, false);
   }
 }

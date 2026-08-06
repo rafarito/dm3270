@@ -13,9 +13,9 @@ public class FontDetails
   public final Font font;
 
   public final String name;
-  public final int size;
+  public final double size;
 
-  public FontDetails (String name, int size, Font font)
+  public FontDetails (String name, double size, Font font)
   {
     this.font = font;
     this.name = name;
