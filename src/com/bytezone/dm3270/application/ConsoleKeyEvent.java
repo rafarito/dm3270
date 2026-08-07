@@ -26,6 +26,7 @@ public class ConsoleKeyEvent implements EventHandler<KeyEvent>
     String c = e.getCharacter ();
     if (c.isEmpty ())
       return;
+
     char ch = c.charAt (0);
 
     if (screen.isKeyboardLocked () || e.isMetaDown () || e.isControlDown ()
@@ -48,6 +49,8 @@ public class ConsoleKeyEvent implements EventHandler<KeyEvent>
 
       return;
     }
+
+    screen.getScreenSelection ().clearSelection ();
 
     if (ch >= 32 && ch < 0x7F)
     {

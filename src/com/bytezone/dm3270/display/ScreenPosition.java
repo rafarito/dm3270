@@ -36,6 +36,7 @@ public final class ScreenPosition
   private byte value;
   private boolean isGraphics;
   private boolean isVisible = true;
+  private boolean selected = false;
   private ScreenContext screenContext;
 
   // ---------------------------------------------------------------------------------//
@@ -61,6 +62,16 @@ public final class ScreenPosition
 
     this.screenContext = screenContext;
     reset ();
+  }
+
+  void setSelected (boolean selected)
+  {
+    this.selected = selected;
+  }
+
+  boolean isSelected ()
+  {
+    return selected;
   }
 
   // called from this()
@@ -325,15 +336,21 @@ public final class ScreenPosition
 
     // Draw background
     if (isVisible)
-      gc.setFill (hasCursor ^ screenContext.reverseVideo ? screenContext.foregroundColor
+    {
+      boolean invert = hasCursor ^ screenContext.reverseVideo ^ selected;
+      gc.setFill (invert ? screenContext.foregroundColor
           : screenContext.backgroundColor);
+    }
     else
+    {
+      boolean invert = hasCursor ^ selected;
       gc.setFill (
-          hasCursor ? screenContext.foregroundColor : screenContext.backgroundColor);
+          invert ? screenContext.foregroundColor : screenContext.backgroundColor);
+    }
 
     gc.fillRect (x, y, fontDetails.width, fontDetails.height);
 
-    Color foreground = hasCursor ^ screenContext.reverseVideo
+    Color foreground = hasCursor ^ screenContext.reverseVideo ^ selected
         ? screenContext.backgroundColor : screenContext.foregroundColor;
 
     // Draw foreground
