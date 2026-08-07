@@ -41,6 +41,11 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 
 // -----------------------------------------------------------------------------------//
 public class Screen extends Canvas
@@ -78,6 +83,7 @@ public class Screen extends Canvas
 
   private final Pen pen;
   private final Cursor cursor;
+  private final ScreenSelection screenSelection;
   private ScreenOption currentScreen;
 
   private byte currentAID;
@@ -115,6 +121,8 @@ public class Screen extends Canvas
 
     cursor = new Cursor (this, screenDimensions);
     gc = getGraphicsContext2D ();
+    screenSelection = new ScreenSelection (this);
+    setupMouseHandlers ();
 
     contextManager = new ContextManager ();
     fontManager = FontManager.getInstance (this, prefs);
@@ -153,6 +161,133 @@ public class Screen extends Canvas
     this.pluginsStage = pluginsStage;
     pluginsStage.setScreen (this);
   }
+
+  // ---------------------------------------------------------------------------------//
+  private void setupMouseHandlers ()
+  // ---------------------------------------------------------------------------------//
+  {
+    setOnMousePressed (this::handleMousePressed);
+    setOnMouseDragged (this::handleMouseDragged);
+    setOnMouseReleased (this::handleMouseReleased);
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private void handleMousePressed (MouseEvent event)
+  // ---------------------------------------------------------------------------------//
+  {
+    // Clear any previous selection
+    screenSelection.clearSelection ();
+    
+    int position = mouseToPosition (event.getX (), event.getY ());
+    if (position >= 0)
+    {
+      // Move cursor first, then start selection so selection visual takes priority
+      if (cursor.isVisible ())
+        cursor.moveTo (position);
+
+      screenSelection.startSelection (position);
+    }
+    
+    requestFocus ();
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private void handleMouseDragged (MouseEvent event)
+  // ---------------------------------------------------------------------------------//
+  {
+    int position = mouseToPosition (event.getX (), event.getY ());
+    if (position >= 0)
+      screenSelection.extendSelection (position);
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private void handleMouseReleased (MouseEvent event)
+  // ---------------------------------------------------------------------------------//
+  {
+    int position = mouseToPosition (event.getX (), event.getY ());
+    if (position >= 0)
+      screenSelection.endSelection (position);
+  }
+
+  // ---------------------------------------------------------------------------------//
+  int mouseToPosition (double mouseX, double mouseY)
+  // ---------------------------------------------------------------------------------//
+  {
+    FontDetails fontDetails = fontManager.getFontDetails ();
+    if (fontDetails == null)
+      return -1;
+
+    ScreenDimensions dims = getScreenDimensions ();
+
+    int col = (int) ((mouseX - dims.xOffset) / fontDetails.width);
+    int row = (int) ((mouseY - dims.yOffset) / fontDetails.height);
+
+    // Clamp to valid range
+    col = Math.max (0, Math.min (dims.columns - 1, col));
+    row = Math.max (0, Math.min (dims.rows - 1, row));
+
+    return row * dims.columns + col;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  void redrawRange (int from, int to)
+  // ---------------------------------------------------------------------------------//
+  {
+    int cursorPos = cursor.getLocation ();
+    for (int i = from; i <= to; i++)
+    {
+      boolean hasCursor = i == cursorPos && cursor.isVisible ()
+          && !screenPositions[i].isSelected ();
+      screenPositions[i].draw (hasCursor);
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  void redrawSelection (int oldMin, int oldMax, int newMin, int newMax)
+  // ---------------------------------------------------------------------------------//
+  {
+    // Redraw only the positions that changed
+    int from = Math.min (oldMin, newMin);
+    int to = Math.max (oldMax, newMax);
+    redrawRange (from, to);
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public void copySelection ()
+  // ---------------------------------------------------------------------------------//
+  {
+    if (screenSelection.hasSelection ())
+    {
+      String text = screenSelection.getSelectedText ();
+      ClipboardContent content = new ClipboardContent ();
+      content.putString (text);
+      Clipboard.getSystemClipboard ().setContent (content);
+
+      // Visual flash feedback: briefly clear and restore the selection highlight
+      screenSelection.flashSelection ();
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public void pasteText ()
+  // ---------------------------------------------------------------------------------//
+  {
+    Clipboard clipboard = Clipboard.getSystemClipboard ();
+    if (clipboard.hasString ())
+    {
+      String text = clipboard.getString ();
+      if (text != null && !text.isEmpty ())
+        cursor.typeText (text);
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public ScreenSelection getScreenSelection ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return screenSelection;
+  }
+
 
   // ---------------------------------------------------------------------------------//
   public ScreenWatcher getScreenWatcher ()

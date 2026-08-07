@@ -34,6 +34,35 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
 
     KeyCode keyCodePressed = keyEvent.getCode ();
 
+    // Handle copy/paste shortcuts before clearing selection
+    if (keyEvent.isShortcutDown ())
+    {
+      // Ignore modifier keys pressed alone (Ctrl, Meta, etc.)
+      if (keyCodePressed.isModifierKey ())
+        return;
+
+      if (keyCodePressed == KeyCode.C)
+      {
+        screen.copySelection ();
+        keyEvent.consume ();
+        return;
+      }
+      if (keyCodePressed == KeyCode.V)
+      {
+        screen.getScreenSelection ().clearSelection ();
+        screen.pasteText ();
+        keyEvent.consume ();
+        return;
+      }
+      // For other shortcut combos, clear selection
+      screen.getScreenSelection ().clearSelection ();
+      return;
+    }
+
+    // Clear selection for all other non-modifier key presses
+    if (!keyCodePressed.isModifierKey ())
+      screen.getScreenSelection ().clearSelection ();
+
     if (screen.isKeyboardLocked ())           // could be in screen history mode
     {
       if (keyCodePressed == KeyCode.LEFT)

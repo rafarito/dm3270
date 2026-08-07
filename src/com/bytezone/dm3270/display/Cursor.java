@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import com.bytezone.dm3270.utilities.Dm3270Utility;
+
 public class Cursor
 {
   private static final boolean WITH_CURSOR = true;
@@ -101,6 +103,17 @@ public class Cursor
         newPosition = currentField.getNextUnprotectedField ().getFirstLocation ();
 
       moveTo (newPosition);
+    }
+  }
+
+  public void typeText (String text)
+  {
+    if (text == null || text.isEmpty ())
+      return;
+    for (char ch : text.toCharArray ())
+    {
+      if (ch >= 32 && ch < 0x7F)
+        typeChar ((byte) Dm3270Utility.asc2ebc[ch]);
     }
   }
 
