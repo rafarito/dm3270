@@ -3,7 +3,8 @@ name: Build and Release CI
 on:
   push:
     tags:
-      - 'v*' # A pipeline vai rodar sempre que você enviar uma tag que comece com 'v' (ex: v1.0.0)
+      - 'v*'
+      - 'V*'
 
 jobs:
   build-and-release:
