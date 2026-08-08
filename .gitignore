@@ -4,4 +4,6 @@
 build.xml
 /target/
 *.md
+!README.md
+!TESTING.md
 plugins/*
