@@ -17,6 +17,95 @@ parte das verificacoes.
 
 ---
 
+## Metricas da suite
+
+### Cobertura — JaCoCo
+
+Sai junto com `mvn test`, sem comando extra:
+
+```
+dm3270           target/site/jacoco/index.html
+dm3270-plugins   DownloadDataset/target/site/jacoco/index.html
+```
+
+Abra o `index.html` no navegador e navegue ate a classe: as linhas ficam verdes
+(cobertas), amarelas (branch parcialmente coberto) ou vermelhas (nao executadas). Os
+mesmos dados estao em `jacoco.csv` e `jacoco.xml`, no mesmo diretorio, para scripting.
+
+### Mutation testing — PIT
+
+Nao roda no ciclo padrao, porque leva minutos:
+
+```bash
+mvn test-compile pitest:mutationCoverage
+```
+
+```
+dm3270           target/pit-reports/index.html
+dm3270-plugins   DownloadDataset/target/pit-reports/index.html
+```
+
+O PIT altera o bytecode (troca `>` por `>=`, inverte condicoes, remove chamadas) e
+verifica se algum teste falha. Um mutante que **sobrevive** e uma linha que os testes
+executam mas nao verificam de verdade — e o tipo de buraco que a cobertura sozinha nao
+mostra.
+
+`targetClasses` esta restrito aos pacotes que possuem testes. Apontar o PIT para a camada
+JavaFX geraria milhares de mutantes sem cobertura e afogaria o sinal util.
+
+### Como ler os dois numeros do PIT
+
+| Metrica | O que significa |
+|---|---|
+| **Mutation coverage** | mutantes mortos / **todos** os mutantes. Cai junto com o codigo que nao tem teste nenhum. |
+| **Test strength** | mutantes mortos / mutantes **cobertos**. Ignora o codigo sem teste e mede so a qualidade dos testes que existem. |
+
+Num projeto com muita UI sem teste, o primeiro numero fica baixo por construcao; o segundo
+e o que diz se os testes escritos valem alguma coisa.
+
+### Situacao atual
+
+| | `dm3270` | `dm3270-plugins` |
+|---|---:|---:|
+| Cobertura de instrucoes (projeto todo) | 14% | — |
+| Cobertura das classes com teste | 53% | 53% |
+| Mutantes gerados | 1676 | 215 |
+| Mutation coverage | 49% | 42% |
+| **Test strength** | **85%** | **74%** |
+
+Os 14% do projeto todo refletem a camada JavaFX inteira sem teste, nao a qualidade da
+suite. Nas classes efetivamente cobertas, `BufferAddress`, `ScreenDimensions` e os dois
+`TextMaker` matam 100% dos mutantes; `TelnetProcessor` 88%; `StartFieldAttribute` 85%;
+`Dm3270Utility` 78%.
+
+### Nem todo sobrevivente e um teste faltando
+
+Um mutante pode ser **equivalente**: a alteracao no bytecode nao muda o comportamento
+observavel, entao nenhum teste pode mata-lo. Ha um exemplo exato em
+`EbcdicTextMaker.getStringBuilder`:
+
+```java
+if (value != 0x40 && (value < 0x4B || value == 0xFF))
+  textLine.append ('.');
+else
+  textLine.append ((char) ebc2asc[value]);
+```
+
+O PIT troca `value < 0x4B` por `value <= 0x4B`, o que so muda o caminho tomado quando
+`value` e exatamente `0x4B`. Acontece que `0x4B` em EBCDIC **e** o ponto final: o ramo
+original vai para o `else` e escreve `ebc2asc[0x4B]`, que tambem e `'.'`. Os dois caminhos
+produzem o mesmo caractere.
+
+Por isso 100% de mutation score nao e a meta. Ao analisar sobreviventes, a primeira
+pergunta e "existe alguma entrada que distinga os dois comportamentos?" — se nao existe, o
+mutante e ruido.
+
+Nenhum limite minimo esta configurado — as ferramentas so reportam, nao quebram o build.
+Para transformar em trava depois que os numeros estabilizarem, use `jacoco:check` com uma
+`<rule>` ou `<mutationThreshold>` no PIT.
+
+---
+
 ## Mapa de modulos
 
 ### `dm3270` — 228 arquivos, 25 pacotes
@@ -96,8 +185,8 @@ O pacote `dm3270.streams` esta fora pelo mesmo motivo pratico: depende de socket
 | API de plugins | `PluginApiTest` | 27 |
 | Dimensoes de tela | `ScreenDimensionsTest` | 7 |
 | Registros (reporter) | `RecordMakerTest` | 22 |
-| Texto EBCDIC/ASCII (reporter) | `TextMakerTest` | 17 |
-| **`dm3270`** | | **381** |
+| Texto EBCDIC/ASCII (reporter) | `TextMakerTest` | 23 |
+| **`dm3270`** | | **387** |
 | Pagina de EDIT (plugin) | `DocumentPageTest` | 34 |
 | Montagem do documento (plugin) | `DocumentTest` | 10 |
 | **`dm3270-plugins`** | | **44** |
