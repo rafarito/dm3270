@@ -40,6 +40,15 @@ mvn clean package
 java -jar target/dm3270-1.0.0-SNAPSHOT-all.jar
 ```
 
+### Tests
+
+```bash
+mvn test
+```
+
+See [TESTING.md](TESTING.md) for the module map, which modules are covered, and why the
+JavaFX display layer is not yet under test.
+
 ### Connection
 Select a server from the drop-down list and click OK. If there are no servers listed yet, click the edit button.  
 ![Default Connection](resources/connect1.png?raw=true "default connection")
