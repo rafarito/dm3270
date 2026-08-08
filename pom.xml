@@ -15,6 +15,7 @@
     <maven.compiler.release>21</maven.compiler.release>
     <javafx.version>21.0.7</javafx.version>
     <main.class>com.bytezone.dm3270.application.Launcher</main.class>
+    <junit.version>5.12.2</junit.version>
   </properties>
 
   <dependencies>
@@ -47,10 +48,19 @@
       <artifactId>sqlite-jdbc</artifactId>
       <version>3.49.1.0</version>
     </dependency>
+
+    <!-- Testes -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
     <sourceDirectory>src</sourceDirectory>
+    <testSourceDirectory>test</testSourceDirectory>
 
     <resources>
       <resource>
@@ -68,6 +78,17 @@
         <version>3.14.0</version>
         <configuration>
           <release>${maven.compiler.release}</release>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.5.4</version>
+        <configuration>
+          <!-- as classes de protocolo usam assert para validar os buffers -->
+          <enableAssertions>true</enableAssertions>
+          <argLine>-Dfile.encoding=UTF-8 -Djava.awt.headless=true</argLine>
         </configuration>
       </plugin>
 
