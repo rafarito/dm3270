@@ -124,6 +124,43 @@ class TextMakerTest
     {
       assertEquals ("EBCDIC", maker.toString ());
     }
+
+    // -------------------------------------------------------------------------------//
+    @Nested
+    @DisplayName ("valores exatos de fronteira")
+    class Boundaries
+    // -------------------------------------------------------------------------------//
+    {
+      @Test
+      @DisplayName ("0x4A e mascarado, 0x4B e o primeiro byte imprimivel")
+      void printableRangeStartsAt4B ()
+      {
+        assertEquals (".", maker.getText (new byte[] { 0x4A }, 0, 1));
+        assertFalse (maker.test (new byte[] { 0x4A }, 0, 1));
+
+        assertTrue (maker.test (new byte[] { 0x4B }, 0, 1),
+            "0x4B esta dentro da faixa imprimivel");
+      }
+
+      @Test
+      @DisplayName ("0x40 (espaco) e a excecao aceita abaixo de 0x4B")
+      void spaceIsAccepted ()
+      {
+        assertEquals (" ", maker.getText (new byte[] { 0x40 }, 0, 1));
+        assertTrue (maker.test (new byte[] { 0x40 }, 0, 1));
+      }
+
+      @Test
+      @DisplayName ("a contagem de alfanumericos inclui 0xC1 e 0xF9, exclui as bordas")
+      void alphanumericRangeIsInclusive ()
+      {
+        assertEquals (1, maker.countAlphanumericBytes (new byte[] { (byte) 0xC1 }, 0, 1));
+        assertEquals (1, maker.countAlphanumericBytes (new byte[] { (byte) 0xF9 }, 0, 1));
+
+        assertEquals (0, maker.countAlphanumericBytes (new byte[] { (byte) 0xC0 }, 0, 1));
+        assertEquals (0, maker.countAlphanumericBytes (new byte[] { (byte) 0xFA }, 0, 1));
+      }
+    }
   }
 
   // ---------------------------------------------------------------------------------//
@@ -176,6 +213,46 @@ class TextMakerTest
     void identifiesItself ()
     {
       assertEquals ("ASCII", maker.toString ());
+    }
+
+    // -------------------------------------------------------------------------------//
+    @Nested
+    @DisplayName ("valores exatos de fronteira")
+    class Boundaries
+    // -------------------------------------------------------------------------------//
+    {
+      @Test
+      @DisplayName ("0x1F e mascarado, 0x20 (espaco) e o primeiro imprimivel")
+      void printableRangeStartsAtSpace ()
+      {
+        assertEquals (".", maker.getText (new byte[] { 0x1F }, 0, 1));
+        assertFalse (maker.test (new byte[] { 0x1F }, 0, 1));
+
+        assertEquals (" ", maker.getText (new byte[] { 0x20 }, 0, 1));
+        assertTrue (maker.test (new byte[] { 0x20 }, 0, 1));
+      }
+
+      @Test
+      @DisplayName ("0xBF e o ultimo imprimivel, 0xC0 ja e mascarado")
+      void printableRangeEndsBeforeC0 ()
+      {
+        assertEquals ("¿", maker.getText (new byte[] { (byte) 0xBF }, 0, 1));
+        assertTrue (maker.test (new byte[] { (byte) 0xBF }, 0, 1));
+
+        assertEquals (".", maker.getText (new byte[] { (byte) 0xC0 }, 0, 1));
+        assertFalse (maker.test (new byte[] { (byte) 0xC0 }, 0, 1));
+      }
+
+      @Test
+      @DisplayName ("a contagem de alfanumericos inclui A e Z, exclui as bordas")
+      void alphanumericRangeIsInclusive ()
+      {
+        assertEquals (1, maker.countAlphanumericBytes (new byte[] { 0x41 }, 0, 1), "A");
+        assertEquals (1, maker.countAlphanumericBytes (new byte[] { 0x5A }, 0, 1), "Z");
+
+        assertEquals (0, maker.countAlphanumericBytes (new byte[] { 0x40 }, 0, 1), "@");
+        assertEquals (0, maker.countAlphanumericBytes (new byte[] { 0x5B }, 0, 1), "[");
+      }
     }
   }
 
