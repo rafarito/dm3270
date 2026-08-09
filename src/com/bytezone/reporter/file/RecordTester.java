@@ -47,13 +47,22 @@ public class RecordTester
   public TextMaker getPreferredTextMaker ()
   // ---------------------------------------------------------------------------------//
   {
+    if (textTesters.isEmpty ())
+      throw new IllegalStateException (
+          "testTextMaker () precisa ser chamado antes de escolher a codificacao");
+
     double max = -1.0;
-    //    double max = Double.MIN_VALUE;
     TextTester bestTextTester = null;
 
     for (TextTester textTester : textTesters)
     {
       double ratio = textTester.getAlphanumericRatio ();
+
+      // uma amostra vazia devolve NaN, que nunca e maior que max: sem esse teste
+      // nenhum candidato seria escolhido e a comparacao caia no fallback
+      if (Double.isNaN (ratio))
+        continue;
+
       if (ratio > max)
       {
         max = ratio;
@@ -61,14 +70,9 @@ public class RecordTester
       }
     }
 
-    if (bestTextTester == null)
-    {
-      System.out.println ("************ Bollocks **************");
-      //      assert false;
-      return textTesters.get (0).getTextMaker ();
-    }
-    else
-      return bestTextTester.getTextMaker ();
+    // amostra vazia em todos os candidatos: nao ha o que comparar, fica o primeiro
+    return bestTextTester == null ? textTesters.get (0).getTextMaker ()
+        : bestTextTester.getTextMaker ();
   }
 
   // ---------------------------------------------------------------------------------//
