@@ -72,19 +72,20 @@ class QueryReplyFieldTest
     }
 
     @Test
-    @DisplayName ("ATENCAO: toString() so funciona depois de addReplyFields()")
-    void toStringNeedsReplyList ()
+    @DisplayName ("toString funciona antes e depois de addReplyFields()")
+    void toStringWorksWithoutReplyList ()
     {
-      // QueryReplyField.toString() consulta a lista `replies`, que so e preenchida
-      // por addReplyFields() (usado no modo REPLAY). Fora desse fluxo, imprimir uma
-      // reply recem-parseada estoura NullPointerException.
+      // `replies` so e preenchida por addReplyFields () (modo REPLAY); fora desse fluxo
+      // o relatorio informa que nao ha resumo, em vez de lancar NullPointerException
       byte[] buffer = { StructuredField.QUERY_REPLY, QueryReplyField.SEGMENT_REPLY };
 
       QueryReplyField field = QueryReplyField.getReplyField (buffer);
 
-      assertThrows (NullPointerException.class, field::toString);
+      assertTrue (field.toString ().contains ("Segment"), field.toString ());
+      assertTrue (field.toString ().contains ("no summary"), field.toString ());
 
       field.addReplyFields (java.util.List.of (field));
+
       assertTrue (field.toString ().contains ("Segment"), field.toString ());
     }
 

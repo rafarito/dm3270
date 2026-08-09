@@ -51,8 +51,11 @@ public class CharacterSets extends QueryReplyField
 
     descriptorLength = data[10] & 0xFF;
 
-    for (int ptr = 11; ptr < data.length; ptr += descriptorLength)
-      descriptors.add (new Descriptor (data, ptr, descriptorLength));
+    // um descriptorLength zerado num buffer malformado prenderia o laco para sempre
+    if (descriptorLength > 0)
+      for (int ptr = 11; ptr + descriptorLength <= data.length;
+          ptr += descriptorLength)
+        descriptors.add (new Descriptor (data, ptr, descriptorLength));
   }
 
   // ---------------------------------------------------------------------------------//
