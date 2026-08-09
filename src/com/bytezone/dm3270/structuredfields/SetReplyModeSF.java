@@ -48,8 +48,9 @@ public class SetReplyModeSF extends StructuredField
   {
     StringBuilder text = new StringBuilder ("Struct Field : 09 Set Reply Mode\n");
     text.append (String.format ("   partition : %02X%n", partition));
-    text.append (
-        String.format ("   mode      : %02X %s mode", replyMode, modes[replyMode]));
+    String modeName = replyMode >= 0 && replyMode < modes.length ? modes[replyMode]
+        : String.format ("Unknown (%02X)", replyMode);
+    text.append (String.format ("   mode      : %02X %s mode", replyMode, modeName));
     for (byte type : types)
     {
       String typeName = Attribute.getTypeName (type);
