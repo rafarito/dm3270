@@ -61,8 +61,10 @@ public class Record
           textMaker.getText (buffer, ptr, lineMax - ptr)));
     }
 
-    if (text.length () > 0)
-      text.deleteCharAt (text.length () - 1);
+    // remove a quebra de linha final por inteiro: %n tem dois caracteres no Windows
+    int separatorLength = System.lineSeparator ().length ();
+    if (text.length () >= separatorLength)
+      text.setLength (text.length () - separatorLength);
 
     return text.toString ();
   }
