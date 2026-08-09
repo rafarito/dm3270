@@ -68,8 +68,10 @@ public class TN3270ExtendedSubcommand extends TelnetSubcommand
               break;
             }
           }
-          if (value == null)            // don't know if this can happen
-            value = new String (buffer, 5, length - 5);
+          // sem o separador CONNECT o valor vai ate o IAC SE que fecha o subcomando:
+          // length - 7 desconta os 5 bytes de cabecalho e os 2 do fechamento
+          if (value == null)
+            value = new String (buffer, 5, length - 7);
         }
         break;
 
@@ -174,6 +176,14 @@ public class TN3270ExtendedSubcommand extends TelnetSubcommand
       setReply (new TN3270ExtendedSubcommand (reply, 0, reply.length, telnetState));
     }
 
+    if (subType == null)
+    {
+      // o construtor nao reconheceu o segundo byte do subcomando: sem subtipo nao ha o
+      // que processar, e um switch sobre enum nulo lancaria NullPointerException
+      System.out.printf ("Unknown %s subcommand: %02X%n", type, data[4]);
+      return;
+    }
+
     switch (subType)
     {
       // the server disagrees with our request and is making a counter-request
@@ -214,7 +224,8 @@ public class TN3270ExtendedSubcommand extends TelnetSubcommand
   public boolean doesFunction (Function function)
   // ---------------------------------------------------------------------------------//
   {
-    return functions.contains (function);
+    // so os subcomandos FUNCTIONS trazem lista; nos outros nenhuma funcao foi declarada
+    return functions != null && functions.contains (function);
   }
 
   //  public String getConnect ()
