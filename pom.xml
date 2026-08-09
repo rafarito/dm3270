@@ -150,21 +150,44 @@
         <configuration>
           <targetClasses>
             <param>com.bytezone.dm3270.utilities.Dm3270Utility</param>
+            <param>com.bytezone.dm3270.utilities.FileSaver</param>
             <param>com.bytezone.dm3270.orders.*</param>
             <param>com.bytezone.dm3270.attributes.*</param>
             <param>com.bytezone.dm3270.commands.*</param>
             <param>com.bytezone.dm3270.buffers.*</param>
-            <param>com.bytezone.dm3270.telnet.TelnetProcessor</param>
-            <param>com.bytezone.dm3270.extended.CommandHeader</param>
+            <param>com.bytezone.dm3270.telnet.*</param>
+            <param>com.bytezone.dm3270.extended.*</param>
+            <param>com.bytezone.dm3270.structuredfields.*</param>
             <param>com.bytezone.dm3270.replyfield.*</param>
-            <param>com.bytezone.dm3270.filetransfer.IndFileCommand</param>
+            <param>com.bytezone.dm3270.filetransfer.*</param>
+            <param>com.bytezone.dm3270.database.*</param>
+            <param>com.bytezone.dm3270.session.SessionReader</param>
+            <param>com.bytezone.dm3270.streams.TelnetState</param>
+            <param>com.bytezone.dm3270.streams.TerminalServer</param>
+            <param>com.bytezone.dm3270.streams.TelnetSocket</param>
+            <param>com.bytezone.dm3270.streams.SslContextFactory</param>
             <param>com.bytezone.dm3270.plugins.PluginData</param>
             <param>com.bytezone.dm3270.plugins.PluginField</param>
             <param>com.bytezone.dm3270.plugins.ScreenLocation</param>
             <param>com.bytezone.dm3270.display.ScreenDimensions</param>
             <param>com.bytezone.reporter.record.*</param>
             <param>com.bytezone.reporter.text.*</param>
+            <param>com.bytezone.reporter.reports.*</param>
+            <param>com.bytezone.reporter.file.MainframeFile</param>
+            <param>com.bytezone.reporter.file.RecordTester</param>
+            <param>com.bytezone.reporter.file.ReportData</param>
+            <param>com.bytezone.reporter.file.ReportTester</param>
+            <param>com.bytezone.reporter.file.TextTester</param>
           </targetClasses>
+          <!--
+            Excluidos por serem testes de integracao com socket ou thread: o PIT roda
+            cada mutante num processo proprio e esses casos ficariam pendurados no
+            timeout, inflando o tempo total sem produzir sinal util.
+          -->
+          <excludedTestClasses>
+            <param>com.bytezone.dm3270.streams.TerminalServerTest</param>
+            <param>com.bytezone.dm3270.streams.TelnetSocketTest</param>
+          </excludedTestClasses>
           <targetTests>
             <param>com.bytezone.dm3270.*Test</param>
             <param>com.bytezone.reporter.*Test</param>
