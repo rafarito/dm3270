@@ -27,6 +27,7 @@ public class TerminalServer implements Runnable
   private final byte[] buffer = new byte[4096];
   private int bytesRead;
   private volatile boolean running;
+  private volatile boolean connected;
 
   private final BufferListener telnetListener;
   private final boolean debug = false;
@@ -55,6 +56,7 @@ public class TerminalServer implements Runnable
       serverIn = serverSocket.getInputStream ();
       serverOut = serverSocket.getOutputStream ();
 
+      connected = true;
       running = true;
       while (running)
       {
@@ -88,7 +90,16 @@ public class TerminalServer implements Runnable
     }
     catch (IOException e)
     {
-      if (running)
+      // Uma falha antes de a conexao subir (destino inacessivel, handshake TLS recusado)
+      // precisa chegar a quem esta esperando: sem isso a interface fica achando que o
+      // terminal conectou. Depois do close() a IOException de leitura e so o efeito do
+      // desligamento e nao interessa a ninguem.
+      if (!connected)
+      {
+        System.out.println ("TerminalServer nao conectou: " + e.getMessage ());
+        close ();
+      }
+      else if (running)
       {
         e.printStackTrace ();
         close ();
