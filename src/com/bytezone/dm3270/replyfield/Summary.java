@@ -76,9 +76,10 @@ public class Summary extends QueryReplyField implements Iterable<QueryReplyField
 
     // check for QueryReplyFields sent but not listed in the summary
     List<QueryReplyField> missingFields = new ArrayList<> (4);
-    for (QueryReplyField reply : replies)
-      if (!isListed (reply.replyType.type))
-        missingFields.add (reply);
+    if (replies != null)                    // vazio fora do modo replay
+      for (QueryReplyField reply : replies)
+        if (!isListed (reply.replyType.type))
+          missingFields.add (reply);
 
     if (missingFields.size () > 0)
     {

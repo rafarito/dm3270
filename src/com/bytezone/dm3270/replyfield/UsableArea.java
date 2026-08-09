@@ -80,6 +80,17 @@ public class UsableArea extends QueryReplyField
   }
 
   // ---------------------------------------------------------------------------------//
+  // Um host pode declarar um codigo que a tabela nao cobre: descrever o valor bruto e
+  // melhor do que estourar um indice na hora de imprimir o diagnostico.
+  // ---------------------------------------------------------------------------------//
+  private static String describe (String[] table, int value)
+  // ---------------------------------------------------------------------------------//
+  {
+    return value >= 0 && value < table.length ? table[value]
+        : String.format ("Unknown (%02X)", value);
+  }
+
+  // ---------------------------------------------------------------------------------//
   @Override
   public String toString ()
   // ---------------------------------------------------------------------------------//
@@ -87,12 +98,13 @@ public class UsableArea extends QueryReplyField
     StringBuilder text = new StringBuilder (super.toString ());
 
     text.append (String.format ("%n  flags1     : %02X", flags1));
-    text.append (String.format ("%n  ad mode    : %s", addressingModes[addressingMode]));
+    text.append (String.format ("%n  ad mode    : %s", describe (addressingModes,
+                                                                addressingMode)));
     text.append (String.format ("%n  flags2     : %02X", flags2));
     text.append (String.format ("%n  width      : %d", width));
     text.append (String.format ("%n  height     : %d", height));
     text.append (String.format ("%n  units      : %d - %s", unitsOfMeasurement,
-        measurementUnits[unitsOfMeasurement]));
+        describe (measurementUnits, unitsOfMeasurement)));
     text.append (String.format ("%n  x ratio    : %d / %d", xNumerator, xDenominator));
     text.append (String.format ("%n  y ratio    : %d / %d", yNumerator, yDenominator));
     text.append (String.format ("%n  x units    : %d", xUnits));

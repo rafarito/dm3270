@@ -151,9 +151,14 @@ public abstract class QueryReplyField
   }
 
   // ---------------------------------------------------------------------------------//
+  // `replies` so e preenchida por addReplyFields (), no modo replay: imprimir uma reply
+  // recem-parseada fora desse fluxo nao deveria lancar NullPointerException.
   protected boolean isProvided (byte type)
   // ---------------------------------------------------------------------------------//
   {
+    if (replies == null)
+      return false;
+
     for (QueryReplyField reply : replies)
       if (reply.replyType.type == type)
         return true;
@@ -164,6 +169,9 @@ public abstract class QueryReplyField
   protected Optional<Summary> getSummary ()
   // ---------------------------------------------------------------------------------//
   {
+    if (replies == null)
+      return Optional.empty ();
+
     for (QueryReplyField reply : replies)
       if (reply.replyType.type == SUMMARY_QUERY_REPLY)
         return Optional.of ((Summary) reply);
