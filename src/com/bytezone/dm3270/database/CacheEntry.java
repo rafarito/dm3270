@@ -53,7 +53,7 @@ class CacheEntry
   void replace (Dataset dataset)
   // ---------------------------------------------------------------------------------//
   {
-    assert dataset.getName ().equals (dataset.getName ());
+    assert this.dataset.getName ().equals (dataset.getName ());
     this.dataset = dataset;
   }
 }
