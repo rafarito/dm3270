@@ -81,8 +81,11 @@ public class ReadPartitionSF extends StructuredField
   public String brief ()
   // ---------------------------------------------------------------------------------//
   {
+    // brief () e chamado tanto antes como depois do process (): sem resposta ainda,
+    // descreve o comando embrulhado em vez de estourar no Optional vazio
     Optional<Buffer> opt = getReply ();
-    return String.format ("ReadPT: %s", opt.get ());
+
+    return String.format ("ReadPT: %s", opt.isPresent () ? opt.get () : command);
   }
 
   // ---------------------------------------------------------------------------------//
