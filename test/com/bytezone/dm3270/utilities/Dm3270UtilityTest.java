@@ -2,6 +2,7 @@ package com.bytezone.dm3270.utilities;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.Charset;
@@ -267,18 +268,26 @@ class Dm3270UtilityTest
     }
 
     @Test
-    @DisplayName ("a ultima linha ainda carrega um CR residual no Windows")
-    void trailingCarriageReturnOnWindows ()
+    @DisplayName ("a ultima linha nao carrega resto de quebra de linha")
+    void noTrailingLineSeparator ()
     {
-      // toHex termina cada linha com %n e depois remove UM unico caractere.
-      // Onde o separador de linha tem dois caracteres (Windows, "\r\n") sobra o \r.
-      // O teste documenta o comportamento atual para que qualquer mudanca seja notada.
-      String separator = System.lineSeparator ();
-      String residue = separator.substring (0, separator.length () - 1);
-
+      // toHex termina cada linha com %n e remove o separador inteiro no fim, e nao um
+      // unico caractere: onde ele tem dois (Windows, "\r\n") nada sobra
       String dump = Dm3270Utility.toHex (new byte[] { (byte) 0xC1 });
 
-      assertTrue (dump.endsWith ("A" + residue), dump);
+      assertTrue (dump.endsWith ("A"), dump.replace ("\r", "<CR>"));
+    }
+
+    @Test
+    @DisplayName ("um dump de varias linhas separa as linhas mas nao termina em quebra")
+    void separatesLinesWithoutTrailingBreak ()
+    {
+      String dump = Dm3270Utility.toHex (new byte[20]);
+      String[] lines = dump.split (java.util.regex.Pattern
+          .quote (System.lineSeparator ()));
+
+      assertEquals (2, lines.length, dump.replace ("\r", "<CR>"));
+      assertFalse (dump.endsWith (System.lineSeparator ()), "terminou em quebra");
     }
 
     @Test
