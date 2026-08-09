@@ -18,6 +18,7 @@ public class ErrorRecord extends TransferRecord
   {
     super (TYPE, RECORD_LENGTH);
     this.errorNumber = error;
+    this.errorText = describe (error);
     Dm3270Utility.packUnsignedShort (error, data, 2);
   }
 
@@ -25,14 +26,21 @@ public class ErrorRecord extends TransferRecord
   {
     super (data, offset);
     errorNumber = Dm3270Utility.unsignedShort (data, offset + 2);
-    if (errorNumber == 0x0100)
-      errorText = "Command failed";
-    else if (errorNumber == EOF)
-      errorText = "EOF";
-    else if (errorNumber == CANCEL)
-      errorText = "Cancel";
-    else
-      errorText = "Unknown error";
+    errorText = describe (errorNumber);
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private static String describe (int errorNumber)
+  // ---------------------------------------------------------------------------------//
+  {
+    if (errorNumber == CMD_FAIL)
+      return "Command failed";
+    if (errorNumber == EOF)
+      return "EOF";
+    if (errorNumber == CANCEL)
+      return "Cancel";
+
+    return "Unknown error";
   }
 
   @Override
