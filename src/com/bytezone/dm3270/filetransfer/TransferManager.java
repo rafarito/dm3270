@@ -6,9 +6,9 @@ import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.display.TSOCommandListener;
 import com.bytezone.dm3270.utilities.Site;
 
@@ -18,7 +18,9 @@ public class TransferManager implements TSOCommandListener
       Pattern.compile ("^(TSO )?\\s*IND[$£]FILE\\s+(GET|PUT).*");
   private Transfer currentTransfer;
 
-  private final Screen screen;
+  // A classe so precisava da tela para ler o prefixo do usuario. Receber a fonte desse
+  // valor em vez da tela inteira desacopla o gerenciador da camada JavaFX.
+  private final Supplier<String> prefixSource;
   private Site site;
 
   public enum TransferStatus
@@ -31,9 +33,9 @@ public class TransferManager implements TSOCommandListener
     return INDFILE_PATTERN.matcher (command).matches ();
   }
 
-  public TransferManager (Screen screen, Site site)
+  public TransferManager (Supplier<String> prefixSource, Site site)
   {
-    this.screen = screen;
+    this.prefixSource = prefixSource;
     this.site = site;
   }
 
@@ -51,7 +53,7 @@ public class TransferManager implements TSOCommandListener
       try
       {
         IndFileCommand newCommand = new IndFileCommand (command);
-        currentTransfer = new Transfer (newCommand, site, screen.getPrefix ());
+        currentTransfer = new Transfer (newCommand, site, prefixSource.get ());
       }
       catch (IllegalArgumentException e)
       {
@@ -92,7 +94,7 @@ public class TransferManager implements TSOCommandListener
       }
     }
 
-    currentTransfer = new Transfer (indFileCommand, site, screen.getPrefix ());
+    currentTransfer = new Transfer (indFileCommand, site, prefixSource.get ());
     fireTransferStatusChanged (TransferStatus.READY, currentTransfer);
   }
 

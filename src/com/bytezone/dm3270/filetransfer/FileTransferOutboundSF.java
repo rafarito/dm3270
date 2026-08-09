@@ -67,7 +67,14 @@ public class FileTransferOutboundSF extends FileTransferSF
   @Override
   public void process (Screen screen)
   {
-    transferManager = screen.getTransferManager ();
+    process (screen.getTransferManager ());
+  }
+
+  // A tela so servia para alcancar o gerenciador de transferencias: recebe-lo direto
+  // deixa toda a logica de despacho testavel sem a camada JavaFX.
+  void process (TransferManager transferManager)
+  {
+    this.transferManager = transferManager;
 
     switch (rectype)
     {
