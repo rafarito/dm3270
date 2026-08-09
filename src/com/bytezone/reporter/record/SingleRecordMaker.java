@@ -30,6 +30,19 @@ public class SingleRecordMaker extends DefaultRecordMaker
   protected byte[] join (List<Record> records)
   // ---------------------------------------------------------------------------------//
   {
-    return new byte[0];
+    int bufferLength = 0;
+    for (Record record : records)
+      bufferLength += record.length;
+
+    byte[] buffer = new byte[bufferLength];
+
+    int ptr = 0;
+    for (Record record : records)
+    {
+      System.arraycopy (record.buffer, record.offset, buffer, ptr, record.length);
+      ptr += record.length;
+    }
+
+    return buffer;
   }
 }
