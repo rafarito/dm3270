@@ -162,6 +162,10 @@ public class TelnetCommand extends AbstractTelnetCommand
     {
       byte[] reply = new byte[3];
       reply[0] = IAC;
+      // DONT por default: um tipo que nao reconhecemos nao pode ser aceito, e sem isso
+      // reply[1] ficaria 0x00 — que nao e verbo telnet nenhum, e o construtor da
+      // propria resposta recusaria o buffer
+      reply[1] = DONT;
 
       if (commandType == CommandType.TN3270_EXTENDED)
       {
