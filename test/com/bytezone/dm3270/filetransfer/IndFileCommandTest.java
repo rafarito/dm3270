@@ -1,5 +1,6 @@
 package com.bytezone.dm3270.filetransfer;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -250,18 +251,70 @@ class IndFileCommandTest
   // ---------------------------------------------------------------------------------//
   {
     @Test
-    @DisplayName ("REGRESSAO: exigem setPrefix() antes de construir, senao lancam NPE")
-    void requirePrefixBeforeConstruction ()
+    @DisplayName ("montam o comando sem depender de setPrefix()")
+    void buildTheCommandWithoutAPrefix ()
     {
-      // setCommandText() chama prefix.isEmpty() sem checar null, e o campo so pode ser
-      // preenchido por setPrefix() DEPOIS que o construtor ja rodou. Ou seja: hoje esses
-      // dois construtores sao inutilizaveis. Nenhum ponto do codigo de producao os chama
-      // (so o construtor de String e usado), por isso a falha nunca apareceu em runtime.
-      assertThrows (NullPointerException.class, () -> new IndFileCommand (
-          Transfer.TransferType.DOWNLOAD, "SYS1.PROCLIB", new byte[0]));
+      // o campo prefix comeca vazio, e nao nulo: setCommandText () roda dentro do
+      // construtor, antes de qualquer chance de chamar setPrefix ()
+      IndFileCommand download = new IndFileCommand (Transfer.TransferType.DOWNLOAD,
+                                                    "SYS1.PROCLIB", new byte[0]);
+      IndFileCommand upload = new IndFileCommand (Transfer.TransferType.UPLOAD,
+                                                  "SYS1.PROCLIB", (java.io.File) null);
 
-      assertThrows (NullPointerException.class, () -> new IndFileCommand (
-          Transfer.TransferType.UPLOAD, "SYS1.PROCLIB", (java.io.File) null));
+      assertEquals ("IND$FILE GET 'SYS1.PROCLIB'", download.getCommand ());
+      assertEquals ("IND$FILE PUT 'SYS1.PROCLIB'", upload.getCommand ());
+    }
+
+    @Test
+    @DisplayName ("um prefixo que casa com o dataset e removido do comando")
+    void prefixIsStrippedFromTheCommand ()
+    {
+      IndFileCommand command = new IndFileCommand (Transfer.TransferType.DOWNLOAD,
+                                                   "USER01.DADOS", new byte[0]);
+
+      command.setPrefix ("USER01");
+      command.setDatasetName ("USER01.DADOS");
+
+      assertTrue (command.hasHLQ ());
+    }
+
+    @Test
+    @DisplayName ("um prefixo nulo e tratado como vazio")
+    void nullPrefixIsTreatedAsEmpty ()
+    {
+      IndFileCommand command = new IndFileCommand (Transfer.TransferType.DOWNLOAD,
+                                                   "SYS1.PROCLIB", new byte[0]);
+
+      command.setPrefix (null);
+
+      assertEquals ("IND$FILE GET 'SYS1.PROCLIB'", command.getCommand ());
+    }
+
+    @Test
+    @DisplayName ("os dois construtores guardam a origem dos dados")
+    void keepTheirSource ()
+    {
+      byte[] buffer = { 0x01, 0x02 };
+      java.io.File file = new java.io.File ("dados.txt");
+
+      assertArrayEquals (buffer,
+                         new IndFileCommand (Transfer.TransferType.DOWNLOAD, "X.Y",
+                                             buffer).getBuffer ());
+      assertEquals (file, new IndFileCommand (Transfer.TransferType.UPLOAD, "X.Y", file)
+          .getLocalFile ());
+    }
+
+    @Test
+    @DisplayName ("um dataset com ponto tem HLQ reconhecido pelo construtor")
+    void recognisesHlq ()
+    {
+      IndFileCommand withHlq = new IndFileCommand (Transfer.TransferType.DOWNLOAD,
+                                                   "SYS1.PROCLIB", new byte[0]);
+      IndFileCommand withoutHlq =
+          new IndFileCommand (Transfer.TransferType.DOWNLOAD, "DADOS", new byte[0]);
+
+      assertTrue (withHlq.hasHLQ ());
+      assertFalse (withoutHlq.hasHLQ ());
     }
   }
 }

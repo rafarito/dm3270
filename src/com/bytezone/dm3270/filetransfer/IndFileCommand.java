@@ -16,7 +16,9 @@ public class IndFileCommand
   private String datasetName;
   private boolean hasHLQ;
   private String hlq;
-  private String prefix;
+  // vazio, e nao nulo: setCommandText () roda dentro dos construtores que recebem o
+  // dataset pronto, antes de qualquer chance de chamar setPrefix ()
+  private String prefix = "";
   private boolean crlf;
   private boolean ascii;
   private boolean append;
@@ -172,7 +174,7 @@ public class IndFileCommand
 
   public void setPrefix (String prefix)
   {
-    this.prefix = prefix;
+    this.prefix = prefix == null ? "" : prefix;
   }
 
   public void setTlq (String tlq)
