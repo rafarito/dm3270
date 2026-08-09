@@ -18,7 +18,9 @@ public class RecordNumber extends TransferRecord
   public RecordNumber (byte[] data, int offset)
   {
     super (data, offset);
-    recordNumber = Dm3270Utility.unsignedLong (data, 2);
+    // le do proprio registro (super() copiou os bytes para this.data), e nao da
+    // posicao 2 do buffer recebido
+    recordNumber = Dm3270Utility.unsignedLong (this.data, 2);
   }
 
   @Override
