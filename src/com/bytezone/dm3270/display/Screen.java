@@ -133,7 +133,7 @@ public class Screen extends Canvas
     consoleLogStage = new ConsoleLogStage (this);
     systemMessage = new SystemMessage (this, transfersStage, screenDimensions);
 
-    transferManager = new TransferManager (this, serverSite);
+    transferManager = new TransferManager (this::getPrefix, serverSite);
     transferMenu = new TransferMenu (serverSite, transferManager);
 
     transfersStage.setTransferManager (transferManager);

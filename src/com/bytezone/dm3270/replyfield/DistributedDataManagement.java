@@ -45,11 +45,14 @@ public class DistributedDataManagement extends QueryReplyField
     subsets = data[8] & 0xFF;
     ddmSubset = data[9];
 
+    // Percorre os subcampos declarados. O tamanho vem do proprio buffer, entao um valor
+    // zerado prenderia o laco para sempre: sem avanco garantido, para.
     int ptr = 10;
-    while (ptr < data.length)
+    while (ptr + 1 < data.length)
     {
       int len = data[ptr] & 0xFF;
-      byte id = data[ptr + 1];
+      if (len == 0)
+        break;
       ptr += len;
     }
   }

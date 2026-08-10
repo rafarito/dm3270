@@ -44,8 +44,9 @@ public class TelnetState implements Runnable
   private TerminalServer terminalServer;
   private final boolean debug = false;
 
-  // IO
-  private AtomicLong lastAccess;
+  // IO — criado aqui, e nao em run (), para que a contabilidade de leituras funcione
+  // mesmo antes de a thread de keep-alive subir
+  private final AtomicLong lastAccess = new AtomicLong (System.currentTimeMillis ());
   private volatile boolean running = false;
   private Thread thread;
 
@@ -97,8 +98,7 @@ public class TelnetState implements Runnable
     if (terminalServer != null)
       terminalServer.write (buffer);
 
-    if (lastAccess != null)
-      lastAccess.set (System.currentTimeMillis ());
+    lastAccess.set (System.currentTimeMillis ());
 
     ++totalWrites;
     totalBytesWritten += buffer.length;
@@ -118,7 +118,7 @@ public class TelnetState implements Runnable
   // ---------------------------------------------------------------------------------//
   {
     long lastTimeIChecked;
-    lastAccess = new AtomicLong (System.currentTimeMillis ());
+    lastAccess.set (System.currentTimeMillis ());
     running = true;
     long limit = 120;      // seconds to wait
 
@@ -211,6 +211,7 @@ public class TelnetState implements Runnable
   {
     System.out.println ("Does Extended        : " + state);
     does3270Extended = state;
+    fireTelnetStateChange ();
   }
 
   // ---------------------------------------------------------------------------------//
@@ -219,6 +220,7 @@ public class TelnetState implements Runnable
   {
     System.out.println ("Does EOR             : " + state);
     doesEOR = state;
+    fireTelnetStateChange ();
   }
 
   // ---------------------------------------------------------------------------------//
@@ -227,6 +229,7 @@ public class TelnetState implements Runnable
   {
     System.out.println ("Does Binary          : " + state);
     doesBinary = state;
+    fireTelnetStateChange ();
   }
 
   // ---------------------------------------------------------------------------------//
@@ -235,6 +238,7 @@ public class TelnetState implements Runnable
   {
     System.out.println ("Does Terminal type  : " + state);
     doesTerminalType = state;
+    fireTelnetStateChange ();
   }
 
   // ---------------------------------------------------------------------------------//
@@ -243,6 +247,7 @@ public class TelnetState implements Runnable
   {
     System.out.println ("Terminal            : " + terminal);
     this.terminal = terminal;
+    fireTelnetStateChange ();
   }
 
   // called from TN3270ExtendedSubcommand.process()
@@ -281,6 +286,8 @@ public class TelnetState implements Runnable
         secondary = new ScreenDimensions (24, 80);
         System.out.println ("Model not found: " + deviceType);
     }
+
+    fireTelnetStateChange ();
   }
 
   // called from TN3270ExtendedSubcommand.process()
@@ -290,6 +297,7 @@ public class TelnetState implements Runnable
   {
     System.out.println ("Functions            : " + functions);
     this.functions = functions;
+    fireTelnetStateChange ();
   }
 
   // ---------------------------------------------------------------------------------//
@@ -298,6 +306,7 @@ public class TelnetState implements Runnable
   {
     System.out.println ("LU name              : " + luName);
     this.luName = luName;
+    fireTelnetStateChange ();
   }
 
   // ---------------------------------------------------------------------------------//
@@ -414,6 +423,11 @@ public class TelnetState implements Runnable
   public void setDoDeviceType (int modelNo)
   // ---------------------------------------------------------------------------------//
   {
+    if (modelNo < 0 || modelNo >= terminalTypes.length)
+      throw new IllegalArgumentException (
+          String.format ("Modelo de terminal invalido: %d (esperado 0 a %d)", modelNo,
+                         terminalTypes.length - 1));
+
     doDeviceType = terminalTypes[modelNo];
     System.out.println ("setting: " + doDeviceType);
   }

@@ -245,6 +245,7 @@ public class DatabaseThread extends Thread
           request.member = optMember.get ();
           request.result = Result.SUCCESS;
         }
+        break;
 
       case LIST:
         if (createMemberList (request))
@@ -374,8 +375,11 @@ public class DatabaseThread extends Thread
     {
       Statement stmt = connection.createStatement ();
 
+      // Convencao do filtro: vazio ou "*" lista tudo, "PREFIXO*" lista a faixa, e um
+      // nome sem curinga procura aquele dataset exato. O nome vazio ia para o ramo do
+      // nome exato e devolvia sempre lista vazia.
       String query = "select * from DATASETS ";
-      int pos = request.datasetName.indexOf ('*');
+      int pos = request.datasetName.isEmpty () ? 0 : request.datasetName.indexOf ('*');
 
       if (pos < 0)
         query += "where NAME='" + request.datasetName + "'";
@@ -651,7 +655,7 @@ public class DatabaseThread extends Thread
     try
     {
       Statement stmt = connection.createStatement ();
-      stmt.executeUpdate ("delete from MEMEBERS where DATASET='"
+      stmt.executeUpdate ("delete from MEMBERS where DATASET='"
           + member.dataset.getName () + "' and NAME='" + member.getName () + "'");
       stmt.close ();
       return true;

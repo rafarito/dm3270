@@ -29,13 +29,13 @@ public class CrRecordMaker extends DefaultRecordMaker
     {
       if (buffer[ptr] == 0x0D)
       {
-        records.add (new Record (buffer, start, ptr - start, recordNumber));
+        records.add (new Record (buffer, start, ptr - start, recordNumber++));
         start = ptr + 1;
       }
     }
 
     if (start < max)
-      records.add (new Record (buffer, start, max - start, recordNumber++));
+      records.add (new Record (buffer, start, max - start, recordNumber));
 
     return records;
   }

@@ -15,6 +15,16 @@
     <maven.compiler.release>21</maven.compiler.release>
     <javafx.version>21.0.7</javafx.version>
     <main.class>com.bytezone.dm3270.application.Launcher</main.class>
+    <junit.version>5.12.2</junit.version>
+    <jacoco.version>0.8.13</jacoco.version>
+    <pitest.version>1.20.1</pitest.version>
+    <pitest.junit5.version>1.2.3</pitest.junit5.version>
+
+    <!--
+      Preenchida pelo agente do JaCoCo em tempo de build. O valor default vazio
+      mantem `mvn surefire:test` funcionando quando o agente nao roda.
+    -->
+    <jacoco.argLine/>
   </properties>
 
   <dependencies>
@@ -47,10 +57,19 @@
       <artifactId>sqlite-jdbc</artifactId>
       <version>3.49.1.0</version>
     </dependency>
+
+    <!-- Testes -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
     <sourceDirectory>src</sourceDirectory>
+    <testSourceDirectory>test</testSourceDirectory>
 
     <resources>
       <resource>
@@ -68,6 +87,125 @@
         <version>3.14.0</version>
         <configuration>
           <release>${maven.compiler.release}</release>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.5.4</version>
+        <configuration>
+          <!-- as classes de protocolo usam assert para validar os buffers -->
+          <enableAssertions>true</enableAssertions>
+          <!-- @{...} adia a resolucao ate o agente do JaCoCo ter preenchido a propriedade -->
+          <argLine>@{jacoco.argLine} -Dfile.encoding=UTF-8 -Djava.awt.headless=true</argLine>
+        </configuration>
+      </plugin>
+
+      <!-- Cobertura de codigo: relatorio em target/site/jacoco/index.html -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.version}</version>
+        <configuration>
+          <propertyName>jacoco.argLine</propertyName>
+        </configuration>
+        <executions>
+          <execution>
+            <id>jacoco-prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <!-- na fase test (e nao verify) para que `mvn test` ja gere o relatorio -->
+            <id>jacoco-report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!--
+        Mutation testing. Nao roda no ciclo padrao (e caro); invoque com
+        `mvn test-compile pitest:mutationCoverage`.
+
+        targetClasses lista apenas os pacotes que possuem testes: apontar o PIT
+        para a camada JavaFX geraria milhares de mutantes sem cobertura e
+        afogaria o sinal util.
+      -->
+      <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>${pitest.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-junit5-plugin</artifactId>
+            <version>${pitest.junit5.version}</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <targetClasses>
+            <param>com.bytezone.dm3270.utilities.Dm3270Utility</param>
+            <param>com.bytezone.dm3270.utilities.FileSaver</param>
+            <param>com.bytezone.dm3270.orders.*</param>
+            <param>com.bytezone.dm3270.attributes.*</param>
+            <param>com.bytezone.dm3270.commands.*</param>
+            <param>com.bytezone.dm3270.buffers.*</param>
+            <param>com.bytezone.dm3270.telnet.*</param>
+            <param>com.bytezone.dm3270.extended.*</param>
+            <param>com.bytezone.dm3270.structuredfields.*</param>
+            <param>com.bytezone.dm3270.replyfield.*</param>
+            <param>com.bytezone.dm3270.filetransfer.*</param>
+            <param>com.bytezone.dm3270.database.*</param>
+            <param>com.bytezone.dm3270.session.SessionReader</param>
+            <param>com.bytezone.dm3270.streams.TelnetState</param>
+            <param>com.bytezone.dm3270.streams.TerminalServer</param>
+            <param>com.bytezone.dm3270.streams.TelnetSocket</param>
+            <param>com.bytezone.dm3270.streams.SslContextFactory</param>
+            <param>com.bytezone.dm3270.plugins.PluginData</param>
+            <param>com.bytezone.dm3270.plugins.PluginField</param>
+            <param>com.bytezone.dm3270.plugins.ScreenLocation</param>
+            <param>com.bytezone.dm3270.display.ScreenDimensions</param>
+            <param>com.bytezone.reporter.record.*</param>
+            <param>com.bytezone.reporter.text.*</param>
+            <param>com.bytezone.reporter.reports.*</param>
+            <param>com.bytezone.reporter.file.MainframeFile</param>
+            <param>com.bytezone.reporter.file.RecordTester</param>
+            <param>com.bytezone.reporter.file.ReportData</param>
+            <param>com.bytezone.reporter.file.ReportTester</param>
+            <param>com.bytezone.reporter.file.TextTester</param>
+          </targetClasses>
+          <!--
+            Excluidos por serem testes de integracao com socket ou thread: o PIT roda
+            cada mutante num processo proprio e esses casos ficariam pendurados no
+            timeout, inflando o tempo total sem produzir sinal util.
+          -->
+          <excludedTestClasses>
+            <param>com.bytezone.dm3270.streams.TerminalServerTest</param>
+            <param>com.bytezone.dm3270.streams.TelnetSocketTest</param>
+          </excludedTestClasses>
+          <targetTests>
+            <param>com.bytezone.dm3270.*Test</param>
+            <param>com.bytezone.reporter.*Test</param>
+          </targetTests>
+          <outputFormats>
+            <param>HTML</param>
+            <param>XML</param>
+            <param>CSV</param>
+          </outputFormats>
+          <!-- caminho estavel: target/pit-reports/index.html -->
+          <timestampedReports>false</timestampedReports>
+          <!-- reaproveita a analise anterior enquanto o target nao for limpo -->
+          <withHistory>true</withHistory>
+          <threads>4</threads>
+          <jvmArgs>
+            <jvmArg>-ea</jvmArg>
+            <jvmArg>-Djava.awt.headless=true</jvmArg>
+          </jvmArgs>
         </configuration>
       </plugin>
 

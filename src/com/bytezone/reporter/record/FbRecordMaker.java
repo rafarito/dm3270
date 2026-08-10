@@ -49,7 +49,7 @@ public class FbRecordMaker extends DefaultRecordMaker
         if (trimNulls)
         {
           int ptr2 = ptr + reclen - 1;
-          while (reclen >= 0 && buffer[ptr2--] == 0)
+          while (reclen > 0 && buffer[ptr2--] == 0)
             --reclen;
         }
 

@@ -94,7 +94,7 @@ public class RavelRecordMaker extends DefaultRecordMaker
         ptr += ravelLength;
       }
       else
-        ptr = packRecord (record, ptr);
+        ptr = packRecord (record, buffer, ptr);
       buffer[ptr++] = (byte) 0xFF;
       buffer[ptr++] = (byte) 0x01;
     }
@@ -119,15 +119,17 @@ public class RavelRecordMaker extends DefaultRecordMaker
     return length;
   }
 
+  // O buffer de destino vem por parametro: usar o campo `buffer` aqui gravaria por cima
+  // dos dados de origem em vez do array que join() acabou de alocar.
   // ---------------------------------------------------------------------------------//
-  private int packRecord (Record record, int ptr)
+  private int packRecord (Record record, byte[] target, int ptr)
   // ---------------------------------------------------------------------------------//
   {
     for (int i = record.offset, max = record.offset + record.length; i < max; i++)
     {
       if (record.buffer[i] == (byte) 0xFF)
-        buffer[ptr++] = (byte) 0xFF;
-      buffer[ptr++] = record.buffer[i];
+        target[ptr++] = (byte) 0xFF;
+      target[ptr++] = record.buffer[i];
     }
     return ptr;
   }

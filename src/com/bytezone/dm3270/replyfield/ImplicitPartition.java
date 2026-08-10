@@ -34,6 +34,16 @@ public class ImplicitPartition extends QueryReplyField
     ptr = Dm3270Utility.packUnsignedShort (rows, reply, ptr);         // alt height
 
     checkDataLength (ptr);
+
+    // os mesmos valores nos campos de leitura, para que o toString de uma reply que nos
+    // criamos descreva o que ela realmente declara
+    width = 0x50;
+    height = 0x18;
+    alternateWidth = columns;
+    alternateHeight = rows;
+
+    implicitScreenDimensions = new ScreenDimensions (height, width);
+    alternateScreenDimensions = new ScreenDimensions (alternateHeight, alternateWidth);
   }
 
   // ---------------------------------------------------------------------------------//

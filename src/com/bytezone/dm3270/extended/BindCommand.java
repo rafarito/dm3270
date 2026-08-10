@@ -162,8 +162,10 @@ public class BindCommand extends AbstractExtendedCommand
   {
     StringBuilder text = new StringBuilder ("BND:\n");
 
-    int offset = presentationSpace <= 3 ? 0 : 0x7A;
-    String presText = presentationText[presentationSpace - offset];
+    // a tabela cobre 0x00-0x03 e 0x7A-0x7F: qualquer outro codigo e descrito pelo valor
+    int index = presentationSpace <= 3 ? presentationSpace : presentationSpace - 0x7A;
+    String presText = index >= 0 && index < presentationText.length
+        ? presentationText[index] : String.format ("Unknown (%02X)", presentationSpace);
 
     text.append (String.format ("Format ............... %02X  %s%n", format,
                                 "must be zero"));
@@ -174,8 +176,11 @@ public class BindCommand extends AbstractExtendedCommand
     text.append (String.format ("TS profile ........... %02X%n", tsProfile));
     text.append (String.format ("PS profile ........... %02X%n", psProfile));
 
-    String[] plu = primaryLuProtocols.toString ().split ("\n");
-    String[] slu = secondaryLuProtocols.toString ().split ("\n");
+    // \R cobre qualquer separador de linha: dividir por "\n" deixaria o \r do Windows no
+    // fim de cada pedaco, e ele terminaria no meio da linha de duas colunas — num
+    // terminal o \r devolve o cursor ao inicio e a segunda coluna apaga a primeira
+    String[] plu = primaryLuProtocols.toString ().split ("\\R");
+    String[] slu = secondaryLuProtocols.toString ().split ("\\R");
     text.append ("\n---- Primary LU ---------           ---- Secondary LU -------\n");
     for (int i = 0; i < plu.length; i++)
       text.append (String.format ("%-35s %-35s%n", plu[i], slu[i]));

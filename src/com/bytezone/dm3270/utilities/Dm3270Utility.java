@@ -208,8 +208,10 @@ public class Dm3270Utility
       e.printStackTrace ();
     }
 
-    if (text.length () > 0)
-      text.deleteCharAt (text.length () - 1);
+    // remove a quebra de linha final por inteiro: %n tem dois caracteres no Windows
+    int separatorLength = System.lineSeparator ().length ();
+    if (text.length () >= separatorLength)
+      text.setLength (text.length () - separatorLength);
 
     return text.toString ();
   }
@@ -246,11 +248,7 @@ public class Dm3270Utility
   public static String toHexString (byte[] buffer)
   // ---------------------------------------------------------------------------------//
   {
-    StringBuilder text = new StringBuilder ();
-    for (int i = 0; i < buffer.length; i++)
-      text.append (String.format ("%02X ", buffer[i]));
-
-    return text.toString ();
+    return toHexString (buffer, 0, buffer.length);
   }
 
   // ---------------------------------------------------------------------------------//
