@@ -5,11 +5,15 @@ import java.io.UnsupportedEncodingException;
 import com.bytezone.dm3270.display.DisplayScreen;
 import com.bytezone.dm3270.display.Pen;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // -----------------------------------------------------------------------------------//
 public class TextOrder extends Order
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (TextOrder.class);
+
   private int bufferOffset;
   byte[] originalBuffer;
 
@@ -35,7 +39,7 @@ public class TextOrder extends Order
     }
     catch (UnsupportedEncodingException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error getting CP1047 encoding", e);
     }
   }
 

@@ -7,3 +7,4 @@ build.xml
 !README.md
 !TESTING.md
 plugins/*
+logs/

@@ -2,6 +2,9 @@ package com.bytezone.dm3270.filetransfer;
 
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bytezone.dm3270.commands.ReadStructuredFieldCommand;
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.filetransfer.Transfer.TransferType;
@@ -9,6 +12,8 @@ import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 public class FileTransferOutboundSF extends FileTransferSF
 {
+  private static final Logger logger = LoggerFactory.getLogger (FileTransferOutboundSF.class);
+
   private TransferManager transferManager;
 
   public FileTransferOutboundSF (byte[] buffer, int offset, int length)
@@ -47,7 +52,7 @@ public class FileTransferOutboundSF extends FileTransferSF
           break;
 
         default:
-          System.out.printf ("Unknown outbound TransferRecord: %02X%n", data[ptr]);
+          logger.warn ("Unknown outbound TransferRecord: {}", String.format ("%02X", data[ptr]));
           transferRecord = new TransferRecord (data, ptr);
           break;
       }
@@ -58,8 +63,8 @@ public class FileTransferOutboundSF extends FileTransferSF
 
     if (debug)
     {
-      System.out.println (this);
-      System.out.println ("-----------------------------------------"
+      logger.debug ("{}", this);
+      logger.debug ("-----------------------------------------"
           + "------------------------------");
     }
   }
@@ -102,7 +107,7 @@ public class FileTransferOutboundSF extends FileTransferSF
         break;
 
       default:
-        System.out.printf ("Unknown record type: %02X%n", rectype);
+        logger.warn ("Unknown record type: {}", String.format ("%02X", rectype));
     }
   }
 
@@ -131,7 +136,7 @@ public class FileTransferOutboundSF extends FileTransferSF
     Optional<Transfer> optionalTransfer = transferManager.getTransfer ();
     if (!optionalTransfer.isPresent ())
     {
-      System.out.println ("No active transfer");
+      logger.info ("No active transfer");
       return;
     }
 

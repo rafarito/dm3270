@@ -18,8 +18,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class TSOCommand implements ScreenChangeListener
 {
+  private static final Logger logger = LoggerFactory.getLogger (TSOCommand.class);
   private final HBox hbox = new HBox (10);
 
   private final Label lblCommand = new Label ("TSO Command");
@@ -82,8 +86,8 @@ public class TSOCommand implements ScreenChangeListener
     if (command.length () > tsoCommandField.getDisplayLength ())
     {
       Dm3270Utility.showAlert ("Command is too long for the TSO input field");
-      System.out.printf ("Field: %d, command: %d%n", tsoCommandField.getDisplayLength (),
-                         command.length ());
+      logger.warn ("Field: {}, command: {}", tsoCommandField.getDisplayLength (),
+                   command.length ());
       return;
     }
 
@@ -107,7 +111,7 @@ public class TSOCommand implements ScreenChangeListener
         }
         catch (IllegalArgumentException e)
         {
-          System.out.println (e);
+          logger.warn ("Invalid IND$FILE command", e);
         }
       }
 

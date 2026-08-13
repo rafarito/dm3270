@@ -3,11 +3,16 @@ package com.bytezone.dm3270.extended;
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // http://publibfp.dhe.ibm.com/cgi-bin/bookmgr/BOOKS/d50a5007/6.3.20
 // z/OS V2R1.0 Communications Server: SNA Programming
 
 public class BindCommand extends AbstractExtendedCommand
 {
+  private static final Logger logger = LoggerFactory.getLogger (BindCommand.class);
+
   private static final String[] presentationText =
       { "Undefined", "12 x 40", "24 x 80", "default 24 x 80, alternate in Query Reply",
         "fixed size as defined by default values",
@@ -73,7 +78,7 @@ public class BindCommand extends AbstractExtendedCommand
     psProfile = data[14] & 0xFF;        // Presentation Space Profile    - should be 02
 
     if (fmProfile != 3 || tsProfile != 3 || psProfile != 2)
-      System.out.printf ("FM:02X, TS:%02X, PS:%02X%n", fmProfile, tsProfile, psProfile);
+      logger.warn ("{}", String.format ("FM:%02X, TS:%02X, PS:%02X", fmProfile, tsProfile, psProfile));
 
     primaryLuProtocols = new LogicalUnit (data[4]);
     secondaryLuProtocols = new LogicalUnit (data[5]);
@@ -117,26 +122,24 @@ public class BindCommand extends AbstractExtendedCommand
       userDataLength = data[userDataOffset] & 0xFF;
       extraBytes = data.length - userDataOffset - userDataLength - 1;
 
-      System.out.printf ("Data:%d, ns:%d, pLU:%d, user:%d, extra:%d%n", data.length,
-                         nsOffset, primaryLuNameLength, userDataLength, extraBytes);
+      logger.debug ("Data:{}, ns:{}, pLU:{}, user:{}, extra:{}", data.length,
+                    nsOffset, primaryLuNameLength, userDataLength, extraBytes);
 
       if (extraBytes > 0)
       {
-        System.out.println ();
         int ptr = userDataOffset + userDataLength + 1;
         while (ptr < data.length)
         {
           int len = data[ptr] & 0xFF;
           String userData = Dm3270Utility.getSanitisedString (data, ptr + 1, len);
-          System.out.printf ("ptr:%d, len:%d, [%s]%n", ptr, len, userData);
+          logger.debug ("ptr:{}, len:{}, [{}]", ptr, len, userData);
           ptr += len + 1;
         }
       }
-      System.out.println ();
     }
     else
     {
-      System.out.println ("profile: " + psProfile);
+      logger.debug ("profile: {}", psProfile);
       privateOptions = 0;
       sessionOptions = 0;
       sessionOptionsLength = 0;

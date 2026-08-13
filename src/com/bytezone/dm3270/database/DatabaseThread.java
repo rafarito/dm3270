@@ -2,6 +2,9 @@ package com.bytezone.dm3270.database;
 
 import static com.bytezone.dm3270.database.DatabaseRequest.Command.LIST;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,6 +26,8 @@ import com.bytezone.dm3270.database.DatabaseRequest.Result;
 public class DatabaseThread extends Thread
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (DatabaseThread.class);
+
   private static final String INSERT_DATASET =
       "insert into DATASETS (VOLUME, DEVICE, CATALOG, "
           + "TRACKS, CYLINDERS, PERCENT, EXTENTS, DSORG, RECFM, LRECL, BLKSIZE,"
@@ -68,7 +73,7 @@ public class DatabaseThread extends Thread
     catch (Exception e)
     {
       cancelled = true;
-      e.printStackTrace ();
+      logger.error ("Error initializing database connection", e);
     }
   }
 
@@ -97,7 +102,7 @@ public class DatabaseThread extends Thread
       }
       catch (InterruptedException e)
       {
-        System.out.println ("interrupted");
+        logger.info ("interrupted");
         cancelled = true;
         Thread.currentThread ().interrupt ();     // preserve the message
       }
@@ -106,11 +111,11 @@ public class DatabaseThread extends Thread
     try
     {
       connection.close ();
-      System.out.println ("Connection closed");
+      logger.info ("Connection closed");
     }
     catch (SQLException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error closing connection", e);
     }
   }
 
@@ -141,7 +146,7 @@ public class DatabaseThread extends Thread
         break;
 
       default:
-        System.out.printf ("Unnown database request: %s%n", request);
+        logger.warn ("Unnown database request: {}", request);
         break;
     }
   }
@@ -196,7 +201,7 @@ public class DatabaseThread extends Thread
         break;
 
       default:
-        System.out.printf ("Unnown dataset request: %s%n", request);
+        logger.warn ("Unnown dataset request: {}", request);
         break;
     }
   }
@@ -253,7 +258,7 @@ public class DatabaseThread extends Thread
         break;
 
       default:
-        System.out.printf ("Unnown member request: %s%n", request);
+        logger.warn ("Unnown member request: {}", request);
         break;
     }
   }
@@ -278,6 +283,7 @@ public class DatabaseThread extends Thread
     }
     catch (SQLException e)
     {
+      logger.error ("Error dropping tables", e);
       return false;
     }
   }
@@ -361,7 +367,7 @@ public class DatabaseThread extends Thread
     }
     catch (Exception e)
     {
-      System.err.println (e.getClass ().getName () + ": " + e.getMessage ());
+      logger.error ("Error creating database tables", e);
       return false;
     }
   }
@@ -406,7 +412,7 @@ public class DatabaseThread extends Thread
     }
     catch (SQLException e)
     {
-      System.err.println (e.getClass ().getName () + ": " + e.getMessage ());
+      logger.error ("Error creating dataset list", e);
       return false;
     }
   }
@@ -448,7 +454,7 @@ public class DatabaseThread extends Thread
     }
     catch (SQLException e)
     {
-      System.err.println (e.getClass ().getName () + ": " + e.getMessage ());
+      logger.error ("Error creating member list", e);
       return false;
     }
   }
@@ -473,7 +479,7 @@ public class DatabaseThread extends Thread
     }
     catch (SQLException e)
     {
-      System.err.println (e.getClass ().getName () + ": " + e.getMessage ());
+      logger.error ("Error finding dataset", e);
     }
     return Optional.empty ();
   }
@@ -503,7 +509,7 @@ public class DatabaseThread extends Thread
     }
     catch (SQLException e)
     {
-      System.err.println (e.getClass ().getName () + ": " + e.getMessage ());
+      logger.error ("Error finding member", e);
     }
     return Optional.empty ();
   }
@@ -532,8 +538,8 @@ public class DatabaseThread extends Thread
 
     try
     {
-      System.out.println ("Dataset modified:");
-      System.out.println (dataset);
+      logger.info ("Dataset modified:");
+      logger.info ("{}", dataset);
 
       PreparedStatement ps3 = connection.prepareStatement (UPDATE_DATASET);
 
@@ -549,6 +555,7 @@ public class DatabaseThread extends Thread
     }
     catch (SQLException e)
     {
+      logger.error ("Error updating dataset", e);
       return false;
     }
   }
@@ -592,8 +599,8 @@ public class DatabaseThread extends Thread
 
     try
     {
-      System.out.printf ("Member modified: %s(%s)%n", member.dataset.name, member.name);
-      System.out.println (member);
+      logger.info ("Member modified: {}({})", member.dataset.name, member.name);
+      logger.info ("{}", member);
 
       PreparedStatement ps4 = connection.prepareStatement (UPDATE_MEMBER);
 
@@ -606,6 +613,7 @@ public class DatabaseThread extends Thread
     }
     catch (SQLException e)
     {
+      logger.error ("Error updating member", e);
       return false;
     }
   }
@@ -636,13 +644,14 @@ public class DatabaseThread extends Thread
     }
     catch (SQLException e)
     {
+      logger.error ("Error deleting dataset", e);
       try
       {
         connection.rollback ();
       }
       catch (SQLException e1)
       {
-        e1.printStackTrace ();
+        logger.error ("Error rolling back transaction", e1);
       }
       return false;
     }
@@ -662,6 +671,7 @@ public class DatabaseThread extends Thread
     }
     catch (SQLException e)
     {
+      logger.error ("Error deleting member", e);
       return false;
     }
   }
@@ -682,6 +692,7 @@ public class DatabaseThread extends Thread
     }
     catch (SQLException e)
     {
+      logger.error ("Error inserting dataset", e);
       return false;
     }
   }
@@ -706,7 +717,7 @@ public class DatabaseThread extends Thread
         }
         catch (SQLException e)
         {
-          e.printStackTrace ();
+          logger.error ("Error updating dataset DSORG", e);
         }
       }
     }
@@ -724,7 +735,7 @@ public class DatabaseThread extends Thread
       }
       catch (SQLException e)
       {
-        e.printStackTrace ();
+        logger.error ("Error inserting dataset", e);
       }
     }
 
@@ -741,6 +752,7 @@ public class DatabaseThread extends Thread
     }
     catch (SQLException e)
     {
+      logger.error ("Error inserting member", e);
       return false;
     }
   }

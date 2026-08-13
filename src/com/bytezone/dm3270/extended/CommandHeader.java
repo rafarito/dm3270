@@ -1,11 +1,16 @@
 package com.bytezone.dm3270.extended;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bytezone.dm3270.buffers.AbstractReplyBuffer;
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 public class CommandHeader extends AbstractReplyBuffer
 {
+  private static final Logger logger = LoggerFactory.getLogger (CommandHeader.class);
+
   private static DataType[] dataTypes =
       { DataType.TN3270_DATA, DataType.SCS_DATA, DataType.RESPONSE, DataType.BIND_IMAGE,
         DataType.UNBIND, DataType.NVT_DATA, DataType.REQUEST, DataType.SSCP_LU_DATA,
@@ -96,7 +101,7 @@ public class CommandHeader extends AbstractReplyBuffer
         if (data[2] == ERR_COND_CLEARED)
           requestType = RequestType.ERR_COND_CLEARED;
         else
-          System.out.printf ("Unknown request data: %02X%n", data[2]);
+          logger.warn ("Unknown request data: {}", String.format ("%02X", data[2]));
         break;
 
       case SSCP_LU_DATA:

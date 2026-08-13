@@ -15,10 +15,15 @@ import com.bytezone.dm3270.telnet.TerminalTypeSubcommand;
 
 import javafx.application.Platform;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class MainframeServer implements Runnable
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (MainframeServer.class);
+
   private final int port;
   private final byte[] buffer = new byte[4096];
   private byte[] tempBuffer;
@@ -86,7 +91,7 @@ public class MainframeServer implements Runnable
       {
         if (Thread.interrupted ())
         {
-          System.out.println ("MainframeServer interrupted");
+          logger.info ("MainframeServer interrupted");
           break;
         }
 
@@ -101,15 +106,15 @@ public class MainframeServer implements Runnable
     }
     catch (SocketException e)     // caused by closing the clientServerSocket
     {
-      System.out.println ("Connection attempt cancelled");
+      logger.info ("Connection attempt cancelled", e);
     }
     catch (IOException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error in MainframeServer", e);
       close ();
     }
 
-    System.out.println ("Mainframe Server closed");
+    logger.info ("Mainframe Server closed");
   }
 
   // ---------------------------------------------------------------------------------//
@@ -130,7 +135,7 @@ public class MainframeServer implements Runnable
 
     if (buffer[bytesRead - 1] != (byte) 0xEF && buffer[bytesRead - 2] != (byte) 0xFF)
     {
-      System.out.println ("Unfinished buffer");
+      logger.warn ("Unfinished buffer");
       tempBuffer = new byte[bytesRead];
       System.arraycopy (buffer, 0, tempBuffer, 0, bytesRead);
       return 0;
@@ -186,7 +191,7 @@ public class MainframeServer implements Runnable
       }
       catch (IOException e)
       {
-        e.printStackTrace ();
+        logger.error ("Error writing to client", e);
       }
     }
   }
@@ -213,7 +218,7 @@ public class MainframeServer implements Runnable
       }
       catch (IOException e)
       {
-        e.printStackTrace ();
+        logger.error ("Error closing client socket", e);
       }
 
     if (clientServerSocket != null)
@@ -224,7 +229,7 @@ public class MainframeServer implements Runnable
       }
       catch (IOException e)
       {
-        e.printStackTrace ();
+        logger.error ("Error closing client server socket", e);
       }
   }
 }

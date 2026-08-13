@@ -15,10 +15,15 @@ import javafx.scene.control.TextArea;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class ReportScore implements Comparable<ReportScore>
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (ReportScore.class);
+
   private static Font font;
 
   public final RecordMaker recordMaker;
@@ -108,7 +113,7 @@ public class ReportScore implements Comparable<ReportScore>
   {
     if (pageNumber < 0 || pageNumber >= pages.size ())
     {
-      System.out.println ("impossible");
+      logger.warn ("impossible pageNumber requested: {}", pageNumber);
       textArea.clear ();
       return textArea;
     }

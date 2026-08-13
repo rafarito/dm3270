@@ -8,6 +8,8 @@ import com.bytezone.dm3270.session.SessionTable;
 import com.bytezone.dm3270.streams.SpyServer;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.utilities.Site;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -22,6 +24,7 @@ import javafx.stage.FileChooser;
 
 public class SpyPane extends BorderPane
 {
+  private static final Logger logger = LoggerFactory.getLogger (SpyPane.class);
   private static final int BUTTON_WIDTH = 105;
 
   private SpyServer spyServer;
@@ -125,7 +128,7 @@ public class SpyPane extends BorderPane
       }
       catch (InterruptedException e)
       {
-        e.printStackTrace ();
+        logger.error ("Error disconnecting spy server thread", e);
       }
   }
 }

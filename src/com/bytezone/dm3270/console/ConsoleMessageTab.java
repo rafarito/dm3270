@@ -10,8 +10,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ConsoleMessageTab extends Tab implements ConsoleMessageListener
 {
+  private static final Logger logger = LoggerFactory.getLogger (ConsoleMessageTab.class);
   private final ConsoleMessageTable consoleMessageTable = new ConsoleMessageTable ();
   private final TextField txtTask = new TextField ();
   private final TextField txtMessageCode = new TextField ();
@@ -89,6 +93,6 @@ public class ConsoleMessageTab extends Tab implements ConsoleMessageListener
     if (consoleMessage == null)
       return;
 
-    System.out.println (consoleMessage);
+    logger.debug ("{}", consoleMessage);
   }
 }

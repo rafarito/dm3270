@@ -10,6 +10,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bytezone.dm3270.application.Console.Function;
 import com.bytezone.dm3270.buffers.ReplyBuffer;
 import com.bytezone.dm3270.commands.AIDCommand;
@@ -35,6 +38,8 @@ import javafx.scene.control.Label;
 public class Session implements Iterable<SessionRecord>
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (Session.class);
+
   private final ObservableList<SessionRecord> sessionRecords =
       FXCollections.observableArrayList ();
   private final Function function;
@@ -311,7 +316,7 @@ public class Session implements Iterable<SessionRecord>
     }
     catch (FileNotFoundException | UnsupportedEncodingException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error saving session", e);
     }
   }
 

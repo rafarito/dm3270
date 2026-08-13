@@ -17,7 +17,10 @@ import com.bytezone.dm3270.database.Dataset;
 import com.bytezone.dm3270.database.DatasetRequest;
 import com.bytezone.dm3270.database.Initiator;
 import com.bytezone.dm3270.database.Member;
-import com.bytezone.dm3270.database.MemberRequest;;
+import com.bytezone.dm3270.database.MemberRequest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // created by FieldManager
 // used by ScreenChangeListener (ScreenPacker, TransfersStage, TransferMenu)
@@ -27,6 +30,8 @@ import com.bytezone.dm3270.database.MemberRequest;;
 public class ScreenWatcher implements Initiator
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (ScreenWatcher.class);
+
   private static final String[] tsoMenus =
       { "Menu", "List", "Mode", "Functions", "Utilities", "Help" };
   private static final String[] pdsMenus =
@@ -224,7 +229,7 @@ public class ScreenWatcher implements Initiator
       if (" Menu".equals (text) && menuField.isAlphanumeric () && menuField.isProtected ()
           && menuField.isVisible () && menuField.isIntensified ())
       {
-        System.out.println ("Possible menu");
+        logger.debug ("Possible menu");
       }
     }
   }
@@ -364,7 +369,7 @@ public class ScreenWatcher implements Initiator
     else
     {
       // Could be: Matched in list REFLIST
-      System.out.println ("Unexpected text: " + locationText);
+      logger.warn ("Unexpected text: {}", locationText);
       return false;
     }
 
@@ -418,18 +423,18 @@ public class ScreenWatcher implements Initiator
               nextLine = 8;
             }
             else
-              System.out.println ("Expected 'Catalog' or underscores: " + line);
+              logger.warn ("Expected 'Catalog' or underscores: {}", line);
           }
         }
         break;
 
       default:
-        System.out.printf ("Unexpected number of fields: %d%n", rowFields.size ());
+        logger.warn ("Unexpected number of fields: {}", rowFields.size ());
     }
 
     if (screenType == 0)
     {
-      System.out.println ("Screen not recognised");
+      logger.warn ("Screen not recognised");
       dumpFields (rowFields);
       return false;
     }
@@ -447,7 +452,7 @@ public class ScreenWatcher implements Initiator
       String datasetName = lineText.substring (9).trim ();
       if (datasetName.length () > 44)
       {
-        System.out.printf ("Dataset name too long: %s%n", datasetName);
+        logger.warn ("Dataset name too long: {}", datasetName);
         break;
       }
 
@@ -457,7 +462,7 @@ public class ScreenWatcher implements Initiator
       {
         // check for excluded datasets
         if (!EXCLUDE_LINE.equals (datasetName))
-          System.out.printf ("Invalid dataset name: %s%n", datasetName);
+          logger.warn ("Invalid dataset name: {}", datasetName);
 
         // what about GDGs?
       }
@@ -665,7 +670,7 @@ public class ScreenWatcher implements Initiator
         tabs2 = new int[] { 9, 17, 25, 36 };
         break;
       default:
-        System.out.printf ("Unexpected mode1: [%s]%n", mode);
+        logger.warn ("Unexpected mode1: [{}]", mode);
         return false;
     }
 
@@ -689,7 +694,7 @@ public class ScreenWatcher implements Initiator
       Matcher matcher = memberNamePattern.matcher (memberName);
       if (!matcher.matches ())
       {
-        System.out.printf ("Invalid member name: %s%n", memberName);
+        logger.warn ("Invalid member name: {}", memberName);
         break;
       }
       String details = rowFields.get (3).getText ();
@@ -704,7 +709,7 @@ public class ScreenWatcher implements Initiator
       else if (headings.size () == 13)
         screenType2 (member, details, tabs2, m);
       else
-        System.out.printf ("Headings size: %d%n", headings.size ());
+        logger.warn ("Headings size: {}", headings.size ());
     }
 
     return true;
@@ -724,7 +729,7 @@ public class ScreenWatcher implements Initiator
         || mode.equals ("BROWSE")   // Menu option 1 (browse mode selected)
         || mode.equals ("VIEW")))   // Menu option 2
     {
-      System.out.printf ("Unexpected mode2: [%s]%n", mode);
+      logger.warn ("Unexpected mode2: [{}]", mode);
       return false;
     }
 
@@ -763,7 +768,7 @@ public class ScreenWatcher implements Initiator
       Matcher matcher = memberNamePattern.matcher (memberName);
       if (!matcher.matches ())
       {
-        System.out.printf ("Invalid member name: %s%n", memberName);
+        logger.warn ("Invalid member name: {}", memberName);
         break;
       }
       String details = rowFields.get (3).getText ();
@@ -867,7 +872,7 @@ public class ScreenWatcher implements Initiator
     }
     catch (NumberFormatException e)
     {
-      System.out.printf ("ParseInt error with %s: [%s]%n", id, value);
+      logger.error ("ParseInt error with {}: [{}]", id, value, e);
       return 0;
     }
   }
@@ -939,10 +944,9 @@ public class ScreenWatcher implements Initiator
   private void dumpFields (List<Field> fields)
   // ---------------------------------------------------------------------------------//
   {
-    fields.forEach (System.out::println);
-    //    for (Field field : fields)
-    //      System.out.println (field);
-    System.out.println ("-------------------------");
+    for (Field field : fields)
+      logger.debug ("{}", field);
+    logger.debug ("-------------------------");
   }
 
   // ---------------------------------------------------------------------------------//
@@ -985,7 +989,7 @@ public class ScreenWatcher implements Initiator
       }
       catch (InterruptedException e)
       {
-        e.printStackTrace ();
+        logger.error ("Interrupted while putting UPDATE request in queue", e);
       }
   }
 

@@ -3,11 +3,15 @@ package com.bytezone.dm3270.replyfield;
 import java.io.UnsupportedEncodingException;
 
 import com.bytezone.dm3270.structuredfields.StructuredField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // -----------------------------------------------------------------------------------//
 public class OEMAuxilliaryDevice extends QueryReplyField
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (OEMAuxilliaryDevice.class);
+
   byte flags;
   byte refID;
   String deviceType;
@@ -34,7 +38,7 @@ public class OEMAuxilliaryDevice extends QueryReplyField
     }
     catch (UnsupportedEncodingException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error encoding CP1047", e);
     }
     int ptr = createReply (rest.length);
     for (byte b : rest)
@@ -61,7 +65,7 @@ public class OEMAuxilliaryDevice extends QueryReplyField
     }
     catch (UnsupportedEncodingException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error decoding CP1047", e);
     }
   }
 

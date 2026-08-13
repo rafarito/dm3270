@@ -4,10 +4,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class FileSaver
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (FileSaver.class);
+
   // ---------------------------------------------------------------------------------//
   public static Path getHomePath (String siteFolderName)
   // ---------------------------------------------------------------------------------//
@@ -22,7 +27,7 @@ public class FileSaver
   {
     if (site == null)
     {
-      System.out.println ("Site is null");
+      logger.warn ("Site is null");
       return null;
     }
     String userHome = System.getProperty ("user.home");

@@ -12,10 +12,15 @@ import javax.net.ssl.SSLSocketFactory;
 import com.bytezone.dm3270.streams.TelnetSocket.Source;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class TerminalServer implements Runnable
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (TerminalServer.class);
+
   private final int serverPort;
   private final String serverURL;
   private final boolean useTls;
@@ -62,7 +67,7 @@ public class TerminalServer implements Runnable
       {
         if (Thread.interrupted ())
         {
-          System.out.println ("TerminalServer interrupted");
+          logger.info ("TerminalServer interrupted");
           break;
         }
 
@@ -74,13 +79,12 @@ public class TerminalServer implements Runnable
         }
 
         if (Thread.currentThread ().isInterrupted ())
-          System.out.println ("TerminalServer was interrupted!");
+          logger.info ("TerminalServer was interrupted!");
 
         if (debug)
         {
-          System.out.println (toString ());
-          System.out.println ("reading:");
-          System.out.println (Dm3270Utility.toHex (buffer, 0, bytesRead));
+          logger.debug ("{}\nreading:\n{}", toString (),
+                        Dm3270Utility.toHex (buffer, 0, bytesRead));
         }
 
         byte[] message = new byte[bytesRead];
@@ -96,12 +100,12 @@ public class TerminalServer implements Runnable
       // desligamento e nao interessa a ninguem.
       if (!connected)
       {
-        System.out.println ("TerminalServer nao conectou: " + e.getMessage ());
+        logger.error ("TerminalServer nao conectou: {}", e.getMessage (), e);
         close ();
       }
       else if (running)
       {
-        e.printStackTrace ();
+        logger.error ("TerminalServer erro de leitura", e);
         close ();
       }
     }
@@ -143,7 +147,7 @@ public class TerminalServer implements Runnable
     if (serverOut == null)
     {
       // the no-op may come here if the program is not closed after disconnection
-      System.out.println ("serverOut is null in TerminalServer");
+      logger.warn ("serverOut is null in TerminalServer");
       return;
     }
 
@@ -154,14 +158,12 @@ public class TerminalServer implements Runnable
     }
     catch (IOException e)
     {
-      e.printStackTrace ();
+      logger.error ("Erro de escrita in TerminalServer", e);
     }
 
     if (debug)
     {
-      System.out.println (toString ());
-      System.out.println ("writing:");
-      System.out.println (Dm3270Utility.toHex (buffer));
+      logger.debug ("{}\nwriting:\n{}", toString (), Dm3270Utility.toHex (buffer));
     }
   }
 
@@ -184,7 +186,7 @@ public class TerminalServer implements Runnable
     }
     catch (IOException e)
     {
-      e.printStackTrace ();
+      logger.error ("Erro ao fechar TerminalServer", e);
     }
   }
 

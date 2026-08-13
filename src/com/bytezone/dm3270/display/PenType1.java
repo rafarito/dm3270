@@ -9,8 +9,13 @@ import com.bytezone.dm3270.attributes.StartFieldAttribute;
 
 import javafx.scene.canvas.GraphicsContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 class PenType1 implements Pen
 {
+  private static final Logger logger = LoggerFactory.getLogger (PenType1.class);
+
   private final ScreenPosition[] screenPositions;   // owned by Screen
 
   private int currentPosition;
@@ -61,9 +66,9 @@ class PenType1 implements Pen
     {
       if (false)
       {
-        System.out.printf ("Unapplied attributes at %d%n", currentPosition);
+        logger.debug ("Unapplied attributes at {}", currentPosition);
         for (Attribute attribute : pendingAttributes)
-          System.out.println ("  " + attribute);
+          logger.debug ("  {}", attribute);
       }
       pendingAttributes.clear ();
     }
@@ -136,7 +141,7 @@ class PenType1 implements Pen
   {
     if (!formattedScreen)
     {
-      System.out.println ("No fields to erase");
+      logger.debug ("No fields to erase");
       return;
     }
 
@@ -187,9 +192,9 @@ class PenType1 implements Pen
     {
       if (true)
       {
-        System.out.printf ("Unapplied attributes at %d%n", currentPosition);
+        logger.debug ("Unapplied attributes at {}", currentPosition);
         for (Attribute attribute : pendingAttributes)
-          System.out.println (attribute);
+          logger.debug ("{}", attribute);
       }
       applyAttributes (screenPositions[currentPosition]);
     }
@@ -211,7 +216,7 @@ class PenType1 implements Pen
         break;
     }
 
-    System.out.printf ("No next start field found: %d%n", position);
+    logger.warn ("No next start field found: {}", position);
     return -1;
   }
 
@@ -266,7 +271,7 @@ class PenType1 implements Pen
   private void dumpScreenPositions (int from, int to)
   {
     while (from < to)
-      System.out.println (screenPositions[from++]);
+      logger.trace ("{}", screenPositions[from++]);
   }
 
   @Override

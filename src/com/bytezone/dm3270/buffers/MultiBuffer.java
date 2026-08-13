@@ -5,9 +5,13 @@ import java.util.List;
 
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MultiBuffer implements Buffer
 {
+  private static final Logger logger = LoggerFactory.getLogger (MultiBuffer.class);
+
   List<Buffer> buffers = new ArrayList<> ();
 
   public void addBuffer (Buffer buffer)
@@ -32,11 +36,11 @@ public class MultiBuffer implements Buffer
     int ptr = 0;
     for (Buffer buffer : buffers)
     {
-      System.out.println (Dm3270Utility.toHex (buffer.getData ()));
+      logger.trace ("{}", Dm3270Utility.toHex (buffer.getData ()));
       System.arraycopy (buffer.getData (), 0, data, ptr, buffer.size ());
       ptr += buffer.size ();
     }
-    System.out.println (Dm3270Utility.toHex (data));
+    logger.trace ("{}", Dm3270Utility.toHex (data));
     return data;
   }
 

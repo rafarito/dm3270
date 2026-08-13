@@ -6,10 +6,15 @@ import java.security.InvalidParameterException;
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.streams.TelnetState;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class TerminalTypeSubcommand extends TelnetSubcommand
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (TerminalTypeSubcommand.class);
+
   public static final byte OPTION_IS = 0;
   public static final byte OPTION_SEND = 1;
 
@@ -63,7 +68,7 @@ public class TerminalTypeSubcommand extends TelnetSubcommand
       }
       catch (UnsupportedEncodingException e)
       {
-        e.printStackTrace ();
+        logger.error ("Error generating subcommand", e);
       }
     }
     else if (type == SubcommandType.IS)

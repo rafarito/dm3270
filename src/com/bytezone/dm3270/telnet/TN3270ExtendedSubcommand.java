@@ -8,10 +8,15 @@ import java.util.List;
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.streams.TelnetState;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class TN3270ExtendedSubcommand extends TelnetSubcommand
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (TN3270ExtendedSubcommand.class);
+
   protected static final byte EXT_DEVICE_TYPE = 2;
   protected static final byte EXT_FUNCTIONS = 3;
 
@@ -163,7 +168,7 @@ public class TN3270ExtendedSubcommand extends TelnetSubcommand
       }
       catch (UnsupportedEncodingException e)
       {
-        e.printStackTrace ();
+        logger.error ("Error generating subcommand", e);
       }
     }
 
@@ -180,7 +185,7 @@ public class TN3270ExtendedSubcommand extends TelnetSubcommand
     {
       // o construtor nao reconheceu o segundo byte do subcomando: sem subtipo nao ha o
       // que processar, e um switch sobre enum nulo lancaria NullPointerException
-      System.out.printf ("Unknown %s subcommand: %02X%n", type, data[4]);
+      logger.warn ("Unknown {} subcommand: {}", type, String.format ("%02X", data[4]));
       return;
     }
 
@@ -215,7 +220,7 @@ public class TN3270ExtendedSubcommand extends TelnetSubcommand
         break;
 
       default:
-        System.out.println ("Unknown subtype: " + subType);
+        logger.warn ("Unknown subtype: {}", subType);
         break;
     }
   }

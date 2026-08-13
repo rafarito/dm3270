@@ -9,9 +9,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Parameters
 {
+  private static final Logger logger = LoggerFactory.getLogger (Parameters.class);
   List<SiteParameters> siteParametersList = new ArrayList<> ();
 
   public Parameters ()
@@ -50,7 +53,7 @@ public class Parameters
     }
     catch (IOException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error reading parameters file", e);
     }
     return new ArrayList<String> ();        // empty list
   }

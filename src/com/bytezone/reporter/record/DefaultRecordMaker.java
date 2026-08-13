@@ -2,10 +2,15 @@ package com.bytezone.reporter.record;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public abstract class DefaultRecordMaker implements RecordMaker
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (DefaultRecordMaker.class);
+
   protected byte[] buffer;
   protected List<Record> records;
   protected final String name;
@@ -32,7 +37,7 @@ public abstract class DefaultRecordMaker implements RecordMaker
   // ---------------------------------------------------------------------------------//
   {
     this.records = records;
-    System.out.printf ("given %d records%n", records.size ());
+    logger.info ("given {} records", records.size ());
   }
 
   // ---------------------------------------------------------------------------------//

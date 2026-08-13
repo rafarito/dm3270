@@ -5,6 +5,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bytezone.dm3270.assistant.TableDataset;
 import com.bytezone.dm3270.display.ScreenWatcher;
 import com.bytezone.dm3270.utilities.FileSaver;
@@ -14,6 +17,8 @@ import javafx.scene.control.Label;
 
 class UploadDialog extends TransferDialog
 {
+  private static final Logger logger = LoggerFactory.getLogger (UploadDialog.class);
+
   private final Label labelFromFolder = new Label ();
   private final Label labelFileDate = new Label ();
   private final Label labelDatasetDate = new Label ();
@@ -74,7 +79,7 @@ class UploadDialog extends TransferDialog
     }
     else
     {
-      System.out.println ("not found");
+      logger.info ("Dataset not found");
       labelDatasetDate.setText ("");
     }
 

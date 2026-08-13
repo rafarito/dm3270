@@ -7,10 +7,15 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class Dm3270Utility
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (Dm3270Utility.class);
+
   public static final String EBCDIC = "CP1047";
   public static final String FROG = "CP1047";
   private static final int LINESIZE = 16;
@@ -39,7 +44,7 @@ public class Dm3270Utility
     }
     catch (UnsupportedEncodingException e)
     {
-      e.printStackTrace ();
+      logger.error ("Unsupported encoding", e);
     }
   }
 
@@ -75,7 +80,7 @@ public class Dm3270Utility
     }
     catch (UnsupportedEncodingException e)
     {
-      e.printStackTrace ();
+      logger.error ("Unsupported encoding", e);
       return "FAIL";
     }
   }
@@ -205,7 +210,7 @@ public class Dm3270Utility
     }
     catch (UnsupportedEncodingException e)
     {
-      e.printStackTrace ();
+      logger.error ("Unsupported encoding", e);
     }
 
     // remove a quebra de linha final por inteiro: %n tem dois caracteres no Windows
@@ -234,14 +239,14 @@ public class Dm3270Utility
   public static void hexDump (byte[] b, int offset, int length)
   // ---------------------------------------------------------------------------------//
   {
-    System.out.println (toHex (b, offset, length));
+    logger.debug ("\n{}", toHex (b, offset, length));
   }
 
   // ---------------------------------------------------------------------------------//
   public static void hexDump (byte[] b, int offset, int length, boolean ebcdic)
   // ---------------------------------------------------------------------------------//
   {
-    System.out.println (toHex (b, offset, length, ebcdic));
+    logger.debug ("\n{}", toHex (b, offset, length, ebcdic));
   }
 
   // ---------------------------------------------------------------------------------//
@@ -269,7 +274,7 @@ public class Dm3270Utility
   // ---------------------------------------------------------------------------------//
   {
     for (StackTraceElement ste : Thread.currentThread ().getStackTrace ())
-      System.out.println (ste);
+      logger.debug ("{}", ste);
   }
 
   // ---------------------------------------------------------------------------------//

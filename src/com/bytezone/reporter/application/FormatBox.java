@@ -19,10 +19,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 class FormatBox
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (FormatBox.class);
+
   private final ToggleGroup recordsGroup = new ToggleGroup ();
   private final ToggleGroup encodingsGroup = new ToggleGroup ();
   private final ToggleGroup reportsGroup = new ToggleGroup ();
@@ -122,7 +127,7 @@ class FormatBox
 
     if (recordMaker == null)
     {
-      System.out.println ("no makers found");
+      logger.warn ("no makers found");
       return;
     }
 
@@ -135,7 +140,7 @@ class FormatBox
     if (reportScore != null)
       changeListener.paginationChanged (reportScore.getPagination ());
     else
-      System.out.println ("no reportscore found");
+      logger.warn ("no reportscore found");
   }
 
   // ---------------------------------------------------------------------------------//
@@ -149,7 +154,7 @@ class FormatBox
       selectButton (reportMakerButtons, reportScore.reportMaker);
     }
     else
-      System.out.println ("Imperfect ReportScore selected");
+      logger.warn ("Imperfect ReportScore selected");
   }
 
   // ---------------------------------------------------------------------------------//

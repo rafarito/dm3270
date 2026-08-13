@@ -3,11 +3,15 @@ package com.bytezone.dm3270.replyfield;
 import java.io.UnsupportedEncodingException;
 
 import com.bytezone.dm3270.utilities.Dm3270Utility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // -----------------------------------------------------------------------------------//
 public class RPQNames extends QueryReplyField
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (RPQNames.class);
+
   String deviceType;
   long model;
   String rpqName;
@@ -35,7 +39,7 @@ public class RPQNames extends QueryReplyField
     }
     catch (UnsupportedEncodingException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error encoding CP1047", e);
     }
   }
 
@@ -58,7 +62,7 @@ public class RPQNames extends QueryReplyField
     }
     catch (UnsupportedEncodingException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error decoding CP1047", e);
     }
   }
 

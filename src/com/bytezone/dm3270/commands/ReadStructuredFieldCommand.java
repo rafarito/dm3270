@@ -17,9 +17,12 @@ import com.bytezone.dm3270.structuredfields.DefaultStructuredField;
 import com.bytezone.dm3270.structuredfields.QueryReplySF;
 import com.bytezone.dm3270.structuredfields.StructuredField;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ReadStructuredFieldCommand extends Command
 {
+  private static final Logger logger = LoggerFactory.getLogger (ReadStructuredFieldCommand.class);
   private static Map<String, String> clientNames = new HashMap<> ();
 
   private final List<StructuredField> structuredFields = new ArrayList<> ();
@@ -89,7 +92,7 @@ public class ReadStructuredFieldCommand extends Command
           break;
 
         default:
-          System.out.printf ("Unknown Structured Field: %02X%n", data[ptr]);
+          logger.warn ("Unknown Structured Field: {}", String.format ("%02X", data[ptr]));
           structuredFields.add (new DefaultStructuredField (data, ptr, size));
       }
       ptr += size;
@@ -116,12 +119,12 @@ public class ReadStructuredFieldCommand extends Command
       signature = toHex (digest);
       String clientName = clientNames.get (signature);
       if (clientName == null && false)
-        System.out.printf ("Unknown signature: %s%n", signature);
+        logger.warn ("Unknown signature: {}", signature);
       return clientName == null ? "Unknown" : clientName;
     }
     catch (NoSuchAlgorithmException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error generating signature", e);
     }
     return "Unknown";
   }

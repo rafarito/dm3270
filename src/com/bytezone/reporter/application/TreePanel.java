@@ -17,10 +17,15 @@ import javafx.event.EventHandler;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 class TreePanel
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (TreePanel.class);
+
   private final Set<NodeSelectionListener> nodeSelectionListeners = new HashSet<> ();
   private final TreeView<FileNode> fileTree = new TreeView<> ();
   private final Preferences prefs;
@@ -50,8 +55,7 @@ class TreePanel
       }
       catch (java.io.IOException e)
       {
-        System.out.println ("Could not create " + path);
-        e.printStackTrace ();
+        logger.error ("Could not create {}", path, e);
       }
     }
 
@@ -233,7 +237,7 @@ class TreePanel
   // ---------------------------------------------------------------------------------//
   {
     TreeItem<FileNode> treeItem = evt.getSource ();
-    System.out.println ("Open: " + treeItem);
+    logger.info ("Open: {}", treeItem);
   }
 
   // ---------------------------------------------------------------------------------//
@@ -242,14 +246,14 @@ class TreePanel
   {
     if (treeItem == null)
     {
-      System.out.println ("null tree item selected");
+      logger.warn ("null tree item selected");
       return;
     }
 
     FileNode fileNode = treeItem.getValue ();
     if (fileNode == null)
     {
-      System.out.println ("null filenode selected");
+      logger.warn ("null filenode selected");
       return;
     }
 

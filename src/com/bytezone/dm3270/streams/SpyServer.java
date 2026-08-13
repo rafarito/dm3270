@@ -14,10 +14,15 @@ import com.bytezone.dm3270.session.Session;
 import com.bytezone.dm3270.streams.TelnetSocket.Source;
 import com.bytezone.dm3270.utilities.Site;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class SpyServer implements Runnable
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (SpyServer.class);
+
   private Socket clientSocket;
   private final Socket serverSocket = new Socket ();
   private final TelnetState telnetState;
@@ -91,7 +96,7 @@ public class SpyServer implements Runnable
       serverTelnetSocket.link (clientTelnetSocket);
 
       // stop the session from using tn3270E mode?
-      System.out.printf ("Prevent 3270E: %s%n", prevent3270E);
+      logger.info ("Prevent 3270E: {}", prevent3270E);
       serverTelnetSocket.prevent3270E (prevent3270E);
 
       // start up the two listeners, each in its own thread 
@@ -104,16 +109,16 @@ public class SpyServer implements Runnable
     }
     catch (UnknownHostException e)
     {
-      System.out.println ("Unknown host");
+      logger.error ("Unknown host", e);
     }
     catch (SocketException e)     // caused by closing the clientServerSocket
     {
-      System.out.println ("tata");
+      logger.debug ("SpyServer socket closed", e);
       close ();
     }
     catch (IOException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error in SpyServer", e);
     }
   }
 
@@ -143,7 +148,7 @@ public class SpyServer implements Runnable
       }
       catch (IOException e)
       {
-        e.printStackTrace ();
+        logger.error ("Error closing socket", e);
       }
 
     if (clientTelnetSocket != null)

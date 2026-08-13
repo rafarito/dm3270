@@ -11,6 +11,8 @@ import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import com.bytezone.dm3270.plugins.PluginsStage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -41,6 +43,7 @@ import javafx.stage.Stage;
 
 public class OptionStage extends Stage
 {
+  private static final Logger logger = LoggerFactory.getLogger (OptionStage.class);
   private static final int COMBO_BOX_WIDTH = 150;
   private static final int EDIT_BUTTON_WIDTH = 50;
   private static final String EDIT_BUTTON_FONT_SIZE = "-fx-font-size: 10;";
@@ -236,7 +239,7 @@ public class OptionStage extends Stage
     }
     catch (IOException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error reading session files", e);
     }
 
     if (files == null)

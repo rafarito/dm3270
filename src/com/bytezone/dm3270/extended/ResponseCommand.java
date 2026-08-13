@@ -2,15 +2,20 @@ package com.bytezone.dm3270.extended;
 
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ResponseCommand extends AbstractExtendedCommand
 {
+  private static final Logger logger = LoggerFactory.getLogger (ResponseCommand.class);
+
   public ResponseCommand (CommandHeader commandHeader, byte[] buffer, int offset,
       int length)
   {
     super (commandHeader, buffer, offset, length);
 
     if (length != 1)
-      System.out.println (Dm3270Utility.toHex (buffer, offset, length));
+      logger.warn ("{}", Dm3270Utility.toHex (buffer, offset, length));
   }
 
   @Override

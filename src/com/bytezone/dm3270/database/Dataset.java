@@ -4,10 +4,15 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class Dataset
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (Dataset.class);
+
   private static final SimpleDateFormat fmt1 = new SimpleDateFormat ("yyyy/MM/dd");
 
   final String name;
@@ -105,7 +110,7 @@ public class Dataset
     }
     catch (ParseException e)
     {
-      System.out.printf ("Invalid created date: [%s]%n", created);
+      logger.warn ("Invalid created date: [{}]", created, e);
     }
 
     try
@@ -118,7 +123,7 @@ public class Dataset
     }
     catch (ParseException e)
     {
-      System.out.printf ("Invalid expires date: [%s]%n", expires);
+      logger.warn ("Invalid expires date: [{}]", expires, e);
     }
 
     try
@@ -131,7 +136,7 @@ public class Dataset
     }
     catch (ParseException e)
     {
-      System.out.printf ("Invalid referred date: [%s]%n", referred);
+      logger.warn ("Invalid referred date: [{}]", referred, e);
     }
   }
 

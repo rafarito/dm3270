@@ -5,6 +5,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bytezone.dm3270.application.ConsolePane;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.display.Field;
@@ -24,6 +27,8 @@ import javafx.scene.input.KeyCombination;
 
 public class TransferMenu implements ScreenChangeListener
 {
+  private static final Logger logger = LoggerFactory.getLogger (TransferMenu.class);
+
   private Site server;
 
   private ScreenWatcher screenWatcher;
@@ -128,7 +133,7 @@ public class TransferMenu implements ScreenChangeListener
     if (commandText.length () > tsoCommandField.getDisplayLength ())
     {
       Dm3270Utility.showAlert ("Command is too long for the TSO input field");
-      System.out.printf ("Field: %d, command: %d%n", tsoCommandField.getDisplayLength (),
+      logger.warn ("Command is too long for the TSO input field. Field: {}, command: {}", tsoCommandField.getDisplayLength (),
                          commandText.length ());
       return;
     }

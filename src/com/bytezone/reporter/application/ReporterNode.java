@@ -29,11 +29,16 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class ReporterNode extends BorderPane
     implements PaginationChangeListener, NodeSelectionListener
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (ReporterNode.class);
+
   private static final String PREFS_SAVE_LOCATION = "SaveLocation";
   private final Set<NodeSelectionListener> nodeSelectionListeners = new HashSet<> ();
   private final FormatBox formatBox;
@@ -163,7 +168,7 @@ public class ReporterNode extends BorderPane
   private void openFile ()
   // ---------------------------------------------------------------------------------//
   {
-    System.out.println ("Open not written yet");
+    logger.warn ("Open not written yet");
   }
 
   // ---------------------------------------------------------------------------------//
@@ -202,7 +207,7 @@ public class ReporterNode extends BorderPane
         //          }
         //          catch (PrinterException e)
         //          {
-        //            e.printStackTrace ();
+        //            logger.error ("Printer exception", e);
         //          }
         //        }
       }
@@ -231,7 +236,7 @@ public class ReporterNode extends BorderPane
       }
       catch (IOException e)
       {
-        e.printStackTrace ();
+        logger.error ("Error saving file", e);
       }
   }
 

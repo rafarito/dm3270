@@ -8,13 +8,19 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bytezone.dm3270.streams.TelnetSocket.Source;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 // -----------------------------------------------------------------------------------//
+// -----------------------------------------------------------------------------------//
 public class SessionReader
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (SessionReader.class);
+
   private final String name;
   private final String firstLetter;
   private final List<String> lines;
@@ -63,7 +69,7 @@ public class SessionReader
     }
     catch (IOException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error reading file", e);
       if (lines == null)
         lines = new ArrayList<> ();
     }
@@ -226,7 +232,7 @@ public class SessionReader
       {
         if (client.nextLineNo () < server.nextLineNo ())
         {
-          System.out.println ("-----------------< Client >--------------------");
+          logger.info ("-----------------< Client >--------------------");
           while (client.nextLineNo () < server.nextLineNo ())
             if (mode == 1)
               print (client.getBufferLines ());
@@ -235,7 +241,7 @@ public class SessionReader
         }
         else
         {
-          System.out.println ("-----------------< Server >--------------------");
+          logger.info ("-----------------< Server >--------------------");
           while (server.nextLineNo () < client.nextLineNo ())
             if (mode == 1)
               print (server.getBufferLines ());
@@ -246,7 +252,7 @@ public class SessionReader
     }
     catch (Exception e)
     {
-      System.out.println ("Exception reading file");
+      logger.error ("Exception reading file", e);
     }
   }
 
@@ -254,9 +260,9 @@ public class SessionReader
   private static void print (byte[] buffer)
   // ---------------------------------------------------------------------------------//
   {
-    System.out.println (Dm3270Utility.toHex (buffer));
+    logger.info ("\n{}", Dm3270Utility.toHex (buffer));
     if (buffer[buffer.length - 1] == (byte) 0xEF)
-      System.out.println ();
+      logger.info ("");
   }
 
   // ---------------------------------------------------------------------------------//
@@ -264,7 +270,7 @@ public class SessionReader
   // ---------------------------------------------------------------------------------//
   {
     for (String line : list)
-      System.out.println (line);
-    System.out.println ();
+      logger.info (line);
+    logger.info ("");
   }
 }

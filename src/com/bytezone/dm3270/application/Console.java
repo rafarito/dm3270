@@ -22,8 +22,12 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Console extends Application
 {
+  private static final Logger logger = LoggerFactory.getLogger (Console.class);
   private static final int MAINFRAME_EMULATOR_PORT = 5555;
   private static final Site DEFAULT_MAINFRAME =
       new Site ("mainframe", "localhost", MAINFRAME_EMULATOR_PORT, true, 2, false, false, false, "");
@@ -66,7 +70,7 @@ public class Console extends Application
       String[] keys = prefs.keys ();
       Arrays.sort (keys);
       for (String key : keys)
-        System.out.printf ("%-18s : %s%n", key, prefs.get (key, ""));
+        logger.info (String.format ("%-18s : %s", key, prefs.get (key, "")));
     }
   }
 
@@ -82,7 +86,7 @@ public class Console extends Application
 
     primaryScreenBounds = javafx.stage.Screen.getPrimary ().getVisualBounds ();
     if (false)
-      System.out.println (javafx.stage.Screen.getPrimary ().getDpi ());
+      logger.debug ("{}", javafx.stage.Screen.getPrimary ().getDpi ());
 
     optionStage.okButton.setOnAction (e -> startSelectedFunction ());
     optionStage.cancelButton.setOnAction (e -> optionStage.hide ());
@@ -123,8 +127,8 @@ public class Console extends Application
             }
             else
             {
-              System.out.println ("Couldn't find the server site for "
-                  + session.getServerName ());
+              logger.warn ("Couldn't find the server site for {}",
+                  session.getServerName ());
               setConsolePane (createScreen (Function.REPLAY, null), null);
             }
 
@@ -133,7 +137,7 @@ public class Console extends Application
           }
           catch (Exception e)
           {
-            e.printStackTrace ();
+            logger.error ("Error creating replay window", e);
             errorMessage = "Error creating replay window";
           }
 
@@ -188,7 +192,7 @@ public class Console extends Application
   private void setModel (Site serverSite)
   {
     int model = serverSite.getModel ();
-    System.out.println ("model: " + model);
+    logger.debug ("model: {}", model);
     switch (model)
     {
       case 2:
@@ -207,7 +211,7 @@ public class Console extends Application
         alternateScreenDimensions = new ScreenDimensions (27, 132);
         telnetState.setDoDeviceType (5);
       default:
-        System.out.println ("Invalid model number: " + model);
+        logger.warn ("Invalid model number: {}", model);
     }
   }
 

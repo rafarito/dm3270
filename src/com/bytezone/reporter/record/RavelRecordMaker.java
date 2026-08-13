@@ -3,10 +3,15 @@ package com.bytezone.reporter.record;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class RavelRecordMaker extends DefaultRecordMaker
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (RavelRecordMaker.class);
+
   byte[] temp = new byte[2048];
 
   // ---------------------------------------------------------------------------------//
@@ -61,7 +66,7 @@ public class RavelRecordMaker extends DefaultRecordMaker
       if (tempPtr < temp.length)
         temp[tempPtr++] = firstByte;
       else
-        System.out.println ("Temp buffer too short");
+        logger.warn ("Temp buffer too short");
     }
     return records;
   }

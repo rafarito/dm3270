@@ -26,8 +26,12 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 class ReplayStage extends Stage
 {
+  private static final Logger logger = LoggerFactory.getLogger (ReplayStage.class);
   private final Preferences prefs;
   private final CheckBox showTelnetCB = new CheckBox ("Show telnet");
   private final CheckBox show3270ECB = new CheckBox ("Show 3270-E");
@@ -124,7 +128,7 @@ class ReplayStage extends Stage
 
     if (dataRecord == null)
     {
-      System.out.println ("No suitable first screen found");
+      logger.warn ("No suitable first screen found");
       return;
     }
 

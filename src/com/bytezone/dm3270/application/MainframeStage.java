@@ -45,8 +45,12 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class MainframeStage extends Stage implements Mainframe
 {
+  private static final Logger logger = LoggerFactory.getLogger (MainframeStage.class);
   private static final int BUTTON_WIDTH = 120;
 
   private static boolean UNPROTECTED = false;
@@ -192,7 +196,7 @@ public class MainframeStage extends Stage implements Mainframe
         .getResourceAsStream ("com/bytezone/dm3270/application/mf.txt");
     if (in == null)
     {
-      System.out.println ("mf.txt not found");
+      logger.warn ("mf.txt not found");
       return;
     }
 
@@ -207,7 +211,7 @@ public class MainframeStage extends Stage implements Mainframe
     }
     catch (IOException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error reading mf.txt", e);
     }
 
     try
@@ -237,7 +241,7 @@ public class MainframeStage extends Stage implements Mainframe
     }
     catch (Exception e)
     {
-      e.printStackTrace ();
+      logger.error ("Error preparing buttons", e);
     }
 
     btnReadBuffer.setOnAction (x -> mainframeServer

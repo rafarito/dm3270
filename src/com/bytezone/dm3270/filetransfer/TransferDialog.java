@@ -11,6 +11,9 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bytezone.dm3270.assistant.TableDataset;
 import com.bytezone.dm3270.display.ScreenWatcher;
 import com.bytezone.dm3270.utilities.FileSaver;
@@ -26,6 +29,8 @@ import javafx.scene.text.Font;
 
 public class TransferDialog
 {
+  private static final Logger logger = LoggerFactory.getLogger (TransferDialog.class);
+
   protected static final DateFormat df = new SimpleDateFormat ("yyyy/MM/dd HH:mm:ss");
   protected static final Pattern jclPattern =
       Pattern.compile (".*\\.(CNTL|JCL)[.(].*\\)");
@@ -109,7 +114,7 @@ public class TransferDialog
     {
       if (datasetName.length () == prefix.length ())
       {
-        System.out.println ("Dataset name matches prefix - do not transfer");
+        logger.info ("Dataset name matches prefix - do not transfer");
         return "";
       }
       datasetName = datasetName.substring (prefix.length () + 1);

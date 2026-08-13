@@ -28,10 +28,15 @@ import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 import javafx.application.Platform;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class TelnetListener implements BufferListener, TelnetCommandProcessor
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (TelnetListener.class);
+
   private final Session session;
   private final Source source;
 
@@ -115,9 +120,8 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
   public void processData (byte[] buffer, int length)
   // ---------------------------------------------------------------------------------//
   {
-    System.out.println ("Unknown telnet data received:");
-    System.out.println (new String (buffer, 0, length));
-    System.out.println (Dm3270Utility.toHex (buffer, 0, length, false));
+    logger.warn ("Unknown telnet data received:\n{}\n{}", new String (buffer, 0, length),
+                 Dm3270Utility.toHex (buffer, 0, length, false));
   }
 
   // ---------------------------------------------------------------------------------//
@@ -177,8 +181,8 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
         break;
 
       default:
-        System.out.println ("Data type not written: " + dataType);
-        System.out.println (Dm3270Utility.toHex (data, offset, length));
+        logger.warn ("Data type not written: {}\n{}", dataType,
+                     Dm3270Utility.toHex (data, offset, length));
     }
   }
 
@@ -204,13 +208,11 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
     else if (data[2] == TelnetSubcommand.TN3270E)
       subcommand = new TN3270ExtendedSubcommand (data, 0, dataPtr, telnetState);
     else
-      System.out.printf ("Unknown command type : %02X%n" + data[2]);
+      logger.warn ("Unknown command type : {}", String.format ("%02X", data[2]));
 
     if (debug)
     {
-      System.out.printf ("%s: ", source);
-      System.out.println (subcommand);
-      System.out.println ();
+      logger.debug ("{}: {}", source, subcommand);
     }
 
     //            subcommand.process (screen);

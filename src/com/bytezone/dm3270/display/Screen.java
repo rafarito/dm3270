@@ -36,6 +36,9 @@ import com.bytezone.dm3270.streams.TelnetStateListener;
 import com.bytezone.dm3270.structuredfields.SetReplyModeSF;
 import com.bytezone.dm3270.utilities.Site;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -52,6 +55,8 @@ public class Screen extends Canvas
     implements DisplayScreen, TransferListener, TelnetStateListener
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (Screen.class);
+
   private static final Toolkit defaultToolkit = Toolkit.getDefaultToolkit ();
   private static final boolean SHOW_CURSOR = true;
   private static final boolean HIDE_CURSOR = false;
@@ -714,7 +719,7 @@ public class Screen extends Canvas
     }
     catch (UnsupportedEncodingException e)
     {
-      e.printStackTrace ();
+      logger.error ("Unsupported encoding exception while setting text", e);
     }
   }
 
@@ -738,12 +743,12 @@ public class Screen extends Canvas
   {
     //    ScreenDimensions primary = telnetState.getPrimary ();
     ScreenDimensions alternate = telnetState.getSecondary ();
-    //    System.out.println (primary);
-    //    System.out.println (alternate);
+    //    logger.debug (primary);
+    //    logger.debug (alternate);
     if (alternate.size > 0 && alternateScreenDimensions == null)
     {
       alternateScreenDimensions = alternate;
-      System.out.println ("setting alternate dimensions: " + alternate);
+      logger.debug ("setting alternate dimensions: {}", alternate);
     }
   }
 
@@ -884,7 +889,8 @@ public class Screen extends Canvas
         return command;
 
       default:
-        System.out.println ("Unknown type in Screen.readModifiedFields()");
+        logger.warn ("Unknown type in Screen.readModifiedFields()");
+        break;
     }
 
     return null;

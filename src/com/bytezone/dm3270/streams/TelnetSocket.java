@@ -10,10 +10,15 @@ import com.bytezone.dm3270.telnet.TelnetCommand;
 import com.bytezone.dm3270.telnet.TelnetSubcommand;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class TelnetSocket implements Runnable
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (TelnetSocket.class);
+
   private static final boolean debug = false;
 
   private static final boolean GENUINE = true;
@@ -66,7 +71,7 @@ public class TelnetSocket implements Runnable
 
     if (debug)
     {
-      System.out.printf ("Creating TelnetSocket for %s%n", source);
+      logger.debug ("Creating TelnetSocket for {}", source);
     }
   }
 
@@ -98,7 +103,7 @@ public class TelnetSocket implements Runnable
     {
       if (Thread.interrupted ())
       {
-        System.out.println ("TelnetSocket interrupted");
+        logger.info ("TelnetSocket interrupted");
         break;
       }
       try
@@ -106,16 +111,15 @@ public class TelnetSocket implements Runnable
         bytesRead = inputStream.read (buffer);      // blocks
         if (bytesRead == -1)
         {
-          System.out.println (name + " has no data on input stream");
+          logger.warn ("{} has no data on input stream", name);
           close ();
           return;
         }
 
         if (debug)
         {
-          System.out.println (toString ());
-          System.out.println ("reading:");
-          System.out.println (Dm3270Utility.toHex (buffer, 0, bytesRead));
+          logger.debug ("{}\nreading:\n{}", toString (),
+                        Dm3270Utility.toHex (buffer, 0, bytesRead));
         }
 
         // take a copy of the input buffer and send it to the TelnetListener
@@ -132,15 +136,15 @@ public class TelnetSocket implements Runnable
       catch (IOException e)
       {
         if (running)
-          System.out.println (name + " closing due to IOException: " + e);
+          logger.error ("{} closing due to IOException", name, e);
         else
-          System.out.println (name + " quitting");
+          logger.info ("{} quitting", name);
         close ();
         return;
       }
     }
 
-    System.out.println (name + " closing - bye everyone");
+    logger.info ("{} closing - bye everyone", name);
     close ();
   }
 
@@ -155,14 +159,12 @@ public class TelnetSocket implements Runnable
     }
     catch (IOException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error writing to output stream", e);
     }
 
     if (debug)
     {
-      System.out.println (toString ());
-      System.out.println ("writing:");
-      System.out.println (Dm3270Utility.toHex (buffer));
+      logger.debug ("{}\nwriting:\n{}", toString (), Dm3270Utility.toHex (buffer));
     }
   }
 
@@ -207,7 +209,7 @@ public class TelnetSocket implements Runnable
     }
     catch (IOException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error closing socket", e);
     }
 
     socket = null;
@@ -215,7 +217,7 @@ public class TelnetSocket implements Runnable
     outputStream = null;
 
     if (debug)
-      System.out.printf ("Closing %s%n", toString ());
+      logger.debug ("Closing {}", toString ());
   }
 
   // ---------------------------------------------------------------------------------//

@@ -5,8 +5,13 @@ import java.util.Optional;
 import com.bytezone.dm3270.display.ContextManager;
 import com.bytezone.dm3270.display.ScreenContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public abstract class Attribute
 {
+  private static final Logger logger = LoggerFactory.getLogger (Attribute.class);
+
   public final static byte XA_RESET = 0x00;
   public final static byte XA_HIGHLIGHTING = 0x41;
   public final static byte XA_FGCOLOR = 0x42;
@@ -81,19 +86,19 @@ public abstract class Attribute
       case XA_FGCOLOR:
         return Optional.of (new ForegroundColor (attributeValue));
       case XA_CHARSET:
-        System.out.println ("Charset not written");
+        logger.warn ("Charset not written");
         return Optional.empty ();
       case XA_VALIDATION:
-        System.out.println ("Validation not written");
+        logger.warn ("Validation not written");
         return Optional.empty ();
       case XA_OUTLINING:
-        System.out.println ("Outlining not written");
+        logger.warn ("Outlining not written");
         return Optional.empty ();
       case XA_TRANSPARENCY:
-        System.out.println ("Transparency not written");
+        logger.warn ("Transparency not written");
         return Optional.empty ();
       default:
-        System.out.printf ("Unknown attribute: %02X%n", attributeCode);
+        logger.warn ("Unknown attribute: {}", String.format ("%02X", attributeCode));
         return Optional.empty ();
     }
   }

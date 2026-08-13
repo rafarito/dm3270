@@ -4,10 +4,15 @@ import java.io.UnsupportedEncodingException;
 
 import com.bytezone.reporter.record.Record;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class EbcdicTextMaker implements TextMaker
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (EbcdicTextMaker.class);
+
   static final String EBCDIC = "CP1047";
 
   public static final int[] ebc2asc = new int[256];
@@ -34,7 +39,7 @@ public class EbcdicTextMaker implements TextMaker
     }
     catch (UnsupportedEncodingException e)
     {
-      e.printStackTrace ();
+      logger.error ("Unsupported encoding", e);
     }
   }
 

@@ -9,11 +9,16 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bytezone.dm3270.display.TSOCommandListener;
 import com.bytezone.dm3270.utilities.Site;
 
 public class TransferManager implements TSOCommandListener
 {
+  private static final Logger logger = LoggerFactory.getLogger (TransferManager.class);
+
   private static Pattern INDFILE_PATTERN =
       Pattern.compile ("^(TSO )?\\s*IND[$£]FILE\\s+(GET|PUT).*");
   private Transfer currentTransfer;
@@ -57,7 +62,7 @@ public class TransferManager implements TSOCommandListener
       }
       catch (IllegalArgumentException e)
       {
-        System.out.println (e);
+        logger.error ("Error parsing IND$FILE command", e);
       }
   }
 
@@ -79,7 +84,7 @@ public class TransferManager implements TSOCommandListener
       {
         if (localFile == null || !localFile.exists () || !localFile.isFile ())
         {
-          System.out.println ("******** No file to read ********");
+          logger.warn ("******** No file to read ********");
           return;
         }
         try
@@ -89,7 +94,7 @@ public class TransferManager implements TSOCommandListener
         }
         catch (IOException e)
         {
-          e.printStackTrace ();
+          logger.error ("Error reading file", e);
         }
       }
     }

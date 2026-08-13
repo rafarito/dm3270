@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <!-- ===== VARIÁVEIS ===== -->
+  <property name="LOG_DIR" value="./logs" />
+  <property name="LOG_FILE" value="dm3270" />
+  <property name="MAX_HISTORY" value="10" />
+  <property name="MAX_FILE_SIZE" value="10MB" />
+
+  <!-- ===== CONSOLE APPENDER ===== -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>INFO</level>
+    </filter>
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- ===== ROLLING FILE APPENDER ===== -->
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_DIR}/${LOG_FILE}.log</file>
+
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <!-- Padrão de nome dos arquivos rotacionados -->
+      <fileNamePattern>${LOG_DIR}/${LOG_FILE}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      <!-- Máximo de 10 arquivos de histórico -->
+      <maxHistory>${MAX_HISTORY}</maxHistory>
+      <!-- Tamanho máximo de cada arquivo antes de rotacionar -->
+      <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+      <!-- Tamanho total máximo de todos os arquivos de log -->
+      <totalSizeCap>200MB</totalSizeCap>
+      <!-- Limpa arquivos antigos na inicialização -->
+      <cleanHistoryOnStart>true</cleanHistoryOnStart>
+    </rollingPolicy>
+
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- ===== NÍVEIS POR PACOTE ===== -->
+
+  <!-- Pacotes de protocolo/rede: DEBUG no arquivo para diagnóstico -->
+  <logger name="com.bytezone.dm3270.telnet" level="DEBUG" />
+  <logger name="com.bytezone.dm3270.streams" level="DEBUG" />
+  <logger name="com.bytezone.dm3270.extended" level="DEBUG" />
+
+  <!-- Pacotes de display/UI: INFO -->
+  <logger name="com.bytezone.dm3270.application" level="INFO" />
+  <logger name="com.bytezone.dm3270.display" level="INFO" />
+
+  <!-- Plugins: INFO -->
+  <logger name="com.bytezone.plugins" level="INFO" />
+
+  <!-- ===== ROOT LOGGER ===== -->
+  <root level="DEBUG">
+    <appender-ref ref="CONSOLE" />
+    <appender-ref ref="FILE" />
+  </root>
+
+</configuration>

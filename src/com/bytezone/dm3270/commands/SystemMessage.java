@@ -15,9 +15,13 @@ import com.bytezone.dm3270.utilities.Dm3270Utility;
 import javafx.application.Platform;
 import javafx.scene.control.MenuItem;
 import javafx.scene.text.Font;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SystemMessage
 {
+  private static final Logger logger = LoggerFactory.getLogger (SystemMessage.class);
+
   private static final Pattern jobSubmittedPattern = Pattern
       .compile ("^(?:[A-Z0-9]{1,9} )?JOB ([A-Z0-9]{1,9})\\(JOB(\\d{5})\\) SUBMITTED");
 
@@ -198,10 +202,10 @@ public class SystemMessage
 
   public void dump (List<Order> orders)
   {
-    System.out.printf ("Orders: %d%n", orders.size ());
+    logger.debug ("Orders: {}", orders.size ());
     for (Order order : orders)
-      System.out.println (order);
-    System.out.println ("-------------------------------");
+      logger.debug ("{}", order);
+    logger.debug ("-------------------------------");
   }
 
   private boolean checkOrders (byte[] systemMessage, List<Order> orders)
@@ -253,8 +257,7 @@ public class SystemMessage
     matcher = timePattern.matcher (systemMessageText);
     if (matcher.matches ())
     {
-      System.out.print ("Time is: " + matcher.group (1));     // hh:mm:ss
-      System.out.println (" " + matcher.group (2));           // AM or PM
+      logger.info ("Time is: {} {}", matcher.group (1), matcher.group (2));
       return;
     }
 
@@ -263,8 +266,7 @@ public class SystemMessage
     matcher = datePattern.matcher (systemMessageText);
     if (matcher.matches ())
     {
-      System.out.print ("Date is: " + matcher.group (1));     // mm/dd/yyyy
-      System.out.println (" Time is: " + matcher.group (3));  // hh:mm:ss
+      logger.info ("Date is: {} Time is: {}", matcher.group (1), matcher.group (3));
       return;
     }
   }
@@ -300,8 +302,8 @@ public class SystemMessage
       }
       else
       {
-        System.out.println ("Couldn't find IPL string in:");
-        System.out.println (message);
+        logger.warn ("Couldn't find IPL string in:");
+        logger.warn ("{}", message);
       }
     }
   }
@@ -345,7 +347,7 @@ public class SystemMessage
     int skipLines = -1;
     int totLines = 0;
     if (screenWidth != 80)
-      System.out.println ("fix this");
+      logger.warn ("fix this");
 
     for (Order order : orders)
       if (order.isText ())

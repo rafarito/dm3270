@@ -1,10 +1,15 @@
 package com.bytezone.dm3270.commands;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bytezone.dm3270.buffers.AbstractTN3270Command;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 public abstract class Command extends AbstractTN3270Command
 {
+  private static final Logger logger = LoggerFactory.getLogger (Command.class);
+
   // EBCDIC codes (SNA) - Remote Attachment
   public final static byte WRITE_F1 = (byte) 0xF1;
   public final static byte ERASE_WRITE_F5 = (byte) 0xF5;
@@ -117,9 +122,8 @@ public abstract class Command extends AbstractTN3270Command
         return new WriteStructuredFieldCommand (buffer, offset, length);
 
       default:
-        System.out
-            .println ("Unknown 3270 Command: " + String.format ("%02X", buffer[offset]));
-        System.out.println (Dm3270Utility.toHex (buffer, offset, length));
+        logger.warn ("Unknown 3270 Command: {}", String.format ("%02X", buffer[offset]));
+        logger.warn ("{}", Dm3270Utility.toHex (buffer, offset, length));
         Dm3270Utility.printStackTrace ();
         return null;
     }

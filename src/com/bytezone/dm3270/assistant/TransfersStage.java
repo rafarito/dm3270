@@ -29,9 +29,13 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class TransfersStage extends Stage implements ScreenChangeListener,
     TSOCommandListener, KeyboardStatusListener, BatchJobListener, TransferListener
 {
+  private static final Logger logger = LoggerFactory.getLogger (TransfersStage.class);
   private final static String OS = System.getProperty ("os.name");
   private final static boolean SYSTEM_MENUBAR = OS != null && OS.startsWith ("Mac");
 
@@ -182,9 +186,9 @@ public class TransfersStage extends Stage implements ScreenChangeListener,
   @Override
   public void transferStatusChanged (TransferStatus status, Transfer transfer)
   {
-    System.out.printf ("Status ......... %s%n", status);
-    System.out.println (transfer);
-    System.out.println ();
+    logger.debug ("Status ......... {}", status);
+    logger.debug ("{}", transfer);
+    logger.debug ("");
     if (status == TransferStatus.FINISHED && transfer.isDownloadAndIsData ())
       Platform.runLater ( () -> update (status, transfer));
   }

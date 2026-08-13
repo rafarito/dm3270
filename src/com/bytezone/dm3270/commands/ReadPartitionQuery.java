@@ -2,9 +2,13 @@ package com.bytezone.dm3270.commands;
 
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.structuredfields.StructuredField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ReadPartitionQuery extends Command
 {
+  private static final Logger logger = LoggerFactory.getLogger (ReadPartitionQuery.class);
+
   private String typeName;
 
   public ReadPartitionQuery (byte[] buffer, int offset, int length)
@@ -32,11 +36,11 @@ public class ReadPartitionQuery extends Command
         switch (data[3])
         {
           case 0:
-            System.out.println ("QCode List not written yet");
+            logger.warn ("QCode List not written yet");
             break;
 
           case 1:
-            System.out.println ("Equivalent + QCode List not written yet");
+            logger.warn ("Equivalent + QCode List not written yet");
             break;
 
           case 2:
@@ -45,12 +49,12 @@ public class ReadPartitionQuery extends Command
             break;
 
           default:
-            System.out.printf ("Unknown query type: %02X%n", data[3]);
+            logger.warn ("Unknown query type: {}", String.format ("%02X", data[3]));
         }
         break;
 
       default:
-        System.out.printf ("Unknown ReadStructuredField type: %02X%n", data[2]);
+        logger.warn ("Unknown ReadStructuredField type: {}", String.format ("%02X", data[2]));
     }
   }
 

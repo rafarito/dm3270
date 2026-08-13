@@ -1,9 +1,14 @@
 package com.bytezone.dm3270.filetransfer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 public class DataRecord extends TransferRecord
 {
+  private static final Logger logger = LoggerFactory.getLogger (DataRecord.class);
+
   static final byte HEADER_LENGTH = 5;
 
   private final boolean compressed;
@@ -71,7 +76,8 @@ public class DataRecord extends TransferRecord
         else if (b == 0x1A && nextPtr == buffer.length)
           continue;
       }
-      System.out.printf ("Not ascii: %02X at offset: %06X%n", b, i);
+      logger.warn ("Not ascii: {} at offset: {}", String.format ("%02X", b),
+          String.format ("%06X", i));
     }
   }
 
@@ -81,7 +87,7 @@ public class DataRecord extends TransferRecord
     {
       int b = buffer[i] & 0xFF;
       if (b != 0x40 && (b < 0x4B || b == 0xFF))
-        System.out.printf ("Not ebcdic: %02X%n", b);
+        logger.warn ("Not ebcdic: {}", String.format ("%02X", b));
     }
   }
 

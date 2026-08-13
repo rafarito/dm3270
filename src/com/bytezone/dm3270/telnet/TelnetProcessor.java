@@ -1,9 +1,14 @@
 package com.bytezone.dm3270.telnet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class TelnetProcessor
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (TelnetProcessor.class);
+
   // command prefix
   public static final byte IAC = (byte) 0xFF;
 
@@ -121,7 +126,7 @@ public class TelnetProcessor
           continue;
         }
 
-        System.err.printf ("Unknown command: %02X%n", thisByte);   // handle error somehow
+        logger.warn ("Unknown command: {}", String.format ("%02X", thisByte));   // handle error somehow
       }
       else if (command != 0)                // the third byte has arrived (in thisByte)
       {

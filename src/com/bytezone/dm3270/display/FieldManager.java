@@ -19,10 +19,15 @@ import com.bytezone.dm3270.database.Initiator;
 import com.bytezone.dm3270.plugins.PluginData;
 import com.bytezone.dm3270.plugins.PluginField;
 import com.bytezone.dm3270.plugins.ScreenLocation;
-import com.bytezone.dm3270.utilities.Site;;
+import com.bytezone.dm3270.utilities.Site;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FieldManager implements Initiator
 {
+  private static final Logger logger = LoggerFactory.getLogger (FieldManager.class);
+
   private final Screen screen;
   private ScreenWatcher screenWatcher;
   private final ContextManager contextManager;
@@ -59,7 +64,7 @@ public class FieldManager implements Initiator
       }
       catch (InterruptedException e)
       {
-        e.printStackTrace ();
+        logger.error ("Interrupted while putting OPEN request in queue", e);
       }
     }
 
@@ -95,7 +100,7 @@ public class FieldManager implements Initiator
       }
       catch (InterruptedException e)
       {
-        e.printStackTrace ();
+        logger.error ("Interrupted while putting CLOSE request in queue", e);
       }
   }
 
@@ -469,6 +474,6 @@ public class FieldManager implements Initiator
   @Override
   public void processResult (DatabaseRequest request)
   {
-    System.out.println (request);
+    logger.debug ("{}", request);
   }
 }

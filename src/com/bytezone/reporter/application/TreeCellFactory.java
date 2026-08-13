@@ -22,10 +22,15 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.paint.Color;
 import javafx.util.Callback;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 class TreeCellFactory implements Callback<TreeView<FileNode>, TreeCell<FileNode>>
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (TreeCellFactory.class);
+
   private FileNode pendingFileNode;
 
   // ---------------------------------------------------------------------------------//
@@ -72,7 +77,7 @@ class TreeCellFactory implements Callback<TreeView<FileNode>, TreeCell<FileNode>
     }
     catch (IOException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error saving file", e);
     }
     return false;
   }

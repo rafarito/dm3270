@@ -13,10 +13,15 @@ import com.bytezone.dm3270.orders.BufferAddress;
 import com.bytezone.dm3270.orders.Order;
 import com.bytezone.dm3270.structuredfields.SetReplyModeSF;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 class ScreenPacker implements ScreenChangeListener
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (ScreenPacker.class);
+
   private final byte[] buffer = new byte[8192];
   private final List<String> tsoCommands = new ArrayList<> ();
 
@@ -212,9 +217,9 @@ class ScreenPacker implements ScreenChangeListener
   public void listTSOCommands ()
   // ---------------------------------------------------------------------------------//
   {
-    System.out.println ("User commands:");
+    logger.debug ("User commands:");
     for (String command : tsoCommands)
-      System.out.printf ("[%s]%n", command);
+      logger.debug ("[{}]", command);
   }
 
   // ---------------------------------------------------------------------------------//

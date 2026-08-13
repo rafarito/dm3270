@@ -5,10 +5,15 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public abstract class DefaultPlugin implements Plugin
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (DefaultPlugin.class);
+
   // ---------------------------------------------------------------------------------//
   protected String getMD5 (byte[] buffer)
   // ---------------------------------------------------------------------------------//
@@ -21,7 +26,7 @@ public abstract class DefaultPlugin implements Plugin
     }
     catch (NoSuchAlgorithmException e)
     {
-      e.printStackTrace ();
+      logger.error ("NoSuchAlgorithmException in getMD5", e);
     }
     return "";
   }

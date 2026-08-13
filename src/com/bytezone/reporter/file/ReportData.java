@@ -27,10 +27,15 @@ import com.bytezone.reporter.text.AsciiTextMaker;
 import com.bytezone.reporter.text.EbcdicTextMaker;
 import com.bytezone.reporter.text.TextMaker;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class ReportData
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (ReportData.class);
+
   private static final int SAMPLE_SIZE = 1024;
 
   private final List<RecordMaker> recordMakers;
@@ -100,7 +105,7 @@ public class ReportData
     }
     catch (IOException e)
     {
-      System.out.println (e.toString ());
+      logger.error ("Error reading file", e);
       buffer = new byte[0];
     }
   }
@@ -155,7 +160,7 @@ public class ReportData
 
     if (false)
       for (ReportScore rs : scores)
-        System.out.println (rs);
+        logger.debug ("{}", rs);
   }
 
   // ---------------------------------------------------------------------------------//

@@ -4,12 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bytezone.dm3270.attributes.ColorAttribute;
 
 import javafx.scene.paint.Color;
 
 public class ContextManager
 {
+  private static final Logger logger = LoggerFactory.getLogger (ContextManager.class);
+
   private static final List<ScreenContext> contextPool = new ArrayList<> ();
   private FontDetails fontDetails;
 
@@ -31,8 +36,8 @@ public class ContextManager
 
   public void dump ()
   {
-    System.out.println ();
-    contextPool.forEach (System.out::println);
+    logger.debug ("");
+    contextPool.forEach (sc -> logger.debug ("{}", sc));
   }
 
   public ScreenContext getScreenContext (Color foregroundColor, Color backgroundColor,

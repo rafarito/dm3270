@@ -1,7 +1,12 @@
 package com.bytezone.dm3270.filetransfer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class FileTransferInboundSF extends FileTransferSF
 {
+  private static final Logger logger = LoggerFactory.getLogger (FileTransferInboundSF.class);
+
   public FileTransferInboundSF (byte[] buffer, int offset, int length)
   {
     super (buffer, offset, length, "Inbound");
@@ -26,7 +31,7 @@ public class FileTransferInboundSF extends FileTransferSF
           break;
 
         default:
-          System.out.printf ("Unknown inbound TransferRecord: %02X%n", data[ptr]);
+          logger.warn ("Unknown inbound TransferRecord: {}", String.format ("%02X", data[ptr]));
           transferRecord = new TransferRecord (data, ptr);
       }
       transferRecords.add (transferRecord);
@@ -35,8 +40,8 @@ public class FileTransferInboundSF extends FileTransferSF
 
     if (debug)
     {
-      System.out.println (this);
-      System.out.println ("-----------------------------------------"
+      logger.debug ("{}", this);
+      logger.debug ("-----------------------------------------"
           + "------------------------------");
     }
   }

@@ -3,10 +3,15 @@ package com.bytezone.dm3270.utilities;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class Site
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (Site.class);
+
   // make these StringProperty and use a table
   public final TextField name = new TextField ();
   public final TextField url = new TextField ();
@@ -62,7 +67,7 @@ public class Site
       int portValue = Integer.parseInt (port.getText ());
       if (portValue <= 0)
       {
-        System.out.println ("Invalid port value: " + port.getText ());
+        logger.warn ("Invalid port value: {}", port.getText ());
         port.setText ("23");
         portValue = 23;
       }
@@ -70,7 +75,7 @@ public class Site
     }
     catch (NumberFormatException e)
     {
-      System.out.println ("Invalid port value: " + port.getText ());
+      logger.warn ("Invalid port value: {}", port.getText (), e);
       port.setText ("23");
       return 23;
     }
@@ -92,7 +97,7 @@ public class Site
       int modelValue = Integer.parseInt (model.getText ());
       if (modelValue < 2 || modelValue > 5)
       {
-        System.out.println ("Invalid model value: " + model.getText ());
+        logger.warn ("Invalid model value: {}", model.getText ());
         model.setText ("2");
         modelValue = 2;
       }
@@ -100,7 +105,7 @@ public class Site
     }
     catch (NumberFormatException e)
     {
-      System.out.println ("Invalid model value: " + model.getText ());
+      logger.warn ("Invalid model value: {}", model.getText (), e);
       model.setText ("2");
       return 2;
     }

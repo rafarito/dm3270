@@ -32,9 +32,13 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ConsolePane extends BorderPane
     implements FieldChangeListener, CursorMoveListener, KeyboardStatusListener
 {
+  private static final Logger logger = LoggerFactory.getLogger (ConsolePane.class);
   private final static int MARGIN = 4;
   private final static int GAP = 12;
   private final static String OS = System.getProperty ("os.name");
@@ -102,7 +106,7 @@ public class ConsolePane extends BorderPane
     if (server != null)
     {
       Optional<SiteParameters> sp = parameters.getSiteParameters (server.getName ());
-      System.out.println (server.getName ());
+      logger.debug ("{}", server.getName ());
       if (sp.isPresent ())
       {
         String offset = sp.get ().getParameter ("offset");
@@ -110,15 +114,15 @@ public class ConsolePane extends BorderPane
         {
           char direction = offset.charAt (3);
           int value = Integer.parseInt (offset.substring (4));
-          System.out.printf ("Time offset : %s %d%n", direction, value);
+          logger.debug ("Time offset : {} {}", direction, value);
           ZonedDateTime now = ZonedDateTime.now (ZoneOffset.UTC);
-          System.out.println ("UTC         : " + now);
+          logger.debug ("UTC         : {}", now);
           if (direction == '+')
             now = now.plusHours (value);
           else
             now = now.minusHours (value);
-          System.out.println ("Site        : " + now);
-          System.out.println ();
+          logger.debug ("Site        : {}", now);
+          logger.debug ("");
         }
       }
     }
@@ -351,7 +355,7 @@ public class ConsolePane extends BorderPane
       }
       catch (InterruptedException e)
       {
-        e.printStackTrace ();
+        logger.error ("Error waiting for terminal server thread to join", e);
       }
     }
   }

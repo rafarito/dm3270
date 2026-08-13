@@ -2,11 +2,15 @@ package com.bytezone.dm3270.structuredfields;
 
 import com.bytezone.dm3270.commands.Command;
 import com.bytezone.dm3270.display.Screen;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // -----------------------------------------------------------------------------------//
 public class Outbound3270DS extends StructuredField
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (Outbound3270DS.class);
+
   private final byte partitionID;
   private final Command command;
 
@@ -33,9 +37,9 @@ public class Outbound3270DS extends StructuredField
     command.process (screen);
     if (command.getReply ().isPresent ())
     {
-      System.out.println ("Non-null reply:");
-      System.out.println (command);
-      System.out.println (command.getReply ().get ());     // should always be null
+      logger.warn ("Non-null reply:");
+      logger.warn ("{}", command);
+      logger.warn ("{}", command.getReply ().get ());     // should always be null
     }
   }
 

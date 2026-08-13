@@ -4,10 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class MainframeFile
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (MainframeFile.class);
+
   private final String name;
   private byte[] buffer;
   private File file;
@@ -47,7 +52,7 @@ public class MainframeFile
     }
     catch (IOException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error reading file", e);
       buffer = new byte[0];
     }
   }

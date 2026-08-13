@@ -8,6 +8,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bytezone.dm3270.utilities.FileSaver;
 import com.bytezone.dm3270.utilities.Site;
 
@@ -18,6 +21,8 @@ import com.bytezone.dm3270.utilities.Site;
 
 public class Transfer
 {
+  private static final Logger logger = LoggerFactory.getLogger (Transfer.class);
+
   private static int INBOUND_MAX_BUFFER_SIZE = 2048;
 
   private TransferContents transferContents;          // MSG or DATA
@@ -146,7 +151,7 @@ public class Transfer
     }
     catch (IOException e)
     {
-      e.printStackTrace ();
+      logger.error ("Error writing transfer file", e);
     }
   }
 

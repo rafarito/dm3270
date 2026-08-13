@@ -9,8 +9,12 @@ import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 class ConsoleKeyPress implements EventHandler<KeyEvent>
 {
+  private static final Logger logger = LoggerFactory.getLogger (ConsoleKeyPress.class);
   private static final KeyCode[] PFKeyCodes =
       { KeyCode.F1, KeyCode.F2, KeyCode.F3, KeyCode.F4, KeyCode.F5, KeyCode.F6,
         KeyCode.F7, KeyCode.F8, KeyCode.F9, KeyCode.F10, KeyCode.F11, KeyCode.F12 };
@@ -171,7 +175,7 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
           break;
 
         default:
-          System.out.println ("Impossible arrow key");
+          logger.warn ("Impossible arrow key");
           break;
       }
     else
@@ -213,7 +217,7 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
           break;
 
         case ESCAPE:
-          System.out.println ("escape");                // CLR key?
+          logger.debug ("escape");                      // CLR key?
           keyEvent.consume ();
           break;
 

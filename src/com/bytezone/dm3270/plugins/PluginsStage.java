@@ -18,6 +18,9 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.prefs.Preferences;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bytezone.dm3270.application.ConsolePane;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.display.Cursor;
@@ -50,6 +53,8 @@ import javafx.scene.layout.VBox;
 public class PluginsStage extends PreferencesStage
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (PluginsStage.class);
+
   private static final int MAX_PLUGINS = 10;
   private static final String PLUGINS_DIR = "plugins";
   private static KeyCode[] keyCodes =
@@ -161,7 +166,7 @@ public class PluginsStage extends PreferencesStage
           }
           catch (Exception e)
           {
-            e.printStackTrace ();
+            logger.error ("Error processing auto", e);
           }
       }
   }
@@ -264,7 +269,7 @@ public class PluginsStage extends PreferencesStage
   private void rebuildMenu ()
   // ---------------------------------------------------------------------------------//
   {
-    System.out.println ("rebuilding");
+    logger.debug ("rebuilding");
     ObservableList<MenuItem> items = menu.getItems ();
     while (items.size () > baseMenuSize)
       items.remove (menu.getItems ().size () - 1);
@@ -329,8 +334,8 @@ public class PluginsStage extends PreferencesStage
 
       if (false)
       {
-        System.out.println ("--------------------------------------------");
-        System.out.println (pluginData);
+        logger.debug ("--------------------------------------------");
+        logger.debug ("{}", pluginData);
       }
 
       processAll (pluginData);
@@ -403,7 +408,7 @@ public class PluginsStage extends PreferencesStage
           }
           catch (UnsupportedEncodingException e)
           {
-            e.printStackTrace ();
+            logger.error ("Error setting text encoding", e);
           }
         }
         field.draw ();      // draws the field without a cursor
@@ -517,7 +522,7 @@ public class PluginsStage extends PreferencesStage
 
           if (!Plugin.class.isAssignableFrom (c))
           {
-            System.out.printf ("Plugin does not implement Plugin: %s%n", candidate);
+            logger.warn ("Plugin does not implement Plugin: {}", candidate);
             return null;
           }
 
@@ -535,13 +540,13 @@ public class PluginsStage extends PreferencesStage
         }
         catch (ReflectiveOperationException | LinkageError e)
         {
-          System.out.printf ("Instantiation failed: %s - %s (%s)%n", name.getText (),
-              candidate, e.getClass ().getSimpleName ());
+          logger.error ("Instantiation failed: {} - {}", name.getText (),
+              candidate, e);
           return null;
         }
       }
 
-      System.out.printf ("Plugin class not found: %s - %s%n", name.getText (),
+      logger.warn ("Plugin class not found: {} - {}", name.getText (),
           classNameText);
       return plugin;
     }
@@ -590,11 +595,11 @@ public class PluginsStage extends PreferencesStage
       try
       {
         Files.createDirectories (pluginsPath);
-        System.out.println ("Created plugins directory: " + pluginsPath);
+        logger.info ("Created plugins directory: {}", pluginsPath);
       }
       catch (IOException e)
       {
-        System.out.println ("Could not create plugins directory: " + e.getMessage ());
+        logger.error ("Could not create plugins directory", e);
         return;
       }
     }
@@ -604,7 +609,7 @@ public class PluginsStage extends PreferencesStage
 
     if (jarFiles == null || jarFiles.length == 0)
     {
-      System.out.println ("No plugin JARs found in: " + pluginsPath);
+      logger.info ("No plugin JARs found in: {}", pluginsPath);
       return;
     }
 
@@ -614,13 +619,13 @@ public class PluginsStage extends PreferencesStage
       for (int i = 0; i < jarFiles.length; i++)
       {
         urls[i] = jarFiles[i].toURI ().toURL ();
-        System.out.println ("Loaded plugin JAR: " + jarFiles[i].getName ());
+        logger.info ("Loaded plugin JAR: {}", jarFiles[i].getName ());
       }
       pluginClassLoader = new URLClassLoader (urls, getClass ().getClassLoader ());
     }
     catch (IOException e)
     {
-      System.out.println ("Error loading plugin JARs: " + e.getMessage ());
+      logger.error ("Error loading plugin JARs", e);
     }
   }
 
@@ -669,7 +674,7 @@ public class PluginsStage extends PreferencesStage
             {
               String simpleName = c.getSimpleName ();
               discovered.add (new String[] { simpleName, className });
-              System.out.println ("Discovered plugin: " + className);
+              logger.info ("Discovered plugin: {}", className);
             }
           }
           catch (ClassNotFoundException | LinkageError e)
@@ -680,7 +685,7 @@ public class PluginsStage extends PreferencesStage
       }
       catch (IOException e)
       {
-        System.out.println ("Error scanning JAR: " + jarFile.getName ());
+        logger.error ("Error scanning JAR: {}", jarFile.getName (), e);
       }
     }
 
@@ -723,7 +728,7 @@ public class PluginsStage extends PreferencesStage
           entry.className.setText (fullClassName);
           entry.activate.setSelected (true);
           registered.add (fullClassName);
-          System.out.println ("Auto-registered plugin: " + fullClassName);
+          logger.info ("Auto-registered plugin: {}", fullClassName);
           break;
         }
       }
@@ -742,7 +747,7 @@ public class PluginsStage extends PreferencesStage
       }
       catch (IOException e)
       {
-        e.printStackTrace ();
+        logger.error ("Error closing class loader", e);
       }
     }
   }

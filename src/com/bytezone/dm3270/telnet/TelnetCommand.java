@@ -4,10 +4,15 @@ import com.bytezone.dm3270.buffers.AbstractTelnetCommand;
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.streams.TelnetState;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class TelnetCommand extends AbstractTelnetCommand
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (TelnetCommand.class);
+
   public static final byte IAC = (byte) 0xFF;   // Interpret As Command
   public static final byte SB = (byte) 0xFA;    // Begin subcommand
   public static final byte GA = (byte) 0xF9;    // Go Ahead
@@ -93,7 +98,8 @@ public class TelnetCommand extends AbstractTelnetCommand
       else
       {
         commandType = null;
-        System.out.printf ("Unknown telnet command type: %02X %02X%n", command, type);
+        logger.warn ("Unknown telnet command type: {} {}", String.format ("%02X", command),
+                     String.format ("%02X", type));
       }
       // reported: FB 03 (using IBM-3278-2-E model 3)
       // reported: FD 20 (using IBM-3278-2-E model 2)

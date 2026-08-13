@@ -4,10 +4,15 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public class Member
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (Member.class);
+
   private static final SimpleDateFormat fmt1 = new SimpleDateFormat ("yyyy/MM/dd");
   private static final SimpleDateFormat fmt2 =
       new SimpleDateFormat ("yyyy/MM/dd HH:mm:ss");
@@ -74,7 +79,7 @@ public class Member
     }
     catch (ParseException e)
     {
-      System.out.printf ("Invalid created date: [%s]%n", created);
+      logger.warn ("Invalid created date: [{}]", created, e);
     }
 
     try
@@ -87,7 +92,7 @@ public class Member
     }
     catch (ParseException e)
     {
-      System.out.printf ("Invalid changed date: [%s]%n", changed);
+      logger.warn ("Invalid changed date: [{}]", changed, e);
     }
   }
 

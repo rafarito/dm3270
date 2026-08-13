@@ -6,11 +6,14 @@ import java.util.Optional;
 
 import com.bytezone.dm3270.attributes.Attribute;
 import com.bytezone.dm3270.display.DisplayScreen;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // -----------------------------------------------------------------------------------//
 public class ModifyFieldOrder extends Order
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (ModifyFieldOrder.class);
   private final List<Attribute> attributes = new ArrayList<> ();
 
   // ---------------------------------------------------------------------------------//
@@ -46,6 +49,6 @@ public class ModifyFieldOrder extends Order
   public void process (DisplayScreen screen)
   // ---------------------------------------------------------------------------------//
   {
-    System.out.println ("What happens now?");
+    logger.warn ("What happens now?");
   }
 }

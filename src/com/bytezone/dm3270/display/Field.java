@@ -9,8 +9,13 @@ import com.bytezone.dm3270.attributes.StartFieldAttribute;
 import com.bytezone.dm3270.plugins.PluginField;
 import com.bytezone.dm3270.plugins.ScreenLocation;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Field implements Iterable<ScreenPosition>
 {
+  private static final Logger logger = LoggerFactory.getLogger (Field.class);
+
   private final Screen screen;
 
   private final int startPosition;        // position of StartFieldAttribute
@@ -262,7 +267,7 @@ public class Field implements Iterable<ScreenPosition>
         if (ptr < buffer.length)
           buffer[ptr++] = screenPosition.getChar ();
         else
-          System.out.printf ("Too long: %d%n", ptr);
+          logger.warn ("Too long: {}", ptr);
 
     return new String (buffer);
   }
@@ -278,7 +283,7 @@ public class Field implements Iterable<ScreenPosition>
     }
     catch (UnsupportedEncodingException e)
     {
-      e.printStackTrace ();
+      logger.error ("Unsupported encoding exception while setting text", e);
     }
   }
 
@@ -293,7 +298,7 @@ public class Field implements Iterable<ScreenPosition>
         screenPositions.get (ptr++).setChar (b);
       else
       {
-        System.out.println ("Buffer overrun");
+        logger.warn ("Buffer overrun");
         break;
       }
   }

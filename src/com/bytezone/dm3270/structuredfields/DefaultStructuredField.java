@@ -2,17 +2,21 @@ package com.bytezone.dm3270.structuredfields;
 
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // -----------------------------------------------------------------------------------//
 public class DefaultStructuredField extends StructuredField
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (DefaultStructuredField.class);
+
   // ---------------------------------------------------------------------------------//
   public DefaultStructuredField (byte[] buffer, int offset, int length)
   // ---------------------------------------------------------------------------------//
   {
     super (buffer, offset, length);
-    System.out.println ("Default Structured Field !!");
+    logger.debug ("Default Structured Field !!");
   }
 
   // ---------------------------------------------------------------------------------//
@@ -20,7 +24,7 @@ public class DefaultStructuredField extends StructuredField
   public void process (Screen screen)
   // ---------------------------------------------------------------------------------//
   {
-    System.out.printf ("Processing a DefaultStructuredField: %02X%n", type);
+    logger.debug ("Processing a DefaultStructuredField: {}", String.format ("%02X", type));
   }
 
   // ---------------------------------------------------------------------------------//

@@ -11,10 +11,15 @@ import com.bytezone.dm3270.utilities.Dm3270Utility;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // -----------------------------------------------------------------------------------//
 public final class ScreenPosition
 // -----------------------------------------------------------------------------------//
 {
+  private static final Logger logger = LoggerFactory.getLogger (ScreenPosition.class);
+
   // screen display characters
   private static final String[] charString = new String[256];
 
@@ -299,7 +304,7 @@ public final class ScreenPosition
         ptr = attribute.pack (buffer, ptr);
     }
     else
-      System.out.println ("I should throw an exception here");
+      logger.warn ("I should throw an exception here");
 
     return ptr;
   }
