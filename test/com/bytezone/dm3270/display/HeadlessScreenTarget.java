@@ -8,6 +8,7 @@ import com.bytezone.dm3270.assistant.BatchJobListener;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.commands.SystemMessage;
 import com.bytezone.dm3270.commands.ConsoleLines;
+import com.bytezone.dm3270.commands.ReadStructuredFieldCommand;
 import com.bytezone.dm3270.commands.SystemMessageView;
 import com.bytezone.dm3270.commands.WriteControlCharacter;
 import com.bytezone.dm3270.filetransfer.TransferManager;
@@ -410,7 +411,15 @@ public final class HeadlessScreenTarget implements ScreenTarget, CursorHost, Fie
     return systemMessage;
   }
 
+  // -------------------------------------------------------------------------------//
   @Override
+  public ReadStructuredFieldCommand buildQueryReply ()
+  // -------------------------------------------------------------------------------//
+  {
+    return new ReadStructuredFieldCommand (telnetState);
+  }
+
+  // O TelnetState real do dublê, para quem quiser inspecionar a negociacao.
   public TelnetState getTelnetState ()
   {
     return telnetState;

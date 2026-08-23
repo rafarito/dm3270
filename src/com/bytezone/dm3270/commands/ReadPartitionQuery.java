@@ -28,7 +28,7 @@ public class ReadPartitionQuery extends Command
     switch (data[2])
     {
       case (byte) 0x02:
-        setReply (new ReadStructuredFieldCommand (screen.getTelnetState ()));      // build a QueryReply
+        setReply (screen.buildQueryReply ());
         typeName = "Read Partition (Query)";
         break;
 
@@ -44,7 +44,7 @@ public class ReadPartitionQuery extends Command
             break;
 
           case 2:
-            setReply (new ReadStructuredFieldCommand (screen.getTelnetState ()));      // build a QueryReply
+            setReply (screen.buildQueryReply ());
             typeName = "Read Partition (QueryList)";
             break;
 

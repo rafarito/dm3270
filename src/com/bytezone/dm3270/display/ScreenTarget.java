@@ -3,10 +3,10 @@ package com.bytezone.dm3270.display;
 import java.util.Optional;
 
 import com.bytezone.dm3270.commands.AIDCommand;
+import com.bytezone.dm3270.commands.ReadStructuredFieldCommand;
 import com.bytezone.dm3270.commands.SystemMessage;
 import com.bytezone.dm3270.commands.WriteControlCharacter;
 import com.bytezone.dm3270.filetransfer.TransferManager;
-import com.bytezone.dm3270.streams.TelnetState;
 
 /*
  * O que a pilha de protocolo pode pedir a uma tela.
@@ -124,8 +124,19 @@ public interface ScreenTarget extends DisplayScreen
 
   SystemMessage getSystemMessage ();
 
-  TelnetState getTelnetState ();
+  /*
+   * Monta a resposta a um Read Partition (Query). Substitui getTelnetState (): o protocolo
+   * pedia o estado da negociacao telnet apenas para construir este comando a partir dele,
+   * e era o unico ponto em que o modelo de tela precisava nomear o pacote streams.
+   */
+  ReadStructuredFieldCommand buildQueryReply ();
 
+  /*
+   * TODO (onda 3): esta e a ultima aresta do modelo de tela para fora do protocolo.
+   * FileTransferOutboundSF.process pede o gerenciador a tela porque quem o possui e a
+   * Screen, que possui tudo. Quando a Screen for decomposta, o gerenciador passa a ser
+   * injetado pelo composition root e este metodo sai daqui.
+   */
   TransferManager getTransferManager ();
 
   /*

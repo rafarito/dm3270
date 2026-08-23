@@ -21,6 +21,7 @@ import com.bytezone.dm3270.attributes.ColorAttribute;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.commands.Command;
 import com.bytezone.dm3270.commands.ConsoleLines;
+import com.bytezone.dm3270.commands.ReadStructuredFieldCommand;
 import com.bytezone.dm3270.commands.SystemMessage;
 import com.bytezone.dm3270.commands.SystemMessageView;
 import com.bytezone.dm3270.commands.WriteControlCharacter;
@@ -328,6 +329,17 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   // ---------------------------------------------------------------------------------//
   {
     return transferMenu.getMenuItemDownload ();
+  }
+
+  // ---------------------------------------------------------------------------------//
+  /*
+   * A resposta a um Read Partition (Query), montada a partir do estado da negociacao telnet.
+   * O protocolo pedia o TelnetState so para isto - ver ScreenTarget.buildQueryReply.
+   */
+  @Override
+  public ReadStructuredFieldCommand buildQueryReply ()
+  {
+    return new ReadStructuredFieldCommand (telnetState);
   }
 
   // ---------------------------------------------------------------------------------//
