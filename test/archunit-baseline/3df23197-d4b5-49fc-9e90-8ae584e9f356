@@ -24,8 +24,6 @@ Field <com.bytezone.dm3270.commands.Profile.btnTypeOK> has type <javafx.scene.co
 Field <com.bytezone.dm3270.commands.Profile.dialog> has type <javafx.scene.control.Dialog> in (Profile.java:0)
 Field <com.bytezone.dm3270.commands.Profile.grid> has type <javafx.scene.layout.GridPane> in (Profile.java:0)
 Field <com.bytezone.dm3270.commands.Profile.labelFont> has type <javafx.scene.text.Font> in (Profile.java:0)
-Field <com.bytezone.dm3270.commands.SystemMessage.menuItem> has type <javafx.scene.control.MenuItem> in (SystemMessage.java:0)
 Method <com.bytezone.dm3270.commands.Profile.showAndWait()> calls method <javafx.scene.control.Dialog.showAndWait()> in (Profile.java:52)
 Method <com.bytezone.dm3270.commands.SystemMessage.checkConsoleOutput(java.util.List)> calls method <javafx.scene.text.Font.font(java.lang.String, double)> in (SystemMessage.java:296)
 Method <com.bytezone.dm3270.commands.SystemMessage.checkProfileMessage(java.lang.String, java.lang.String)> calls method <javafx.application.Platform.runLater(java.lang.Runnable)> in (SystemMessage.java:284)
-Method <com.bytezone.dm3270.commands.SystemMessage.getConsoleMenuItem()> has return type <javafx.scene.control.MenuItem> in (SystemMessage.java:0)

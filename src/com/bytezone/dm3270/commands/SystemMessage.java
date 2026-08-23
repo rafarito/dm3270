@@ -13,7 +13,6 @@ import com.bytezone.dm3270.orders.TextOrder;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 import javafx.application.Platform;
-import javafx.scene.control.MenuItem;
 import javafx.scene.text.Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +83,6 @@ public class SystemMessage
   private boolean isConsole;
   private ConsoleLog consoleLog;
 
-  private MenuItem menuItem;
   private int lastOrdersSize;
 
   private final String[] tempLines = new String[20];
@@ -392,10 +390,5 @@ public class SystemMessage
       tempLines[totLines++] = line;
     }
     return totLines;
-  }
-
-  public MenuItem getConsoleMenuItem ()
-  {
-    return menuItem;
   }
 }
