@@ -55,7 +55,7 @@ import javafx.animation.PauseTransition;
 import javafx.util.Duration;
 
 // -----------------------------------------------------------------------------------//
-public class Screen extends Canvas implements ScreenTarget, CursorHost,
+public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHost,
     SystemMessageView, TransferListener, TelnetStateListener
 // -----------------------------------------------------------------------------------//
 {

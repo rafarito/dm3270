@@ -16,7 +16,7 @@ public class Field implements Iterable<ScreenPosition>
 {
   private static final Logger logger = LoggerFactory.getLogger (Field.class);
 
-  private final Screen screen;
+  private final FieldHost screen;
 
   private final int startPosition;        // position of StartFieldAttribute
   private final int endPosition;          // last data position of this field
@@ -26,7 +26,7 @@ public class Field implements Iterable<ScreenPosition>
   private final List<ScreenPosition> screenPositions;
   private final ScreenDimensions screenDimensions;
 
-  public Field (Screen screen, List<ScreenPosition> positions)
+  public Field (FieldHost screen, List<ScreenPosition> positions)
   {
     this.screen = screen;
     this.screenDimensions = screen.getScreenDimensions ();

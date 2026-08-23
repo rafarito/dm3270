@@ -28,7 +28,7 @@ public class FieldManager implements Initiator
 {
   private static final Logger logger = LoggerFactory.getLogger (FieldManager.class);
 
-  private final Screen screen;
+  private final FieldHost screen;
   private ScreenWatcher screenWatcher;
   private final ContextManager contextManager;
   private ScreenDimensions screenDimensions;
@@ -45,7 +45,7 @@ public class FieldManager implements Initiator
   private BlockingQueue<DatabaseRequest> queue;
   private DatabaseThread databaseThread;
 
-  FieldManager (Screen screen, ContextManager contextManager,
+  FieldManager (FieldHost screen, ContextManager contextManager,
       ScreenDimensions screenDimensions, Site serverSite)
   {
     this.screen = screen;

@@ -46,7 +46,7 @@ import com.bytezone.dm3270.streams.TelnetState;
  * interno.
  */
 // -----------------------------------------------------------------------------------//
-public final class HeadlessScreenTarget implements ScreenTarget, CursorHost
+public final class HeadlessScreenTarget implements ScreenTarget, CursorHost, FieldHost
 // -----------------------------------------------------------------------------------//
 {
   // metricas fixas: nada e desenhado de verdade, mas ScreenPosition.draw as le
