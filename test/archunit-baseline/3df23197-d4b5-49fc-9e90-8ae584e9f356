@@ -1,1 +1,0 @@
-Method <com.bytezone.dm3270.commands.SystemMessage.checkConsoleOutput(java.util.List)> calls method <javafx.scene.text.Font.font(java.lang.String, double)> in (SystemMessage.java:291)

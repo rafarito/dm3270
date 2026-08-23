@@ -145,7 +145,6 @@ Field <com.bytezone.dm3270.utilities.WindowSaver.stage> has type <javafx.stage.S
 Field <com.bytezone.reporter.file.ReportScore.font> has type <javafx.scene.text.Font> in (ReportScore.java:0)
 Field <com.bytezone.reporter.file.ReportScore.pagination> has type <javafx.scene.control.Pagination> in (ReportScore.java:0)
 Field <com.bytezone.reporter.file.ReportScore.textArea> has type <javafx.scene.control.TextArea> in (ReportScore.java:0)
-Method <com.bytezone.dm3270.commands.SystemMessage.checkConsoleOutput(java.util.List)> calls method <javafx.scene.text.Font.font(java.lang.String, double)> in (SystemMessage.java:291)
 Method <com.bytezone.dm3270.filetransfer.DownloadDialog.refreshDownload()> calls method <javafx.scene.control.ComboBox.getSelectionModel()> in (DownloadDialog.java:51)
 Method <com.bytezone.dm3270.filetransfer.DownloadDialog.refreshDownload()> calls method <javafx.scene.control.Label.setText(java.lang.String)> in (DownloadDialog.java:58)
 Method <com.bytezone.dm3270.filetransfer.DownloadDialog.refreshDownload()> calls method <javafx.scene.control.Label.setText(java.lang.String)> in (DownloadDialog.java:62)

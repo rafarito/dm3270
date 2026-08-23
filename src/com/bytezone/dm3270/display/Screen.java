@@ -20,9 +20,11 @@ import com.bytezone.dm3270.attributes.Attribute;
 import com.bytezone.dm3270.attributes.ColorAttribute;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.commands.Command;
+import com.bytezone.dm3270.commands.ConsoleLines;
 import com.bytezone.dm3270.commands.SystemMessage;
 import com.bytezone.dm3270.commands.SystemMessageView;
 import com.bytezone.dm3270.commands.WriteControlCharacter;
+import com.bytezone.dm3270.console.ConsoleLog;
 import com.bytezone.dm3270.console.ConsoleLogStage;
 import com.bytezone.dm3270.filetransfer.Transfer;
 import com.bytezone.dm3270.filetransfer.Transfer.TransferType;
@@ -44,6 +46,7 @@ import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.MenuItem;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.Clipboard;
@@ -80,6 +83,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost,
   private final PluginsStage pluginsStage;
   private final TransfersStage transfersStage;
   private final ConsoleLogStage consoleLogStage;
+  private ConsoleLog consoleLog;
   private ConsolePane consolePane;
   private final TelnetState telnetState;
 
@@ -375,12 +379,26 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost,
     Platform.runLater ( () -> profile.showAndWait ());
   }
 
+  /*
+   * O SystemMessage reconheceu a mensagem de IPL e vai passar a mandar linhas de console.
+   * Criar o log - que e um TextArea com a fonte monoespacada - e trabalho desta camada.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Override
+  public ConsoleLines openConsoleLog ()
+  // ---------------------------------------------------------------------------------//
+  {
+    Font displayFont = Font.font ("Monospaced", 13);
+    consoleLog = new ConsoleLog (displayFont);
+    return consoleLog;
+  }
+
   // ---------------------------------------------------------------------------------//
   public void setIsConsole ()
   // ---------------------------------------------------------------------------------//
   {
     consolePane.setIsConsole (true);
-    consoleLogStage.setConsoleLog (systemMessage.getConsoleLog ());
+    consoleLogStage.setConsoleLog (consoleLog);
   }
 
   // called from the ConsolePane constructor

@@ -23,4 +23,10 @@ public interface SystemMessageView
    * escreveu: o primeiro traz os tokens CHAR(), LINE() e PREFIX(), o segundo o resto.
    */
   void showProfile (String profileMessageText1, String profileMessageText2);
+
+  /*
+   * O host esta em modo console: a mensagem de IPL apareceu. Devolve para onde as linhas
+   * devem ir. E chamado uma vez so, no momento em que o modo console e reconhecido.
+   */
+  ConsoleLines openConsoleLog ();
 }

@@ -7,6 +7,7 @@ import java.util.Optional;
 import com.bytezone.dm3270.assistant.BatchJobListener;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.commands.SystemMessage;
+import com.bytezone.dm3270.commands.ConsoleLines;
 import com.bytezone.dm3270.commands.SystemMessageView;
 import com.bytezone.dm3270.commands.WriteControlCharacter;
 import com.bytezone.dm3270.filetransfer.TransferManager;
@@ -447,6 +448,40 @@ public final class HeadlessScreenTarget implements ScreenTarget, CursorHost
     // -------------------------------------------------------------------------------//
     {
       calls.add ("showProfile:" + profileMessageText1 + "|" + profileMessageText2);
+    }
+
+    // -------------------------------------------------------------------------------//
+    @Override
+    public ConsoleLines openConsoleLog ()
+    // -------------------------------------------------------------------------------//
+    {
+      calls.add ("openConsoleLog");
+      return new RecordingConsoleLines ();
+    }
+  }
+
+  /*
+   * As linhas que o SystemMessage recortou. Guardamos o intervalo pedido, nao as linhas:
+   * o array tempLines e reaproveitado entre chamadas, entao guardar a referencia mentiria.
+   */
+  // ---------------------------------------------------------------------------------//
+  private final class RecordingConsoleLines implements ConsoleLines
+  // ---------------------------------------------------------------------------------//
+  {
+    // -------------------------------------------------------------------------------//
+    @Override
+    public void addLines1 (String[] lines, int firstLine, int lastLine)
+    // -------------------------------------------------------------------------------//
+    {
+      calls.add (String.format ("addLines1:%d:%d", firstLine, lastLine));
+    }
+
+    // -------------------------------------------------------------------------------//
+    @Override
+    public void addLines2 (String[] lines, int firstLine, int lastLine)
+    // -------------------------------------------------------------------------------//
+    {
+      calls.add (String.format ("addLines2:%d:%d", firstLine, lastLine));
     }
   }
 

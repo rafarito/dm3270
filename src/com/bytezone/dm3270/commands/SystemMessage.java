@@ -5,14 +5,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.bytezone.dm3270.assistant.BatchJobListener;
-import com.bytezone.dm3270.console.ConsoleLog;
 import com.bytezone.dm3270.display.ScreenTarget;
 import com.bytezone.dm3270.display.ScreenDimensions;
 import com.bytezone.dm3270.orders.Order;
 import com.bytezone.dm3270.orders.TextOrder;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
-import javafx.scene.text.Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,7 +78,7 @@ public class SystemMessage
   private final SystemMessageView view;
 
   private boolean isConsole;
-  private ConsoleLog consoleLog;
+  private ConsoleLines consoleLog;
 
   private int lastOrdersSize;
 
@@ -108,11 +106,6 @@ public class SystemMessage
   public void setScreenDimensions (ScreenDimensions screenDimensions)
   {
     screenWidth = screenDimensions.columns;
-  }
-
-  public ConsoleLog getConsoleLog ()
-  {
-    return consoleLog;
   }
 
   void checkSystemMessage (boolean eraseWrite, List<Order> orders, int length)
@@ -288,8 +281,7 @@ public class SystemMessage
       int pos = message.indexOf (" SELECTED FOR IPL ");
       if (pos >= 0)
       {
-        Font displayFont = Font.font ("Monospaced", 13);
-        consoleLog = new ConsoleLog (displayFont);
+        consoleLog = view.openConsoleLog ();
         isConsole = true;
         consoleMode = ConsoleMode.IPL;
         screen.setIsConsole ();

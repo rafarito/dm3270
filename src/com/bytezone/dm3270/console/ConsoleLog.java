@@ -7,10 +7,12 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.bytezone.dm3270.commands.ConsoleLines;
+
 import javafx.scene.control.TextArea;
 import javafx.scene.text.Font;
 
-public class ConsoleLog
+public class ConsoleLog implements ConsoleLines
 {
   private static final Pattern codePattern =
       Pattern.compile ("  ([A-Z]{3,4}[0-9]{3,5}[A-Z]) (.*?)\\s*");
@@ -28,6 +30,7 @@ public class ConsoleLog
   }
 
   // IPL lines
+  @Override
   public void addLines1 (String[] lines, int firstLine, int lastLine)
   {
     for (int i = firstLine; i < lastLine; i++)
@@ -71,6 +74,7 @@ public class ConsoleLog
   }
 
   // Console lines
+  @Override
   public void addLines2 (String[] lines, int firstLine, int lastLine)
   {
     for (int i = firstLine; i < lastLine; i++)
