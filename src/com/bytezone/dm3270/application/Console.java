@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.prefs.Preferences;
 
+import com.bytezone.dm3270.database.DatasetStore;
+import com.bytezone.dm3270.database.QueuedDatasetStore;
 import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.screen.ScreenDimensions;
@@ -335,8 +337,13 @@ public class Console extends Application
 
   private Screen createScreen (TerminalFunction function, Site site)
   {
+    // O ciclo de vida da persistencia e do composition root. Sem site nao ha banco - era o
+    // que o  dentro do FieldManager decidia, tres camadas abaixo.
+    DatasetStore datasetStore = site == null ? DatasetStore.NONE
+        : new QueuedDatasetStore (site.getName () + ".db");
+
     screen = new Screen (screenDimensions, alternateScreenDimensions, prefs, function,
-        pluginsStage, site, telnetState);
+        pluginsStage, site, telnetState, datasetStore);
     return screen;
   }
 

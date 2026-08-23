@@ -122,8 +122,24 @@ class LayeringTest
           .because ("o modelo nao conhece o widget que o desenha");
 
   /*
-   * FieldManager, cuja responsabilidade e agrupar posicoes de tela em campos, cria o
-   * arquivo do banco, sobe uma thread e abre uma conexao SQLite. E a origem desta aresta.
+   * Comecou em 46 violacoes, de duas causas bem diferentes.
+   *
+   * A primeira era encanamento: o FieldManager - cuja responsabilidade e agrupar posicoes de
+   * tela em campos - abria o arquivo do banco, subia uma thread e enfileirava um OPEN dentro
+   * do proprio construtor, e o ScreenWatcher montava requests e os empurrava na mesma fila.
+   * Isso acabou: as duas recebem um DatasetStore pronto, e quem decide se existe banco e o
+   * Console, que e o composition root. A thread, a fila, os quatro tipos de request e o enum
+   * de comandos nao aparecem mais em display.
+   *
+   * A segunda e modelagem, e ainda esta aqui: as 35 violacoes restantes sao todas mencoes a
+   * Dataset e Member. Os dois sao DTOs de acesso direto a campo - o DatabaseThread le
+   * ,  e mais duas dezenas de campos para montar o SQL, sem
+   * getters. Move-los para um pacote de dominio hoje obrigaria a tornar 28 campos publicos,
+   * o que seria trocar uma violacao de camada por uma pior de encapsulamento.
+   *
+   * A regra fica congelada em 35 e chega a zero na onda 3, quando o DatabaseThread virar
+   * repositorios com o mapeamento la dentro - e o §8.1 do diagnostico unificar
+   * Dataset/Member/TableDataset num tipo de dominio so.
    */
   // ---------------------------------------------------------------------------------//
   @ArchTest

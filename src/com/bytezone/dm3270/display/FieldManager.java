@@ -1,21 +1,14 @@
 package com.bytezone.dm3270.display;
 
-import static com.bytezone.dm3270.database.DatabaseRequest.Command.CLOSE;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 
 import com.bytezone.dm3270.attributes.Attribute;
 import com.bytezone.dm3270.attributes.StartFieldAttribute;
-import com.bytezone.dm3270.database.DatabaseRequest;
-import com.bytezone.dm3270.database.DatabaseRequest.Command;
-import com.bytezone.dm3270.database.DatabaseThread;
-import com.bytezone.dm3270.database.Initiator;
+import com.bytezone.dm3270.database.DatasetStore;
 import com.bytezone.dm3270.plugins.PluginData;
 import com.bytezone.dm3270.plugins.PluginField;
 import com.bytezone.dm3270.plugins.ScreenLocation;
@@ -30,7 +23,7 @@ import com.bytezone.dm3270.utilities.Site;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FieldManager implements Initiator
+public class FieldManager
 {
   private static final Logger logger = LoggerFactory.getLogger (FieldManager.class);
 
@@ -48,33 +41,19 @@ public class FieldManager implements Initiator
   private int hiddenProtectedFields;
   private int hiddenUnprotectedFields;
 
-  private BlockingQueue<DatabaseRequest> queue;
-  private DatabaseThread databaseThread;
+  private final DatasetStore datasetStore;
 
   FieldManager (FieldHost screen, ContextManager contextManager,
-      ScreenDimensions screenDimensions, Site serverSite)
+      ScreenDimensions screenDimensions, DatasetStore datasetStore)
   {
     this.screen = screen;
     this.contextManager = contextManager;
     this.screenDimensions = screenDimensions;
+    this.datasetStore = datasetStore;
 
-    if (serverSite != null)
-    {
-      queue = new ArrayBlockingQueue<> (64);
-      databaseThread = new DatabaseThread (serverSite.getName () + ".db", queue);
-      databaseThread.start ();
-      try
-      {
-        queue.put (new DatabaseRequest (this, Command.OPEN));
-        //        queue.put (new DatabaseRequest (this, Command.CREATE));
-      }
-      catch (InterruptedException e)
-      {
-        logger.error ("Interrupted while putting OPEN request in queue", e);
-      }
-    }
+    datasetStore.open (report -> logger.debug ("{}", report));
 
-    screenWatcher = new ScreenWatcher (this, screenDimensions, queue);
+    screenWatcher = new ScreenWatcher (this, screenDimensions, datasetStore);
   }
 
   // ScreenWatcher is never deleted, but most (not all) of its fields are refreshed
@@ -86,7 +65,7 @@ public class FieldManager implements Initiator
   void setScreenDimensions (ScreenDimensions screenDimensions)
   {
     this.screenDimensions = screen.getScreenDimensions ();
-    screenWatcher = new ScreenWatcher (this, screenDimensions, queue);
+    screenWatcher = new ScreenWatcher (this, screenDimensions, datasetStore);
   }
 
   // called by Screen.clearScreen()
@@ -99,15 +78,7 @@ public class FieldManager implements Initiator
 
   void close ()
   {
-    if (queue != null)
-      try
-      {
-        queue.put (new DatabaseRequest (this, CLOSE));
-      }
-      catch (InterruptedException e)
-      {
-        logger.error ("Interrupted while putting CLOSE request in queue", e);
-      }
+    datasetStore.close (report -> logger.debug ("{}", report));
   }
 
   // this is called after the pen and screen positions have been modified
@@ -494,9 +465,4 @@ public class FieldManager implements Initiator
     return text.toString ();
   }
 
-  @Override
-  public void processResult (DatabaseRequest request)
-  {
-    logger.debug ("{}", request);
-  }
 }

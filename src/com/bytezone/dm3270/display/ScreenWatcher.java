@@ -1,23 +1,18 @@
 package com.bytezone.dm3270.display;
 
-import static com.bytezone.dm3270.database.DatabaseRequest.Command.UPDATE;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.concurrent.BlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.bytezone.dm3270.assistant.TableDataset;
-import com.bytezone.dm3270.database.DatabaseRequest;
 import com.bytezone.dm3270.database.Dataset;
-import com.bytezone.dm3270.database.DatasetRequest;
-import com.bytezone.dm3270.database.Initiator;
+import com.bytezone.dm3270.database.DatasetStore;
 import com.bytezone.dm3270.database.Member;
-import com.bytezone.dm3270.database.MemberRequest;
 import com.bytezone.dm3270.screen.Field;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 
@@ -29,7 +24,7 @@ import org.slf4j.LoggerFactory;
 // used by DownloadDialog (via TransferMenu)
 // used by UploadDialog (via TransferMenu)
 // -----------------------------------------------------------------------------------//
-public class ScreenWatcher implements Initiator
+public class ScreenWatcher
 // -----------------------------------------------------------------------------------//
 {
   private static final Logger logger = LoggerFactory.getLogger (ScreenWatcher.class);
@@ -54,7 +49,7 @@ public class ScreenWatcher implements Initiator
 
   private final FieldManager fieldManager;
   private final ScreenDimensions screenDimensions;
-  private final BlockingQueue<DatabaseRequest> queue;
+  private final DatasetStore datasetStore;
 
   private final Map<String, TableDataset> siteDatasets = new TreeMap<> ();
   private final List<TableDataset> screenDatasets = new ArrayList<> ();
@@ -78,12 +73,12 @@ public class ScreenWatcher implements Initiator
 
   // ---------------------------------------------------------------------------------//
   public ScreenWatcher (FieldManager fieldManager, ScreenDimensions screenDimensions,
-      BlockingQueue<DatabaseRequest> queue)
+      DatasetStore datasetStore)
   // ---------------------------------------------------------------------------------//
   {
     this.fieldManager = fieldManager;
     this.screenDimensions = screenDimensions;
-    this.queue = queue;
+    this.datasetStore = datasetStore;
   }
 
   // ---------------------------------------------------------------------------------//
@@ -565,7 +560,7 @@ public class ScreenWatcher implements Initiator
         break;
     }
 
-    sendRequest (new DatasetRequest (this, UPDATE, ds));
+    datasetStore.update (ds);
   }
 
   // ---------------------------------------------------------------------------------//
@@ -828,7 +823,7 @@ public class ScreenWatcher implements Initiator
     m.setID (id);
     m.setSize (size);
 
-    sendRequest (new MemberRequest (this, UPDATE, m));
+    datasetStore.update (m);
   }
 
   // ---------------------------------------------------------------------------------//
@@ -858,7 +853,7 @@ public class ScreenWatcher implements Initiator
 
     m.setID (id);
 
-    sendRequest (new MemberRequest (this, UPDATE, m));
+    datasetStore.update (m);
   }
 
   // ---------------------------------------------------------------------------------//
@@ -980,26 +975,5 @@ public class ScreenWatcher implements Initiator
     return text.toString ();
   }
 
-  // ---------------------------------------------------------------------------------//
-  private void sendRequest (DatabaseRequest request)
-  // ---------------------------------------------------------------------------------//
-  {
-    if (queue != null)
-      try
-      {
-        queue.put (request);
-      }
-      catch (InterruptedException e)
-      {
-        logger.error ("Interrupted while putting UPDATE request in queue", e);
-      }
-  }
 
-  // ---------------------------------------------------------------------------------//
-  @Override
-  public void processResult (DatabaseRequest request)
-  // ---------------------------------------------------------------------------------//
-  {
-    //    System.out.println (request);
-  }
 }

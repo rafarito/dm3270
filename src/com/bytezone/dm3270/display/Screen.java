@@ -25,6 +25,7 @@ import com.bytezone.dm3270.commands.SystemMessage;
 import com.bytezone.dm3270.commands.SystemMessageView;
 import com.bytezone.dm3270.commands.WriteControlCharacter;
 import com.bytezone.dm3270.console.ConsoleLog;
+import com.bytezone.dm3270.database.DatasetStore;
 import com.bytezone.dm3270.console.ConsoleLogStage;
 import com.bytezone.dm3270.filetransfer.Transfer;
 import com.bytezone.dm3270.filetransfer.Transfer.TransferType;
@@ -123,7 +124,8 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   // ---------------------------------------------------------------------------------//
   public Screen (ScreenDimensions defaultScreenDimensions,
       ScreenDimensions alternateScreenDimensions, Preferences prefs, TerminalFunction function,
-      PluginsStage pluginsStage, Site serverSite, TelnetState telnetState)
+      PluginsStage pluginsStage, Site serverSite, TelnetState telnetState,
+      DatasetStore datasetStore)
   // ---------------------------------------------------------------------------------//
   {
     this.defaultScreenDimensions = defaultScreenDimensions;
@@ -141,7 +143,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
 
     contextManager = new ContextManager ();
     fontManager = FontManager.getInstance (this, prefs);
-    fieldManager = new FieldManager (this, contextManager, screenDimensions, serverSite);
+    fieldManager = new FieldManager (this, contextManager, screenDimensions, datasetStore);
     historyManager = new HistoryManager (screenDimensions, contextManager, fieldManager);
     transfersStage = new TransfersStage (this);
 
