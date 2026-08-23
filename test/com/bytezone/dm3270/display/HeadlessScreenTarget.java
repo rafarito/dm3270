@@ -7,6 +7,7 @@ import java.util.Optional;
 import com.bytezone.dm3270.assistant.BatchJobListener;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.commands.SystemMessage;
+import com.bytezone.dm3270.commands.SystemMessageView;
 import com.bytezone.dm3270.commands.WriteControlCharacter;
 import com.bytezone.dm3270.filetransfer.TransferManager;
 import com.bytezone.dm3270.streams.TelnetState;
@@ -93,7 +94,7 @@ public final class HeadlessScreenTarget implements ScreenTarget, CursorHost
     cursor = new Cursor (this, defaultDimensions);
 
     systemMessage = new SystemMessage (this, new RecordingBatchJobListener (),
-        defaultDimensions);
+        defaultDimensions, new RecordingSystemMessageView ());
   }
 
   // ---------------------------------------------------------------------------------//
@@ -431,6 +432,24 @@ public final class HeadlessScreenTarget implements ScreenTarget, CursorHost
    * Ouve os eventos de job em batch e apenas anota. O assistant de verdade abre janela;
    * aqui interessa so poder verificar que a tela foi reconhecida.
    */
+  // ---------------------------------------------------------------------------------//
+  /*
+   * A tela de PROFILE do TSO e um dialogo do JavaFX. Aqui so registramos que o protocolo
+   * pediu para mostra-la, e com quais textos.
+   */
+  // ---------------------------------------------------------------------------------//
+  private final class RecordingSystemMessageView implements SystemMessageView
+  // ---------------------------------------------------------------------------------//
+  {
+    // -------------------------------------------------------------------------------//
+    @Override
+    public void showProfile (String profileMessageText1, String profileMessageText2)
+    // -------------------------------------------------------------------------------//
+    {
+      calls.add ("showProfile:" + profileMessageText1 + "|" + profileMessageText2);
+    }
+  }
+
   // ---------------------------------------------------------------------------------//
   private final class RecordingBatchJobListener implements BatchJobListener
   // ---------------------------------------------------------------------------------//

@@ -21,6 +21,7 @@ import com.bytezone.dm3270.attributes.ColorAttribute;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.commands.Command;
 import com.bytezone.dm3270.commands.SystemMessage;
+import com.bytezone.dm3270.commands.SystemMessageView;
 import com.bytezone.dm3270.commands.WriteControlCharacter;
 import com.bytezone.dm3270.console.ConsoleLogStage;
 import com.bytezone.dm3270.filetransfer.Transfer;
@@ -51,8 +52,8 @@ import javafx.animation.PauseTransition;
 import javafx.util.Duration;
 
 // -----------------------------------------------------------------------------------//
-public class Screen extends Canvas
-    implements ScreenTarget, CursorHost, TransferListener, TelnetStateListener
+public class Screen extends Canvas implements ScreenTarget, CursorHost,
+    SystemMessageView, TransferListener, TelnetStateListener
 // -----------------------------------------------------------------------------------//
 {
   private static final Logger logger = LoggerFactory.getLogger (Screen.class);
@@ -131,7 +132,7 @@ public class Screen extends Canvas
     transfersStage = new TransfersStage (this);
 
     consoleLogStage = new ConsoleLogStage (this);
-    systemMessage = new SystemMessage (this, transfersStage, screenDimensions);
+    systemMessage = new SystemMessage (this, transfersStage, screenDimensions, this);
 
     transferManager = new TransferManager (this::getPrefix, serverSite);
     transferMenu = new TransferMenu (serverSite, transferManager);
@@ -359,6 +360,19 @@ public class Screen extends Canvas
   {
     return currentScreen == ScreenOption.DEFAULT ? defaultScreenDimensions
         : alternateScreenDimensions;
+  }
+
+  /*
+   * O SystemMessage reconheceu a tela de PROFILE do TSO e pediu para mostra-la. Montar o
+   * dialogo e agendar a exibicao na thread da interface e trabalho desta camada.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Override
+  public void showProfile (String profileMessageText1, String profileMessageText2)
+  // ---------------------------------------------------------------------------------//
+  {
+    Profile profile = new Profile (profileMessageText1, profileMessageText2);
+    Platform.runLater ( () -> profile.showAndWait ());
   }
 
   // ---------------------------------------------------------------------------------//

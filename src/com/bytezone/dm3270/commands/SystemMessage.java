@@ -12,7 +12,6 @@ import com.bytezone.dm3270.orders.Order;
 import com.bytezone.dm3270.orders.TextOrder;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
-import javafx.application.Platform;
 import javafx.scene.text.Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +77,7 @@ public class SystemMessage
 
   private final ScreenTarget screen;
   private final BatchJobListener batchJobListener;
-  private Profile profile;
+  private final SystemMessageView view;
 
   private boolean isConsole;
   private ConsoleLog consoleLog;
@@ -98,10 +97,11 @@ public class SystemMessage
   }
 
   public SystemMessage (ScreenTarget screen, BatchJobListener batchJobListener,
-      ScreenDimensions screenDimensions)
+      ScreenDimensions screenDimensions, SystemMessageView view)
   {
     this.screen = screen;
     this.batchJobListener = batchJobListener;
+    this.view = view;
     screenWidth = screenDimensions.columns;
   }
 
@@ -277,10 +277,7 @@ public class SystemMessage
     int pos3 = profileMessageText1.indexOf ("PREFIX(");
 
     if (pos1 >= 0 && pos2 >= 0 && pos3 >= 0)
-    {
-      profile = new Profile (profileMessageText1, profileMessageText2);
-      Platform.runLater ( () -> profile.showAndWait ());
-    }
+      view.showProfile (profileMessageText1, profileMessageText2);
   }
 
   private void checkConsoleOutput (List<Order> orders)

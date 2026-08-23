@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.commands;
+package com.bytezone.dm3270.display;
 
 import java.util.Optional;
 
