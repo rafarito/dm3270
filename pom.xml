@@ -211,14 +211,14 @@
               milhares de mutantes sobreviventes, afogando o sinal util. Conforme a onda 3
               decompor Screen, as partes entram aqui.
 
-              Cursor ficou de fora por outro motivo: o HeadlessProcessingTest o constroi
-              e o exercita de passagem, mas nao verifica comportamento de cursor nenhum -
-              117 mutantes, zero mortos. Entra quando tiver teste proprio.
+              Cursor entrou agora que tem o CursorTest: 20 testes que congelam movimento,
+              volta na tela, avisos aos ouvintes, navegacao por campo e visibilidade.
             -->
             <param>com.bytezone.dm3270.screen.ScreenDimensions</param>
             <param>com.bytezone.dm3270.screen.ScreenPosition</param>
             <param>com.bytezone.dm3270.screen.ScreenContext</param>
             <param>com.bytezone.dm3270.screen.ContextManager</param>
+            <param>com.bytezone.dm3270.screen.Cursor</param>
             <param>com.bytezone.dm3270.screen.Pen</param>
             <param>com.bytezone.dm3270.screen.PenType1</param>
             <param>com.bytezone.dm3270.screen.FontMetrics</param>

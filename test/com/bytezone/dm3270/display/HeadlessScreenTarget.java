@@ -221,6 +221,13 @@ public final class HeadlessScreenTarget implements ScreenTarget, CursorHost, Fie
     // nada a desenhar: o buffer e o que importa
   }
 
+  // So para teste: a aplicacao liga o modo de insercao pela tecla Insert, que passa pela
+  // Screen. Aqui o CursorTest precisa alcancar o ramo de insercao do typeChar.
+  public void setInsertMode (boolean value)
+  {
+    insertMode = value;
+  }
+
   @Override
   public boolean isInsertMode ()
   {
