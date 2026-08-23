@@ -6,5 +6,6 @@ build.xml
 *.md
 !README.md
 !TESTING.md
+!BACKLOG-DEFEITOS.md
 plugins/*
 logs/

@@ -74,15 +74,47 @@ e o que diz se os testes escritos valem alguma coisa.
 
 | | `dm3270` | `dm3270-plugins` |
 |---|---:|---:|
-| Testes | 1.110 | 164 |
-| Cobertura de instrucoes (projeto todo) | 38,7% | — |
+| Testes | 1.158 | 164 |
+| Cobertura de instrucoes (projeto todo) | 40,0% | — |
 | Mutantes gerados | 3.234 | 577 |
 | Mutation coverage | 60% | 54% |
 | **Test strength** | **84%** | **80%** |
 
-Os 38,7% do projeto todo refletem a camada JavaFX inteira sem teste, nao a qualidade da
+Os 40% do projeto todo refletem a camada JavaFX inteira sem teste, nao a qualidade da
 suite: `display`, `application`, `assistant`, `console` e `reporter.application` somam
-23 mil instrucoes e nenhum teste. Nos pacotes de protocolo a cobertura passa de 80%.
+23 mil instrucoes e quase nenhum teste. Nos pacotes de protocolo a cobertura passa de 80%.
+
+## Rede de seguranca da refatoracao estrutural
+
+A refatoracao em curso preserva 100% do comportamento observavel. Quatro mecanismos
+sustentam essa promessa, e todos rodam no `mvn test`:
+
+| Mecanismo | Onde | O que protege |
+|---|---|---|
+| Golden master do parser | `ParserGoldenMasterTest` + `test/golden/mf-parse.txt` | Reprocessa uma sessao TN3270 real e congela tudo que o parser monta: registros, comandos, orders, respostas telnet. Cobre `telnet`, `buffers`, `commands`, `orders`, `extended`, `structuredfields` e `replyfield` de uma vez |
+| Regras de camada | `LayeringTest` + `test/archunit-baseline/` | Cinco regras de dependencia congeladas com ArchUnit. Violacao nova quebra a build; violacao existente nao. O baseline versionado e o placar: ele so encolhe |
+| Placar de ciclos | `LayeringTest.MAX_MUTUAL_CYCLES` | Conta os pares de pacotes com dependencia mutua. Falha se subir **e** se cair sem atualizar o limite, para que todo ganho seja registrado no commit que o produziu |
+| Caracterizacao | `SiteTest`, `ScreenContextPoolingTest` | Congela o comportamento atual das classes que serao desmontadas, **incluindo os defeitos** — ver [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md) |
+
+Quando um golden master falhar, o teste grava o resultado obtido em `target/golden/` e
+aponta a primeira linha divergente. Duas leituras possiveis: ou a refatoracao mudou
+comportamento e deve ser revertida, ou a mudanca era pretendida e o snapshot precisa ser
+reaprovado — o que exige justificativa no commit, nunca um `rm` silencioso.
+
+### Testes que exigem JavaFX
+
+`Site`, `ScreenPosition`, `Pen` e `Screen` so podem ser instanciadas com o toolkit ativo.
+A extensao `JavaFxToolkit` liga o toolkit uma vez por JVM; use com
+`@ExtendWith (JavaFxToolkit.class)`.
+
+Em ambiente headless — o CI, por exemplo — a suite precisa rodar sob um X virtual:
+
+```bash
+xvfb-run --auto-servernum mvn test
+```
+
+Sem isso, `Platform.startup` falha e a extensao diz exatamente esse motivo na mensagem de
+erro.
 
 ### Cobertura por pacote — `dm3270`
 
