@@ -11,7 +11,7 @@ public class Cursor
   private static final boolean WITH_CURSOR = true;
   private static final boolean WITHOUT_CURSOR = false;
 
-  private final Screen screen;
+  private final CursorHost screen;
   private ScreenDimensions screenDimensions;
 
   private int currentPosition;
@@ -23,7 +23,7 @@ public class Cursor
     LEFT, RIGHT, UP, DOWN
   }
 
-  public Cursor (Screen screen, ScreenDimensions screenDimensions)
+  public Cursor (CursorHost screen, ScreenDimensions screenDimensions)
   {
     this.screen = screen;
     this.screenDimensions = screenDimensions;
@@ -305,8 +305,8 @@ public class Cursor
   private void setCurrentField ()
   {
     Field lastField = currentField;
-    //    currentField = screen.getFieldManager ().getFieldAt (currentPosition);
-    Optional<Field> field = screen.getFieldManager ().getFieldAt (currentPosition);
+    //    currentField = screen.getFieldAt (currentPosition);
+    Optional<Field> field = screen.getFieldAt (currentPosition);
     if (field.isPresent ())
     {
       currentField = field.get ();

@@ -52,7 +52,7 @@ import javafx.util.Duration;
 
 // -----------------------------------------------------------------------------------//
 public class Screen extends Canvas
-    implements ScreenTarget, TransferListener, TelnetStateListener
+    implements ScreenTarget, CursorHost, TransferListener, TelnetStateListener
 // -----------------------------------------------------------------------------------//
 {
   private static final Logger logger = LoggerFactory.getLogger (Screen.class);
@@ -633,7 +633,8 @@ public class Screen extends Canvas
   // called from Cursor.eraseEOL()
   // called from Cursor.moveTo()
   // ---------------------------------------------------------------------------------//
-  void drawPosition (int position, boolean hasCursor)
+  @Override
+  public void drawPosition (int position, boolean hasCursor)
   // ---------------------------------------------------------------------------------//
   {
     screenPositions[position].draw (hasCursor);
@@ -694,7 +695,8 @@ public class Screen extends Canvas
 
   // called from Cursor.home()
   // ---------------------------------------------------------------------------------//
-  Optional<Field> getHomeField ()
+  @Override
+  public Optional<Field> getHomeField ()
   // ---------------------------------------------------------------------------------//
   {
     List<Field> fields = fieldManager.getUnprotectedFields ();
