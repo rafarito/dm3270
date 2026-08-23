@@ -133,7 +133,7 @@ class LayeringTest
    *
    * A segunda e modelagem, e ainda esta aqui: as 35 violacoes restantes sao todas mencoes a
    * Dataset e Member. Os dois sao DTOs de acesso direto a campo - o DatabaseThread le
-   * ,  e mais duas dezenas de campos para montar o SQL, sem
+   * dataset.tracks, member.vv e mais duas dezenas de campos para montar o SQL, sem
    * getters. Move-los para um pacote de dominio hoje obrigaria a tornar 28 campos publicos,
    * o que seria trocar uma violacao de camada por uma pior de encapsulamento.
    *
