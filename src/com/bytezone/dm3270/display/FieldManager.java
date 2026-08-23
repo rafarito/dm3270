@@ -305,9 +305,26 @@ public class FieldManager implements Initiator
     int count = 0;
 
     for (Field field : fields)
-      pluginFields.add (field.getPluginField (sequence, count++));
+      pluginFields.add (toPluginField (field, count++));
 
     return new PluginData (sequence, screenLocation, pluginFields);
+  }
+
+  /*
+   * A traducao de um Field para o PluginField que a API de plugins expoe. Morava dentro do
+   * proprio Field, e era a unica coisa que fazia o modelo de tela conhecer o pacote plugins -
+   * com um chamador so, este. Do lado de quem consome, a aresta desaparece.
+   *
+   * As duas linhas que calculavam row e column sairam: o ScreenLocation e montado a partir de
+   * firstLocation, e nada mais lia esses dois valores.
+   */
+  private PluginField toPluginField (Field field, int fieldSequence)
+  {
+    ScreenLocation screenLocation = new ScreenLocation (field.getFirstLocation ());
+
+    return new PluginField (fieldSequence, screenLocation, field.getDisplayLength (),
+        field.isProtected (), field.isAlphanumeric (), field.isVisible (),
+        field.isModified (), field.getText ());
   }
 
   // ---------------------------------------------------------------------------------//
