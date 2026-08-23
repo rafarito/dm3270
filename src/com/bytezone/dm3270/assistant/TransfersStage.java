@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.prefs.Preferences;
 
-import com.bytezone.dm3270.application.ConsolePane;
+import com.bytezone.dm3270.screen.AidSender;
 import com.bytezone.dm3270.screen.KeyboardStatusChangedEvent;
 import com.bytezone.dm3270.screen.KeyboardStatusListener;
 import com.bytezone.dm3270.display.Screen;
@@ -117,7 +117,7 @@ public class TransfersStage extends Stage implements ScreenChangeListener,
     tsoCommand.setTransferManager (transferManager);
   }
 
-  public void setConsolePane (ConsolePane consolePane)
+  public void setConsolePane (AidSender consolePane)
   {
     tsoCommand.setConsolePane (consolePane);
   }

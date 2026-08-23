@@ -4,6 +4,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
+import com.bytezone.dm3270.display.ConsoleView;
 import com.bytezone.dm3270.application.Parameters.SiteParameters;
 import com.bytezone.dm3270.attributes.StartFieldAttribute;
 import com.bytezone.dm3270.commands.AIDCommand;
@@ -45,7 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ConsolePane extends BorderPane
-    implements FieldChangeListener, CursorMoveListener, KeyboardStatusListener
+    implements FieldChangeListener, CursorMoveListener, KeyboardStatusListener, ConsoleView
 {
   private static final Logger logger = LoggerFactory.getLogger (ConsolePane.class);
   private final static int MARGIN = 4;

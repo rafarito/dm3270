@@ -8,7 +8,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bytezone.dm3270.application.ConsolePane;
+import com.bytezone.dm3270.screen.AidSender;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.screen.Field;
 import com.bytezone.dm3270.display.ScreenChangeListener;
@@ -33,7 +33,7 @@ public class TransferMenu implements ScreenChangeListener
 
   private ScreenWatcher screenWatcher;
   private final TransferManager transferManager;
-  private ConsolePane consolePane;
+  private AidSender consolePane;
 
   private final MenuItem menuItemUpload;
   private final MenuItem menuItemDownload;
@@ -58,7 +58,7 @@ public class TransferMenu implements ScreenChangeListener
   }
 
   // called from Screen.setConsolePane()
-  public void setConsolePane (ConsolePane consolePane)
+  public void setConsolePane (AidSender consolePane)
   {
     this.consolePane = consolePane;
   }

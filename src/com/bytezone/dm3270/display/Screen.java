@@ -12,7 +12,6 @@ import java.util.Set;
 import java.util.prefs.Preferences;
 
 import com.bytezone.dm3270.runtime.TerminalFunction;
-import com.bytezone.dm3270.application.ConsolePane;
 import com.bytezone.dm3270.screen.KeyboardStatusChangedEvent;
 import com.bytezone.dm3270.screen.KeyboardStatusListener;
 import com.bytezone.dm3270.assistant.TransfersStage;
@@ -95,7 +94,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   private final TransfersStage transfersStage;
   private final ConsoleLogStage consoleLogStage;
   private ConsoleLog consoleLog;
-  private ConsolePane consolePane;
+  private ConsoleView consolePane;
   private final TelnetState telnetState;
 
   private final GraphicsContext gc;
@@ -425,7 +424,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
 
   // called from the ConsolePane constructor
   // ---------------------------------------------------------------------------------//
-  public void setConsolePane (ConsolePane consolePane)
+  public void setConsolePane (ConsoleView consolePane)
   // ---------------------------------------------------------------------------------//
   {
     this.consolePane = consolePane;

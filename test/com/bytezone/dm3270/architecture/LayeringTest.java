@@ -134,16 +134,24 @@ class LayeringTest
           .because ("a persistencia entra por uma porta injetada, nao construida aqui"));
 
   /*
-   * Screen guarda um PluginsStage e importa Console.Function e ConsolePane - ou seja, a
-   * tela conhece a janela que a contem e o gerenciador de plugins que ela dispara.
+   * A terceira regra a valer integralmente.
+   *
+   * Comecou em 14 violacoes, de tres causas: os eventos de teclado, que foram para o pacote
+   * screen porque descrevem estado do modelo de tela; Console.Function, que virou
+   * runtime.TerminalFunction porque um modo de execucao e um dado e nao a composicao da
+   * aplicacao; e o ConsolePane, que a Screen guardava inteiro para chamar tres metodos.
+   *
+   * NAO ESTA CONGELADA. O pacote application e o composition root: ele monta o grafo de
+   * objetos e por isso conhece todo mundo. Ninguem conhece ele de volta - com uma excecao
+   * documentada, streams, que ainda usa Mainframe e Console em MainframeServer e SpyServer.
    */
   // ---------------------------------------------------------------------------------//
   @ArchTest
-  static final ArchRule displayDoesNotDependOnApplication = FreezingArchRule.freeze (   //
+  static final ArchRule displayDoesNotDependOnApplication =                              //
       noClasses ().that ().resideInAnyPackage ("com.bytezone.dm3270.display..")         //
           .should ().dependOnClassesThat ()                                             //
           .resideInAnyPackage ("com.bytezone.dm3270.application..")                     //
-          .because ("a composicao da aplicacao pertence ao composition root"));
+          .because ("a composicao da aplicacao pertence ao composition root");
 
   // ---------------------------------------------------------------------------------//
   @ArchTest
@@ -199,8 +207,17 @@ class LayeringTest
    * E ja voltou a 23: tirar Console.Function de dentro do pacote application desfez o ciclo
    * application <-> session por inteiro, porque o enum era a unica coisa que session
    * importava de la.
+   *
+   * Depois caiu a 20. O ConsolePane era o UNICO tipo do pacote application que assistant,
+   * display, filetransfer e plugins importavam - e cada um o guardava inteiro, 432 linhas de
+   * JavaFX, para usar dois ou tres metodos. Substitui-lo pelas portas AidSender e ConsoleView
+   * desfez tres ciclos de uma vez: application <-> assistant, application <-> display e
+   * application <-> plugins.
+   *
+   * Sobra application <-> streams, de MainframeServer e SpyServer, que usam Mainframe e
+   * Console. E o unico caminho de volta para o composition root que ainda existe.
    */
-  private static final int MAX_MUTUAL_CYCLES = 23;
+  private static final int MAX_MUTUAL_CYCLES = 20;
 
   // ---------------------------------------------------------------------------------//
   @ArchTest

@@ -21,7 +21,7 @@ import java.util.prefs.Preferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bytezone.dm3270.application.ConsolePane;
+import com.bytezone.dm3270.screen.AidSender;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.screen.Cursor;
 import com.bytezone.dm3270.screen.Field;
@@ -69,7 +69,7 @@ public class PluginsStage extends PreferencesStage
   private Screen screen;
   private ScreenDimensions screenDimensions;
   private int sequence;
-  private ConsolePane consolePane;
+  private AidSender consolePane;
   private URLClassLoader pluginClassLoader;
 
   // ---------------------------------------------------------------------------------//
@@ -145,7 +145,7 @@ public class PluginsStage extends PreferencesStage
   }
 
   // ---------------------------------------------------------------------------------//
-  public void setConsolePane (ConsolePane consolePane)
+  public void setConsolePane (AidSender consolePane)
   // ---------------------------------------------------------------------------------//
   {
     this.consolePane = consolePane;

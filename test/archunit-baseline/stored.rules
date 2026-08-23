@@ -1,5 +1,4 @@
 #
 #Sun Aug 23 00:13:40 BRT 2026
-no\ classes\ that\ reside\ in\ any\ package\ ['com.bytezone.dm3270.display..']\ should\ depend\ on\ classes\ that\ reside\ in\ any\ package\ ['com.bytezone.dm3270.application..'],\ because\ a\ composicao\ da\ aplicacao\ pertence\ ao\ composition\ root=7751e95e-57bf-4ab1-8fbe-2841e280a4f1
 no\ classes\ that\ reside\ in\ any\ package\ ['com.bytezone.dm3270.display..']\ should\ depend\ on\ classes\ that\ reside\ in\ any\ package\ ['com.bytezone.dm3270.database..'],\ because\ a\ persistencia\ entra\ por\ uma\ porta\ injetada,\ nao\ construida\ aqui=caf2a8e2-dd51-4e0d-b64e-b86faace50f6
 no\ classes\ that\ reside\ outside\ of\ packages\ ['com.bytezone.dm3270.application..',\ 'com.bytezone.dm3270.assistant..',\ 'com.bytezone.dm3270.console..',\ 'com.bytezone.dm3270.display..',\ 'com.bytezone.dm3270.plugins..',\ 'com.bytezone.reporter.application..']\ should\ depend\ on\ classes\ that\ reside\ in\ any\ package\ ['javafx..'],\ because\ JavaFX\ so\ pode\ vazar\ para\ os\ pacotes\ de\ interface=9169962a-4b63-41fe-adeb-330e91abc5b8

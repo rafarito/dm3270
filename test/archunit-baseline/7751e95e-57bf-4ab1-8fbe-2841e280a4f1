@@ -1,5 +1,0 @@
-Field <com.bytezone.dm3270.display.Screen.consolePane> has type <com.bytezone.dm3270.application.ConsolePane> in (Screen.java:0)
-Method <com.bytezone.dm3270.display.Screen.fontChanged(com.bytezone.dm3270.display.FontDetails, boolean)> calls method <com.bytezone.dm3270.application.ConsolePane.setStatusFont()> in (Screen.java:718)
-Method <com.bytezone.dm3270.display.Screen.setConsolePane(com.bytezone.dm3270.application.ConsolePane)> has parameter of type <com.bytezone.dm3270.application.ConsolePane> in (Screen.java:0)
-Method <com.bytezone.dm3270.display.Screen.setIsConsole()> calls method <com.bytezone.dm3270.application.ConsolePane.setIsConsole(boolean)> in (Screen.java:422)
-Method <com.bytezone.dm3270.display.Screen.setStatusText(java.lang.String)> calls method <com.bytezone.dm3270.application.ConsolePane.setStatusText(java.lang.String)> in (Screen.java:444)

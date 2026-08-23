@@ -2,7 +2,7 @@ package com.bytezone.dm3270.assistant;
 
 import java.io.File;
 
-import com.bytezone.dm3270.application.ConsolePane;
+import com.bytezone.dm3270.screen.AidSender;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.screen.Field;
 import com.bytezone.dm3270.display.ScreenChangeListener;
@@ -30,7 +30,7 @@ public class TSOCommand implements ScreenChangeListener
   final TextField txtCommand = new TextField ();
   final Button btnExecute = new Button ("Execute");
 
-  private ConsolePane consolePane;
+  private AidSender consolePane;
   private ScreenWatcher screenWatcher;
   private TransferManager transferManager;
   private byte[] buffer;
@@ -65,7 +65,7 @@ public class TSOCommand implements ScreenChangeListener
     this.file = file;
   }
 
-  public void setConsolePane (ConsolePane consolePane)
+  public void setConsolePane (AidSender consolePane)
   {
     this.consolePane = consolePane;
   }
