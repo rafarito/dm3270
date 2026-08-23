@@ -1,6 +1,6 @@
 package com.bytezone.dm3270.structuredfields;
 
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 
 // -----------------------------------------------------------------------------------//
 public class EraseResetSF extends StructuredField
@@ -31,7 +31,7 @@ public class EraseResetSF extends StructuredField
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   // ---------------------------------------------------------------------------------//
   {
     // what to do?

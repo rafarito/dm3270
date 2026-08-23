@@ -1,6 +1,6 @@
 package com.bytezone.dm3270.commands;
 
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 
 public class EraseAllUnprotectedCommand extends Command
 {
@@ -13,7 +13,7 @@ public class EraseAllUnprotectedCommand extends Command
   }
 
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   {
     screen.eraseAllUnprotected ();
   }

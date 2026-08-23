@@ -3,7 +3,7 @@ package com.bytezone.dm3270.commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 
 // Inbound only command - creates a Reply of AID
 
@@ -64,7 +64,7 @@ public class ReadCommand extends Command
   }
 
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   {
     // Create an AID command
     if (type == CommandType.READ_BUFFER)

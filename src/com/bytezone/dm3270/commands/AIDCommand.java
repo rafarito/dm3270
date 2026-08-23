@@ -7,8 +7,7 @@ import java.util.Optional;
 
 import com.bytezone.dm3270.display.Cursor;
 import com.bytezone.dm3270.display.Field;
-import com.bytezone.dm3270.display.FieldManager;
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 import com.bytezone.dm3270.orders.BufferAddress;
 import com.bytezone.dm3270.orders.BufferAddressSource;
 import com.bytezone.dm3270.orders.Order;
@@ -160,11 +159,10 @@ public class AIDCommand extends Command implements BufferAddressSource, Iterable
   // Normally an AID is a reply command (which never has process() called)
   // Testing out whether the plugin reply should pass through here.
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   {
     if (!prettyMoveHandled (screen))
     {
-      FieldManager fieldManager = screen.getFieldManager ();
       Field tsoCommandField = screen.getTSOCommandField ();
 
       if (modifiedFields.size () == 0 && screen.isTSOCommandScreen ())
@@ -176,7 +174,7 @@ public class AIDCommand extends Command implements BufferAddressSource, Iterable
 
       for (ModifiedField aidField : modifiedFields)
       {
-        Optional<Field> optField = fieldManager.getFieldAt (aidField.getLocation ());
+        Optional<Field> optField = screen.getFieldAt (aidField.getLocation ());
         if (!optField.isPresent ())
           continue;                 // in replay mode we cannot rely on the fields list
 
@@ -203,7 +201,7 @@ public class AIDCommand extends Command implements BufferAddressSource, Iterable
 
   // test to see whether this is data entry that was null suppressed into moving
   // elsewhere on the screen (like the TSO logoff command) - purely aesthetic
-  private boolean prettyMoveHandled (Screen screen)
+  private boolean prettyMoveHandled (ScreenTarget screen)
   {
     if (modifiedFields.size () == 1)
     {

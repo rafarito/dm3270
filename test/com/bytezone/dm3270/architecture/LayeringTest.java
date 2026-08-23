@@ -129,14 +129,14 @@ class LayeringTest
    * falha se a contagem ficar ABAIXO do limite, para forcar essa atualizacao: progresso que
    * ninguem registra e progresso que se perde na proxima regressao.
    *
-   * O ponto de partida medido aqui e 24, e nao os 25 do diagnostico. A diferenca e de
+   * O ponto de partida medido foi 24, e nao os 25 do diagnostico. A diferenca e de
    * metodo: o relatorio contou declaracoes de import, enquanto o ArchUnit le as
    * dependencias reais do bytecode - o que inclui tipos de campo e de assinatura que nao
    * aparecem como import, e exclui import declarado mas nao usado. As duas listas se
    * sobrepoem quase todo; a do bytecode e a que vale como placar, porque e a que descreve o
    * acoplamento que o compilador realmente impoe.
    */
-  private static final int MAX_MUTUAL_CYCLES = 24;
+  private static final int MAX_MUTUAL_CYCLES = 23;
 
   // ---------------------------------------------------------------------------------//
   @ArchTest

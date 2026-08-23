@@ -1,6 +1,6 @@
 package com.bytezone.dm3270.commands;
 
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 
 public class WriteControlCharacter
 {
@@ -31,7 +31,7 @@ public class WriteControlCharacter
     return resetModified;
   }
 
-  void process (Screen screen)
+  void process (ScreenTarget screen)
   {
     screen.resetInsertMode ();
 

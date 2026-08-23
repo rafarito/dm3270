@@ -1,7 +1,7 @@
 package com.bytezone.dm3270.structuredfields;
 
 import com.bytezone.dm3270.buffers.AbstractTN3270Command;
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 // -----------------------------------------------------------------------------------//
@@ -40,7 +40,7 @@ public abstract class StructuredField extends AbstractTN3270Command
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   // ---------------------------------------------------------------------------------//
   {
     // do nothing 

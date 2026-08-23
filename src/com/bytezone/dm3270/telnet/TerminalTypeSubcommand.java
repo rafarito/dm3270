@@ -3,7 +3,7 @@ package com.bytezone.dm3270.telnet;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidParameterException;
 
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 import com.bytezone.dm3270.streams.TelnetState;
 
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class TerminalTypeSubcommand extends TelnetSubcommand
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   // ---------------------------------------------------------------------------------//
   {
     if (type == SubcommandType.SEND)

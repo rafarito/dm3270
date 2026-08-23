@@ -3,7 +3,7 @@ package com.bytezone.dm3270.buffers;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +78,7 @@ public class MultiBuffer implements Buffer
   }
 
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   {
     for (Buffer buffer : buffers)
       buffer.process (screen);

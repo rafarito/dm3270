@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.bytezone.dm3270.display.Cursor;
-import com.bytezone.dm3270.display.Screen;
-import com.bytezone.dm3270.display.Screen.ScreenOption;
+import com.bytezone.dm3270.display.ScreenTarget;
+import com.bytezone.dm3270.display.ScreenOption;
 import com.bytezone.dm3270.orders.Order;
 import com.bytezone.dm3270.orders.TextOrder;
 
@@ -87,7 +87,7 @@ public class WriteCommand extends Command
   }
 
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   {
     Cursor cursor = screen.getScreenCursor ();
     int cursorLocation = cursor.getLocation ();
@@ -116,15 +116,15 @@ public class WriteCommand extends Command
     if (writeControlCharacter != null)
     {
       writeControlCharacter.process (screen);       // may unlock the keyboard
-      if (screen.getFieldManager ().size () > 0 && !screen.isKeyboardLocked ())
+      if (screen.getFieldCount () > 0 && !screen.isKeyboardLocked ())
         screen.checkRecording ();                   // make a copy of the screen
     }
 
-    if (!screen.isKeyboardLocked () && screen.getFieldManager ().size () > 0)
+    if (!screen.isKeyboardLocked () && screen.getFieldCount () > 0)
     {
       if (orders.size () > 0 || !writeControlCharacter.isResetModified ())
         // should check for suppressDisplay
-        setReply (screen.getPluginsStage ().processPluginAuto ());
+        setReply (screen.processPluginAuto ());
     }
 
     if (screenDrawRequired)

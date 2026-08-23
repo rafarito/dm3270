@@ -1,6 +1,6 @@
 package com.bytezone.dm3270.buffers;
 
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 
 public interface Buffer
 {
@@ -10,5 +10,5 @@ public interface Buffer
 
   public abstract int size ();
 
-  public abstract void process (Screen screen);
+  public abstract void process (ScreenTarget screen);
 }

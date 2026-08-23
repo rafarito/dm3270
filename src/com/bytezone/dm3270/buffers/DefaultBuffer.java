@@ -1,6 +1,6 @@
 package com.bytezone.dm3270.buffers;
 
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +14,7 @@ public class DefaultBuffer extends AbstractBuffer
   }
 
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   {
     logger.warn ("Nothing to process");
   }

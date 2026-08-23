@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 import com.bytezone.dm3270.display.ScreenDimensions;
 import com.bytezone.dm3270.filetransfer.FileTransferInboundSF;
 import com.bytezone.dm3270.replyfield.*;
@@ -200,7 +200,7 @@ public class ReadStructuredFieldCommand extends Command
   }
 
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   {
   }
 

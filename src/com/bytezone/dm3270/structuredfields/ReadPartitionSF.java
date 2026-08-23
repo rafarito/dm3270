@@ -5,7 +5,7 @@ import java.util.Optional;
 import com.bytezone.dm3270.buffers.Buffer;
 import com.bytezone.dm3270.commands.Command;
 import com.bytezone.dm3270.commands.ReadPartitionQuery;
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +53,7 @@ public class ReadPartitionSF extends StructuredField
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   // ---------------------------------------------------------------------------------//
   {
     if (getReply ().isPresent ())                // replay mode

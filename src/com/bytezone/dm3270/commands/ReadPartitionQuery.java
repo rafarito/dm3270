@@ -1,6 +1,6 @@
 package com.bytezone.dm3270.commands;
 
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 import com.bytezone.dm3270.structuredfields.StructuredField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ public class ReadPartitionQuery extends Command
   }
 
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   {
     if (getReply ().isPresent ())
       return;

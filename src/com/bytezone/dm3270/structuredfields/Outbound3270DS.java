@@ -1,7 +1,7 @@
 package com.bytezone.dm3270.structuredfields;
 
 import com.bytezone.dm3270.commands.Command;
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,7 @@ public class Outbound3270DS extends StructuredField
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   // ---------------------------------------------------------------------------------//
   {
     command.process (screen);

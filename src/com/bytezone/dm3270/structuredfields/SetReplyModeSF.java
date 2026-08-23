@@ -1,7 +1,7 @@
 package com.bytezone.dm3270.structuredfields;
 
 import com.bytezone.dm3270.attributes.Attribute;
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 
 // -----------------------------------------------------------------------------------//
 public class SetReplyModeSF extends StructuredField
@@ -35,7 +35,7 @@ public class SetReplyModeSF extends StructuredField
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   // ---------------------------------------------------------------------------------//
   {
     screen.setReplyMode (replyMode, types);

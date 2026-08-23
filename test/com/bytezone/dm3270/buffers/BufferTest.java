@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 
 // -----------------------------------------------------------------------------------//
 @DisplayName ("Buffers - encapsulamento telnet dos dados 3270")
@@ -33,7 +33,7 @@ class BufferTest
     }
 
     @Override
-    public void process (Screen screen)
+    public void process (ScreenTarget screen)
     {
     }
   }

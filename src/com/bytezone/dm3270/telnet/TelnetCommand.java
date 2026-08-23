@@ -1,7 +1,7 @@
 package com.bytezone.dm3270.telnet;
 
 import com.bytezone.dm3270.buffers.AbstractTelnetCommand;
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 import com.bytezone.dm3270.streams.TelnetState;
 
 import org.slf4j.Logger;
@@ -127,7 +127,7 @@ public class TelnetCommand extends AbstractTelnetCommand
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   // ---------------------------------------------------------------------------------//
   {
     if (commandName == CommandName.DO)      // mainframe asks us DO xxx

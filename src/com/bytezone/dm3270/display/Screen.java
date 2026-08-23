@@ -52,7 +52,7 @@ import javafx.util.Duration;
 
 // -----------------------------------------------------------------------------------//
 public class Screen extends Canvas
-    implements DisplayScreen, TransferListener, TelnetStateListener
+    implements ScreenTarget, TransferListener, TelnetStateListener
 // -----------------------------------------------------------------------------------//
 {
   private static final Logger logger = LoggerFactory.getLogger (Screen.class);
@@ -103,11 +103,6 @@ public class Screen extends Canvas
   public enum BuildInstruction
   {
     BUILD_FIELDS, DONT_BUILD_FIELDS
-  }
-
-  public enum ScreenOption
-  {
-    DEFAULT, ALTERNATE
   }
 
   // ---------------------------------------------------------------------------------//
@@ -393,6 +388,30 @@ public class Screen extends Canvas
   // ---------------------------------------------------------------------------------//
   {
     consolePane.setStatusText (text);
+  }
+
+  // ---------------------------------------------------------------------------------//
+  @Override
+  public int getFieldCount ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return fieldManager.size ();
+  }
+
+  // ---------------------------------------------------------------------------------//
+  @Override
+  public java.util.Optional<Field> getFieldAt (int position)
+  // ---------------------------------------------------------------------------------//
+  {
+    return fieldManager.getFieldAt (position);
+  }
+
+  // ---------------------------------------------------------------------------------//
+  @Override
+  public AIDCommand processPluginAuto ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return pluginsStage.processPluginAuto ();
   }
 
   // ---------------------------------------------------------------------------------//

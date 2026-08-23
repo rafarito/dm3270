@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bytezone.dm3270.commands.ReadStructuredFieldCommand;
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 import com.bytezone.dm3270.filetransfer.Transfer.TransferType;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
@@ -70,7 +70,7 @@ public class FileTransferOutboundSF extends FileTransferSF
   }
 
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   {
     process (screen.getTransferManager ());
   }

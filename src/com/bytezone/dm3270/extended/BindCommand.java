@@ -1,6 +1,6 @@
 package com.bytezone.dm3270.extended;
 
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 import org.slf4j.Logger;
@@ -149,7 +149,7 @@ public class BindCommand extends AbstractExtendedCommand
   }
 
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   {
     //    System.out.println (this);
   }

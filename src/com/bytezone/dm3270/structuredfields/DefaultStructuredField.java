@@ -1,6 +1,6 @@
 package com.bytezone.dm3270.structuredfields;
 
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.display.ScreenTarget;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,7 @@ public class DefaultStructuredField extends StructuredField
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public void process (Screen screen)
+  public void process (ScreenTarget screen)
   // ---------------------------------------------------------------------------------//
   {
     logger.debug ("Processing a DefaultStructuredField: {}", String.format ("%02X", type));
