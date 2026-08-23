@@ -74,15 +74,22 @@ e o que diz se os testes escritos valem alguma coisa.
 
 | | `dm3270` | `dm3270-plugins` |
 |---|---:|---:|
-| Testes | 1.158 | 164 |
-| Cobertura de instrucoes (projeto todo) | 40,0% | — |
-| Mutantes gerados | 3.234 | 577 |
-| Mutation coverage | 60% | 54% |
+| Testes | 1.246 | 164 |
+| Cobertura de instrucoes (projeto todo) | 42,3% | — |
+| Mutantes gerados | 3.389 | 577 |
+| Mutation coverage | 62% | 54% |
 | **Test strength** | **84%** | **80%** |
 
-Os 40% do projeto todo refletem a camada JavaFX inteira sem teste, nao a qualidade da
-suite: `display`, `application`, `assistant`, `console` e `reporter.application` somam
-23 mil instrucoes e quase nenhum teste. Nos pacotes de protocolo a cobertura passa de 80%.
+Os 42,3% do projeto todo refletem a camada JavaFX sem teste, nao a qualidade da suite:
+`application`, `assistant`, `console` e `reporter.application` somam mais de 20 mil
+instrucoes e quase nenhum teste. Nos pacotes de protocolo a cobertura passa de 80%.
+
+O modelo de tela saiu desse grupo na onda de desacoplamento: `ScreenPosition`,
+`ScreenContext`, `ContextManager`, `Pen`, `PenType1` e `FxPalette` deixaram de depender do
+JavaFX, ganharam teste e entraram no `targetClasses` do PIT. `Cursor` ficou de fora de
+proposito - e exercitado de passagem pelo `HeadlessProcessingTest`, mas nenhum teste
+verifica comportamento de cursor: eram 117 mutantes com zero mortos, o tipo de numero que
+afunda a metrica sem informar nada.
 
 ## Rede de seguranca da refatoracao estrutural
 
@@ -121,24 +128,24 @@ erro.
 | Pacote | Cobertura | Observacao |
 |---|---:|---|
 | `dm3270.replyfield` | 97% | |
-| `reporter.text` | 94% | |
+| `reporter.text` | 93% | |
 | `reporter.record` | 88% | |
 | `dm3270.database` | 87% | inclui integracao real com SQLite |
-| `dm3270.attributes` | 86% | |
-| `dm3270.telnet` | 85% | |
-| `dm3270.orders` | 85% | `process()` de cada order exige `Pen` |
-| `dm3270.extended` | 83% | |
+| `dm3270.attributes` | 91% | sem JavaFX desde a troca por `TerminalColor` |
+| `dm3270.telnet` | 87% | |
+| `dm3270.orders` | 90% | ja usava `DisplayScreen`; agora exercitado headless |
+| `dm3270.extended` | 85% | |
 | `dm3270.structuredfields` | 84% | |
-| `dm3270.buffers` | 78% | |
+| `dm3270.buffers` | 80% | |
 | `dm3270.filetransfer` | 62% | os quatro dialogos sao JavaFX |
-| `dm3270.streams` | 50% | `MainframeServer` e `TelnetListener` sao JavaFX |
-| `dm3270.commands` | 48% | `SystemMessage` e `Profile` sao JavaFX |
-| `reporter.file` | 41% | `ReportScore` instancia `TextArea` no construtor |
-| `dm3270.utilities` | 40% | so `Dm3270Utility` e `FileSaver` nao sao JavaFX |
+| `dm3270.streams` | 52% | `MainframeServer` e `TelnetListener` sao JavaFX |
+| `dm3270.commands` | 61% | subiu com o `HeadlessScreenTarget`; `Profile` ainda e JavaFX |
+| `reporter.file` | 42% | `ReportScore` instancia `TextArea` no construtor |
+| `dm3270.utilities` | 60% | subiu com o `SiteTest` |
 | `reporter.reports` | 30% | `createPages` e `getFormattedRecord` recebem `ReportScore` |
 | `dm3270.session` | 24% | `Session` e `SessionRecord` sao JavaFX |
 | `dm3270.plugins` | 21% | `PluginsStage` e JavaFX |
-| `dm3270.display` | 0,5% | ver "Por que a camada de display ficou de fora" |
+| `dm3270.display` | 10% | o modelo tem teste; `Screen` (1.010 linhas) e as janelas ainda nao |
 | `dm3270.application`, `dm3270.assistant`, `dm3270.console`, `reporter.application` | 0% | UI |
 
 ### Cobertura por modulo — `dm3270-plugins`
@@ -226,24 +233,39 @@ Para transformar em trava depois que os numeros estabilizarem, use `jacoco:check
 
 ---
 
-## Por que a camada de display ficou de fora
+## A camada de display: o que ja saiu do JavaFX e o que falta
 
-`Screen` estende `javafx.scene.canvas.Canvas`, e `Field`, `FieldManager`, `Cursor` e
-`ScreenPacker` so existem a partir de uma instancia de `Screen`. Instanciar essas classes
-exige o toolkit do JavaFX inicializado, o que um teste unitario comum nao faz.
+Este documento dizia que o modelo de tela era intestavel porque tudo nascia de uma
+instancia de `Screen`, que estende `javafx.scene.canvas.Canvas`. Dizia tambem que extrair
+o modelo da view era "o refactor de maior retorno do projeto". Foi o que a onda de
+desacoplamento fez, em quatro cortes:
 
-Para cobrir esse modulo ha dois caminhos, em ordem de preferencia:
+| Amarra | Como foi cortada |
+|---|---|
+| A paleta de cores era `javafx.scene.paint.Color` | `TerminalColor`, um record neutro. A conversao acontece em `FxPalette`, na hora de desenhar |
+| `ScreenPosition` desenhava no `GraphicsContext` | `ScreenCanvas`, com as cinco operacoes que o desenho usa. `FxScreenCanvas` adapta |
+| `ScreenContext` media a fonte por um no `Text` | `FontMetrics` guarda o resultado da medicao, nao o medidor |
+| `Buffer.process` recebia a classe `Screen` | `ScreenTarget`, que estende a `DisplayScreen` que ja existia. `CursorHost` faz o mesmo pelo `Cursor` |
 
-1. **Extrair o modelo da view.** `FieldManager`, `Cursor` e `ScreenPacker` operam sobre
-   `ScreenPosition`, nao sobre pixels. Se dependessem de uma interface
-   (`DisplayScreen` ja existe e quase serve) em vez da classe `Screen`, ficariam
-   testaveis sem JavaFX. Esse e o refactor de maior retorno do projeto.
-2. **TestFX + Monocle**, que sobem um toolkit headless. Resolve sem mexer no codigo,
-   mas os testes ficam mais lentos e mais fragis.
+O resultado pratico e o `HeadlessScreenTarget`, em `test/`: uma tela com `Pen` e
+`ScreenPosition` **reais** ligados a um canvas que descarta o desenho. Com ele da para
+executar comandos 3270 num teste comum e verificar o texto que sobra na tela — ver
+`HeadlessProcessingTest`. Antes isso era impossivel.
 
-O mesmo vale para `Pen`: e uma interface de metodos puros, mas o `getInstance` estatico
-recebe um `GraphicsContext`. Um fake de `Pen` em teste destravaria o `process()` de todas
-as orders, hoje o principal buraco do pacote `dm3270.orders`.
+O que ainda falta, e por que:
+
+- **`Screen`** continua com 1.010 linhas e oito responsabilidades. E o que mantem
+  `dm3270.display` em 10%: o modelo tem teste, a classe que o hospeda nao.
+- **`FieldManager`** ainda exige a `Screen` concreta no construtor, onde sobe uma thread
+  SQLite. Por isso o `HeadlessScreenTarget` devolve zero campos, e os ramos de
+  `WriteCommand.process` que dependem de haver campos nao sao percorridos. Esta escrito no
+  topo da classe, nao escondido.
+- **`Cursor`** ja fala com uma porta (`CursorHost`) e portanto e instanciavel headless, mas
+  nenhum teste verifica comportamento de cursor — 117 mutantes, zero mortos. Por isso ficou
+  fora do `targetClasses` do PIT.
+
+Nao foi preciso TestFX nem Monocle para nada disso. O `JavaFxToolkit` existe apenas para as
+classes que sao genuinamente visuais, como `Site`, cujos campos sao widgets.
 
 ---
 

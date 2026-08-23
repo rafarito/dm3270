@@ -197,7 +197,29 @@
             <param>com.bytezone.dm3270.plugins.PluginData</param>
             <param>com.bytezone.dm3270.plugins.PluginField</param>
             <param>com.bytezone.dm3270.plugins.ScreenLocation</param>
+            <!--
+              O modelo de tela. Estas classes deixaram de depender do JavaFX na onda de
+              desacoplamento e passaram a ter teste: ScreenPositionDrawingTest,
+              ScreenContextPoolingTest, PaletteFidelityTest e HeadlessProcessingTest.
+
+              Listadas uma a uma, e nao como display.*, de proposito: Screen,
+              HistoryScreen, FontManager e ScreenSelection continuam sem teste e
+              produziriam milhares de mutantes sobreviventes, afogando o sinal util.
+              Conforme a onda 3 decompor Screen, as partes entram aqui.
+
+              Cursor ficou de fora por outro motivo: o HeadlessProcessingTest o constroi
+              e o exercita de passagem, mas nao verifica comportamento de cursor nenhum -
+              117 mutantes, zero mortos. Entra quando tiver teste proprio.
+            -->
             <param>com.bytezone.dm3270.display.ScreenDimensions</param>
+            <param>com.bytezone.dm3270.display.ScreenPosition</param>
+            <param>com.bytezone.dm3270.display.ScreenContext</param>
+            <param>com.bytezone.dm3270.display.ContextManager</param>
+            <param>com.bytezone.dm3270.display.Pen</param>
+            <param>com.bytezone.dm3270.display.PenType1</param>
+            <param>com.bytezone.dm3270.display.FontMetrics</param>
+            <param>com.bytezone.dm3270.display.FxPalette</param>
+            <param>com.bytezone.dm3270.display.ScreenOption</param>
             <param>com.bytezone.reporter.record.*</param>
             <param>com.bytezone.reporter.text.*</param>
             <param>com.bytezone.reporter.reports.*</param>
