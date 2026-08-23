@@ -330,6 +330,7 @@ public class ConsolePane extends BorderPane
     terminalServer =
         new TerminalServer (server.getURL (), server.getPort (), telnetListener,
                             server.getSsl (), server.getTrustAll ());
+    terminalServer.setConnectionListener (this::reportConnectionFailure);
     telnetState.setTerminalServer (terminalServer);
 
     terminalServerThread = new Thread (terminalServer);
@@ -337,6 +338,28 @@ public class ConsolePane extends BorderPane
 
     if (server.getSsl () && server.getTrustAll ())
       setStatusText ("⚠ SSL sem validação de certificado (Trust All)");
+  }
+
+  /*
+   * A conexao acontece numa thread propria, e connect() retorna antes de saber se deu certo.
+   * Quando nao da, este e o unico caminho pelo qual o usuario descobre: antes a falha
+   * ficava so no log e a janela do terminal abria em branco.
+   *
+   * Chamado da thread do TerminalServer, por isso tudo vai para a thread do JavaFX.
+   */
+  // ---------------------------------------------------------------------------------//
+  private void reportConnectionFailure (String host, int port, String reason)
+  // ---------------------------------------------------------------------------------//
+  {
+    String target = String.format ("%s:%d", host, port);
+    String message = String.format ("Nao foi possivel conectar a %s%n%n%s", target, reason);
+
+    Platform.runLater ( () ->
+    {
+      setStatusText (String.format ("⚠ sem conexao com %s", target));
+      screen.displayText (message);
+      Dm3270Utility.showAlert (message);
+    });
   }
 
   public void disconnect ()

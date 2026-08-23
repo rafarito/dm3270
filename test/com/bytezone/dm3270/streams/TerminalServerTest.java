@@ -280,6 +280,107 @@ class TerminalServerTest
     }
   }
 
+  /*
+   * A falha de conexao acontece na thread do TerminalServer, e connect() retorna antes de
+   * saber o resultado. Sem estes avisos a falha ficava so no log: a janela do terminal abria
+   * em branco e o usuario nao tinha como saber o que aconteceu, nem para onde o programa
+   * tentou conectar.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("aviso de falha de conexao")
+  class FailureReporting
+  // ---------------------------------------------------------------------------------//
+  {
+    @Test
+    @DisplayName ("uma porta fechada avisa o destino e o motivo")
+    @Timeout (20)
+    void reportsRefusedConnection () throws Exception
+    {
+      int closedPort = port ();
+      serverSocket.close ();              // ninguem mais escuta nessa porta
+
+      RecordingConnectionListener failures = new RecordingConnectionListener ();
+      TerminalServer server =
+          new TerminalServer (host (), closedPort, listener, false, false);
+      server.setConnectionListener (failures);
+
+      server.run ();
+
+      assertEquals (1, failures.count, "a falha deveria ter sido avisada uma vez");
+      assertEquals (host (), failures.host);
+      assertEquals (closedPort, failures.port);
+      assertTrue (failures.reason.contains ("recusada"),
+                  "o motivo deveria explicar a recusa, veio: " + failures.reason);
+    }
+
+    @Test
+    @DisplayName ("um nome que nao resolve avisa o destino e o motivo")
+    @Timeout (20)
+    void reportsUnknownHost ()
+    {
+      // .invalid nunca resolve, por definicao da RFC 2606
+      RecordingConnectionListener failures = new RecordingConnectionListener ();
+      TerminalServer server =
+          new TerminalServer ("mainframe.invalid", 992, listener, false, false);
+      server.setConnectionListener (failures);
+
+      server.run ();
+
+      assertEquals (1, failures.count);
+      assertEquals ("mainframe.invalid", failures.host);
+      assertEquals (992, failures.port);
+      assertTrue (failures.reason.contains ("nao encontrado"),
+                  "o motivo deveria falar de resolucao de nome, veio: " + failures.reason);
+    }
+
+    @Test
+    @DisplayName ("sem listener registrado a falha nao estoura")
+    @Timeout (20)
+    void survivesWithoutListener () throws Exception
+    {
+      int closedPort = port ();
+      serverSocket.close ();
+
+      TerminalServer server =
+          new TerminalServer (host (), closedPort, listener, false, false);
+
+      server.run ();                      // nenhum ConnectionListener registrado
+
+      assertEquals (1, listener.closes, "o listener de buffer ainda deveria ser fechado");
+    }
+
+    @Test
+    @DisplayName ("uma conexao bem sucedida nao avisa falha nenhuma")
+    @Timeout (20)
+    void silentOnSuccess () throws Exception
+    {
+      RecordingConnectionListener failures = new RecordingConnectionListener ();
+      TerminalServer server = new TerminalServer (host (), port (), listener, false, false);
+      server.setConnectionListener (failures);
+
+      Thread thread = new Thread (server);
+      thread.start ();
+
+      try (Socket accepted = serverSocket.accept ())
+      {
+        accepted.getOutputStream ().write (new byte[] { 0x01 });
+        accepted.getOutputStream ().flush ();
+
+        assertTrue (listener.received.await (5, TimeUnit.SECONDS),
+                    "o listener deveria receber os bytes enviados");
+      }
+      finally
+      {
+        server.close ();
+        thread.interrupt ();
+        thread.join (5000);
+      }
+
+      assertEquals (0, failures.count, "conexao que subiu nao pode avisar falha");
+    }
+  }
+
   // ---------------------------------------------------------------------------------//
   //  Auxiliares
   // ---------------------------------------------------------------------------------//
@@ -308,6 +409,25 @@ class TerminalServerTest
     public void close ()
     {
       closes++;
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private static class RecordingConnectionListener implements ConnectionListener
+  // ---------------------------------------------------------------------------------//
+  {
+    private volatile String host;
+    private volatile int port;
+    private volatile String reason;
+    private volatile int count;
+
+    @Override
+    public void connectionFailed (String host, int port, String reason)
+    {
+      this.host = host;
+      this.port = port;
+      this.reason = reason;
+      count++;
     }
   }
 }

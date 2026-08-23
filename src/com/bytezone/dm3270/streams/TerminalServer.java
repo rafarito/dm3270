@@ -21,6 +21,14 @@ public class TerminalServer implements Runnable
 {
   private static final Logger logger = LoggerFactory.getLogger (TerminalServer.class);
 
+  /*
+   * Sem timeout explicito o connect usa o do sistema operacional - no Windows sao cerca de
+   * 21 segundos parado, sem retorno nenhum na interface. Dez segundos e folgado para um
+   * servidor 3270 em rede local ou VPN e falha rapido o bastante para o usuario entender
+   * que algo esta errado.
+   */
+  private static final int CONNECT_TIMEOUT_MILLIS = 10_000;
+
   private final int serverPort;
   private final String serverURL;
   private final boolean useTls;
@@ -35,6 +43,7 @@ public class TerminalServer implements Runnable
   private volatile boolean connected;
 
   private final BufferListener telnetListener;
+  private ConnectionListener connectionListener;
   private final boolean debug = false;
 
   // ---------------------------------------------------------------------------------//
@@ -47,6 +56,13 @@ public class TerminalServer implements Runnable
     this.telnetListener = listener;
     this.useTls = useTls;
     this.trustAll = trustAll;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public void setConnectionListener (ConnectionListener connectionListener)
+  // ---------------------------------------------------------------------------------//
+  {
+    this.connectionListener = connectionListener;
   }
 
   // ---------------------------------------------------------------------------------//
@@ -100,8 +116,15 @@ public class TerminalServer implements Runnable
       // desligamento e nao interessa a ninguem.
       if (!connected)
       {
-        logger.error ("TerminalServer nao conectou: {}", e.getMessage (), e);
+        logger.error ("TerminalServer nao conectou a {}:{} - {}", serverURL, serverPort,
+                      e.getMessage (), e);
         close ();
+
+        // depois do close(), para que a mensagem de erro seja a ultima coisa desenhada:
+        // o close() manda o listener escrever o resumo do telnet na tela, que numa
+        // conexao que nunca subiu e um inutil "Nothing to report"
+        if (connectionListener != null)
+          connectionListener.connectionFailed (serverURL, serverPort, reasonFor (e));
       }
       else if (running)
       {
@@ -111,16 +134,22 @@ public class TerminalServer implements Runnable
     }
   }
 
+  /*
+   * O TCP e estabelecido primeiro, sempre com timeout, e so depois o TLS e montado por
+   * cima. Antes o caminho TLS usava factory.createSocket (host, port), que conecta e faz o
+   * handshake numa unica chamada dentro do try - qualquer falha, inclusive nao alcancar o
+   * host, era relatada como "falha no handshake TLS". Agora um destino inacessivel e
+   * relatado como o que e.
+   */
   // ---------------------------------------------------------------------------------//
   private Socket createSocket () throws IOException
   // ---------------------------------------------------------------------------------//
   {
+    Socket socket = new Socket ();
+    socket.connect (new InetSocketAddress (serverURL, serverPort), CONNECT_TIMEOUT_MILLIS);
+
     if (!useTls)
-    {
-      Socket s = new Socket ();
-      s.connect (new InetSocketAddress (serverURL, serverPort));
-      return s;
-    }
+      return socket;
 
     try
     {
@@ -128,16 +157,71 @@ public class TerminalServer implements Runnable
           ? (SSLSocketFactory) SslContextFactory.createTrustAll ().getSocketFactory ()
           : (SSLSocketFactory) SslContextFactory.createDefault ().getSocketFactory ();
 
-      SSLSocket sslSocket = (SSLSocket) factory.createSocket (serverURL, serverPort);
+      SSLSocket sslSocket =
+          (SSLSocket) factory.createSocket (socket, serverURL, serverPort, true);
       sslSocket.setEnabledProtocols (new String[] { "TLSv1.2", "TLSv1.3" });
       sslSocket.startHandshake ();
       return sslSocket;
     }
     catch (Exception e)
     {
+      // o TCP ja subiu: se o TLS falha, o socket precisa ser fechado aqui, senao vaza
+      closeQuietly (socket);
+
       throw new IOException ("Falha no handshake TLS com " + serverURL
           + ":" + serverPort + " — " + e.getMessage (), e);
     }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private static void closeQuietly (Socket socket)
+  // ---------------------------------------------------------------------------------//
+  {
+    try
+    {
+      socket.close ();
+    }
+    catch (IOException suppressed)
+    {
+      logger.debug ("Falha ao fechar o socket apos erro de TLS", suppressed);
+    }
+  }
+
+  /*
+   * Traduz a excecao para algo que sirva ao usuario.
+   *
+   * As mensagens do JDK sao curtas e tecnicas - "Connection timed out: connect" nao diz a
+   * ninguem que o host provavelmente esta desligado ou fora de alcance. O texto original
+   * continua no log, com a pilha completa.
+   */
+  // ---------------------------------------------------------------------------------//
+  private static String reasonFor (IOException e)
+  // ---------------------------------------------------------------------------------//
+  {
+    if (e instanceof java.net.UnknownHostException)
+      return "nome do servidor nao encontrado";
+
+    if (e instanceof java.net.SocketTimeoutException)
+      return "o servidor nao respondeu no tempo limite - verifique se esta ligado e "
+          + "alcancavel pela rede";
+
+    if (e instanceof java.net.ConnectException)
+    {
+      String message = e.getMessage () == null ? "" : e.getMessage ().toLowerCase ();
+
+      if (message.contains ("refused"))
+        return "conexao recusada - o servidor esta alcancavel, mas nada escuta nessa porta";
+
+      if (message.contains ("timed out"))
+        return "o servidor nao respondeu - verifique se esta ligado e alcancavel pela rede";
+
+      return "nao foi possivel abrir a conexao";
+    }
+
+    if (e instanceof java.net.NoRouteToHostException)
+      return "sem rota para o servidor";
+
+    return e.getMessage () == null ? e.getClass ().getSimpleName () : e.getMessage ();
   }
 
   // ---------------------------------------------------------------------------------//
