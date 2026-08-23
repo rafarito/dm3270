@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+      # a refatoracao estrutural avanca em commits pequenos e frequentes; sem isto
+      # o retorno so viria na abertura do PR de cada onda
+      - 'refactor/**'
   pull_request:
   workflow_dispatch:
 
@@ -22,8 +25,14 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      # Parte da suite instancia nos JavaFX (Site, e adiante Screen e
+      # ScreenPosition). Platform.startup exige um display, que o runner nao tem,
+      # entao os testes rodam sob um X virtual.
+      - name: Instalar o xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
       - name: Rodar os testes
-        run: mvn --batch-mode test
+        run: xvfb-run --auto-servernum mvn --batch-mode test
 
       - name: Publicar os relatorios de teste e cobertura
         if: always()
@@ -52,8 +61,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Instalar o xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
       - name: Rodar o mutation testing
-        run: mvn --batch-mode test-compile pitest:mutationCoverage
+        run: xvfb-run --auto-servernum mvn --batch-mode test-compile pitest:mutationCoverage
 
       - name: Publicar o relatorio de mutacao
         if: always()
