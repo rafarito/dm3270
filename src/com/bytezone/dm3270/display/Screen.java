@@ -13,8 +13,8 @@ import java.util.prefs.Preferences;
 
 import com.bytezone.dm3270.application.Console.Function;
 import com.bytezone.dm3270.application.ConsolePane;
-import com.bytezone.dm3270.application.KeyboardStatusChangedEvent;
-import com.bytezone.dm3270.application.KeyboardStatusListener;
+import com.bytezone.dm3270.screen.KeyboardStatusChangedEvent;
+import com.bytezone.dm3270.screen.KeyboardStatusListener;
 import com.bytezone.dm3270.assistant.TransfersStage;
 import com.bytezone.dm3270.attributes.Attribute;
 import com.bytezone.dm3270.attributes.ColorAttribute;

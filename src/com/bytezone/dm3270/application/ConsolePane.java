@@ -17,6 +17,8 @@ import com.bytezone.dm3270.plugins.PluginsStage;
 import com.bytezone.dm3270.screen.CursorMoveListener;
 import com.bytezone.dm3270.screen.Field;
 import com.bytezone.dm3270.screen.FieldChangeListener;
+import com.bytezone.dm3270.screen.KeyboardStatusChangedEvent;
+import com.bytezone.dm3270.screen.KeyboardStatusListener;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.streams.TelnetListener;
 import com.bytezone.dm3270.streams.TelnetState;

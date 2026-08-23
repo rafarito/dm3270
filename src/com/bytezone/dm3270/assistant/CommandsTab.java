@@ -1,6 +1,6 @@
 package com.bytezone.dm3270.assistant;
 
-import com.bytezone.dm3270.application.KeyboardStatusListener;
+import com.bytezone.dm3270.screen.KeyboardStatusListener;
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.display.ScreenChangeListener;
 import com.bytezone.dm3270.display.TSOCommandListener;

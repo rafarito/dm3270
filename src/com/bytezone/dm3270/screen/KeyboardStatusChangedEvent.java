@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.application;
+package com.bytezone.dm3270.screen;
 
 public final class KeyboardStatusChangedEvent
 {
