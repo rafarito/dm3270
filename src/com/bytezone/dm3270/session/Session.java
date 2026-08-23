@@ -13,7 +13,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bytezone.dm3270.application.Console.Function;
+import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.buffers.ReplyBuffer;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.commands.Command;
@@ -42,7 +42,7 @@ public class Session implements Iterable<SessionRecord>
 
   private final ObservableList<SessionRecord> sessionRecords =
       FXCollections.observableArrayList ();
-  private final Function function;
+  private final TerminalFunction function;
   private final TelnetState telnetState;
 
   private String clientName = null;
@@ -57,7 +57,7 @@ public class Session implements Iterable<SessionRecord>
   public Session (TelnetState telnetState)
   // ---------------------------------------------------------------------------------//
   {
-    this.function = Function.SPY;
+    this.function = TerminalFunction.SPY;
     this.telnetState = telnetState;
   }
 
@@ -66,7 +66,7 @@ public class Session implements Iterable<SessionRecord>
   public Session (TelnetState telnetState, List<String> lines) throws Exception
   // ---------------------------------------------------------------------------------//
   {
-    function = Function.TEST;
+    function = TerminalFunction.TEST;
     this.telnetState = telnetState;
 
     SessionReader server = new SessionReader (Source.SERVER, lines);
@@ -80,7 +80,7 @@ public class Session implements Iterable<SessionRecord>
   public Session (TelnetState telnetState, Path path) throws Exception
   // ---------------------------------------------------------------------------------//
   {
-    function = Function.REPLAY;
+    function = TerminalFunction.REPLAY;
     this.telnetState = telnetState;
 
     SessionReader server = new SessionReader (Source.SERVER, path);
@@ -169,7 +169,7 @@ public class Session implements Iterable<SessionRecord>
     sessionRecords.add (sessionRecord);       // should this be concurrent?
 
     // this code checks to see whether it can identify the client and/or server
-    if (function != Function.TERMINAL && sessionRecord.isCommand ())
+    if (function != TerminalFunction.TERMINAL && sessionRecord.isCommand ())
     {
       switch (sessionRecord.getSource ())
       {

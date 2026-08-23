@@ -195,8 +195,12 @@ class LayeringTest
    *
    * O acoplamento nao cresceu: o conjunto de dependencias entre tipos e o mesmo de antes do
    * split. Cresceu a contagem, porque ha um pacote a mais para conta-la.
+   *
+   * E ja voltou a 23: tirar Console.Function de dentro do pacote application desfez o ciclo
+   * application <-> session por inteiro, porque o enum era a unica coisa que session
+   * importava de la.
    */
-  private static final int MAX_MUTUAL_CYCLES = 24;
+  private static final int MAX_MUTUAL_CYCLES = 23;
 
   // ---------------------------------------------------------------------------------//
   @ArchTest

@@ -3,7 +3,7 @@ package com.bytezone.dm3270.streams;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import com.bytezone.dm3270.application.Console.Function;
+import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.buffers.Buffer;
 import com.bytezone.dm3270.buffers.ReplyBuffer;
 import com.bytezone.dm3270.commands.Command;
@@ -41,7 +41,7 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
   private final Source source;
 
   private final TelnetState telnetState;
-  private final Function function;
+  private final TerminalFunction function;
   private final Screen screen;
 
   private CommandHeader currentCommandHeader;
@@ -54,7 +54,7 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
   // Use this when recording the session in SPY mode, or replaying the session
   // in REPLAY mode.
   // ---------------------------------------------------------------------------------//
-  public TelnetListener (Source source, Session session, Function function, Screen screen,
+  public TelnetListener (Source source, Session session, TerminalFunction function, Screen screen,
       TelnetState telnetState)
   // ---------------------------------------------------------------------------------//
   {
@@ -78,7 +78,7 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
     this.source = Source.SERVER;                  // listening to a server
     this.session = null;
 
-    assert function == Function.TERMINAL;
+    assert function == TerminalFunction.TERMINAL;
   }
 
   // This method is always called with a copy of the original buffer. It can be
@@ -103,7 +103,7 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
 
     telnetProcessor.listen (buffer);     // will call one of the processXXX routines
 
-    if (function == Function.TERMINAL)
+    if (function == TerminalFunction.TERMINAL)
       telnetState.setLastAccess (dateTime, buffer.length);
   }
 
@@ -231,7 +231,7 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
       session.add (sessionRecord);
     }
 
-    if (function == Function.TERMINAL)
+    if (function == TerminalFunction.TERMINAL)
     {
       if (sessionRecordType == SessionRecordType.TELNET)      // no gui involved
         processMessage (message);

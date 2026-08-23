@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
+import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.application.Console;
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.session.Session;
@@ -87,10 +88,10 @@ public class SpyServer implements Runnable
       // create two SocketListeners and link them to each other
       clientTelnetSocket =
           new TelnetSocket (Source.CLIENT, clientSocket, new TelnetListener (
-              Source.CLIENT, session, Console.Function.SPY, screen, telnetState));
+              Source.CLIENT, session, TerminalFunction.SPY, screen, telnetState));
       serverTelnetSocket =
           new TelnetSocket (Source.SERVER, serverSocket, new TelnetListener (
-              Source.SERVER, session, Console.Function.SPY, screen, telnetState));
+              Source.SERVER, session, TerminalFunction.SPY, screen, telnetState));
 
       // TelnetSocket.link() will connect both sockets to each other (bidirectional)
       serverTelnetSocket.link (clientTelnetSocket);

@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.prefs.Preferences;
 
+import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.plugins.PluginsStage;
@@ -49,11 +50,6 @@ public class Console extends Application
   private ReplayStage replayStage;
   private MainframeStage mainframeStage;
   private PluginsStage pluginsStage;
-
-  public enum Function
-  {
-    SPY, REPLAY, TERMINAL, TEST
-  }
 
   @Override
   public void init () throws Exception
@@ -123,13 +119,13 @@ public class Console extends Application
             if (serverSite.isPresent ())
             {
               Site site = serverSite.get ();
-              setConsolePane (createScreen (Function.REPLAY, site), site);
+              setConsolePane (createScreen (TerminalFunction.REPLAY, site), site);
             }
             else
             {
               logger.warn ("Couldn't find the server site for {}",
                   session.getServerName ());
-              setConsolePane (createScreen (Function.REPLAY, null), null);
+              setConsolePane (createScreen (TerminalFunction.REPLAY, null), null);
             }
 
             replayStage = new ReplayStage (session, path, prefs, screen);
@@ -148,7 +144,7 @@ public class Console extends Application
         {
           Site serverSite = optionalServerSite.get ();
           setModel (serverSite);
-          setConsolePane (createScreen (Function.TERMINAL, serverSite), serverSite);
+          setConsolePane (createScreen (TerminalFunction.TERMINAL, serverSite), serverSite);
           consolePane.connect ();
         }
         else
@@ -165,7 +161,7 @@ public class Console extends Application
         {
           Site serverSite = optionalServerSite.get ();
           Site clientSite = optionalClientSite.get ();
-          setSpyPane (createScreen (Function.SPY, null), serverSite, clientSite);
+          setSpyPane (createScreen (TerminalFunction.SPY, null), serverSite, clientSite);
         }
 
         break;
@@ -176,7 +172,7 @@ public class Console extends Application
         else
         {
           Site clientSite = optionalClientSite.get ();
-          setSpyPane (createScreen (Function.TEST, null), DEFAULT_MAINFRAME, clientSite);
+          setSpyPane (createScreen (TerminalFunction.TEST, null), DEFAULT_MAINFRAME, clientSite);
           mainframeStage = new MainframeStage (telnetState, MAINFRAME_EMULATOR_PORT);
           mainframeStage.show ();
           mainframeStage.startServer ();
@@ -230,7 +226,7 @@ public class Console extends Application
     primaryStage.setScene (scene);
     primaryStage.setTitle ("dm3270");
 
-    if (screen.getFunction () == Function.TERMINAL)
+    if (screen.getFunction () == TerminalFunction.TERMINAL)
     {
       consoleWindowSaver = new WindowSaver (prefs, primaryStage, "Terminal");
       if (!consoleWindowSaver.restoreWindow ())
@@ -337,7 +333,7 @@ public class Console extends Application
                optionStage.clientComboBox.getSelectionModel ().getSelectedItem ());
   }
 
-  private Screen createScreen (Function function, Site site)
+  private Screen createScreen (TerminalFunction function, Site site)
   {
     screen = new Screen (screenDimensions, alternateScreenDimensions, prefs, function,
         pluginsStage, site, telnetState);

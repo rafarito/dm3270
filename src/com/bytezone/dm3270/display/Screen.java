@@ -1,6 +1,6 @@
 package com.bytezone.dm3270.display;
 
-import static com.bytezone.dm3270.application.Console.Function.TERMINAL;
+import static com.bytezone.dm3270.runtime.TerminalFunction.TERMINAL;
 import static com.bytezone.dm3270.commands.AIDCommand.NO_AID_SPECIFIED;
 
 import java.awt.Toolkit;
@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.prefs.Preferences;
 
-import com.bytezone.dm3270.application.Console.Function;
+import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.application.ConsolePane;
 import com.bytezone.dm3270.screen.KeyboardStatusChangedEvent;
 import com.bytezone.dm3270.screen.KeyboardStatusListener;
@@ -79,7 +79,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
       { Attribute.XA_HIGHLIGHTING, Attribute.XA_FGCOLOR, Attribute.XA_CHARSET,
         Attribute.XA_BGCOLOR, Attribute.XA_TRANSPARENCY };
 
-  private final Function function;
+  private final TerminalFunction function;
 
   private final ScreenPosition[] screenPositions;
   private final FieldManager fieldManager;
@@ -123,7 +123,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
 
   // ---------------------------------------------------------------------------------//
   public Screen (ScreenDimensions defaultScreenDimensions,
-      ScreenDimensions alternateScreenDimensions, Preferences prefs, Function function,
+      ScreenDimensions alternateScreenDimensions, Preferences prefs, TerminalFunction function,
       PluginsStage pluginsStage, Site serverSite, TelnetState telnetState)
   // ---------------------------------------------------------------------------------//
   {
@@ -534,7 +534,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   }
 
   // ---------------------------------------------------------------------------------//
-  public Function getFunction ()
+  public TerminalFunction getFunction ()
   // ---------------------------------------------------------------------------------//
   {
     return function;
