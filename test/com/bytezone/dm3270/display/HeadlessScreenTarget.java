@@ -22,6 +22,7 @@ import com.bytezone.dm3270.screen.Pen;
 import com.bytezone.dm3270.screen.ScreenCanvas;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.screen.ScreenOption;
+import com.bytezone.dm3270.database.DatasetStore;
 import com.bytezone.dm3270.screen.ScreenPosition;
 import com.bytezone.dm3270.screen.ScreenTarget;
 import com.bytezone.dm3270.streams.TelnetState;
@@ -42,11 +43,16 @@ import com.bytezone.dm3270.streams.TelnetState;
  *
  * O QUE ESTE DUBLE AINDA NAO FAZ, e por que:
  *
- *   Campos. getFieldCount devolve 0 e getFieldAt devolve vazio, porque FieldManager ainda
- *   exige a Screen concreta no construtor - ele sobe uma thread SQLite ali dentro. Enquanto
- *   isso nao for resolvido (onda 3), os ramos de WriteCommand.process que dependem de haver
- *   campos nao sao percorridos: checkRecording e processPluginAuto ficam de fora. Isso esta
- *   registrado em calls, para que nenhum teste conclua por engano que passou por eles.
+ *   Campos: agora sao reais. O FieldManager parou de exigir a Screen concreta - recebe a
+ *   porta FieldHost - e parou de subir uma thread SQLite no construtor - recebe um
+ *   DatasetStore, e aqui entra o DatasetStore.NONE, que nao grava nada. Entao este dublê
+ *   monta os campos de verdade a partir do buffer, e os ramos de WriteCommand.process que
+ *   dependem de haver campos passaram a ser percorridos.
+ *
+ *   O que continua dublê e o que fica DEPOIS do campo: checkRecording e processPluginAuto
+ *   sao anotados em calls em vez de executados, porque o primeiro depende do HistoryManager
+ *   e o segundo do class loader de plugins - os dois ainda presos a Screen. A diferenca e
+ *   que agora eles sao ALCANCADOS, e o teste pode verificar que foram.
  *
  *   TransferManager. Devolve null, porque exige um Site. Um teste que precise dele falha
  *   com NullPointerException, que e melhor do que um dublê silencioso devolvendo respostas
@@ -79,6 +85,7 @@ public final class HeadlessScreenTarget implements ScreenTarget, CursorHost, Fie
   private final TelnetState telnetState = new TelnetState ();
 
   private final SystemMessage systemMessage;
+  private final FieldManager fieldManager;
 
   private boolean keyboardLocked;
   private boolean insertMode;
@@ -106,6 +113,10 @@ public final class HeadlessScreenTarget implements ScreenTarget, CursorHost, Fie
     useDimensions (defaultDimensions);
 
     cursor = new Cursor (this, defaultDimensions);
+
+    // Sem banco: DatasetStore.NONE e o que a aplicacao usa quando nao ha site.
+    fieldManager = new FieldManager (this, contextManager, defaultDimensions,
+        DatasetStore.NONE);
 
     systemMessage = new SystemMessage (this, new RecordingBatchJobListener (),
         defaultDimensions, new RecordingSystemMessageView ());
@@ -219,7 +230,8 @@ public final class HeadlessScreenTarget implements ScreenTarget, CursorHost, Fie
   @Override
   public Optional<Field> getHomeField ()
   {
-    return Optional.empty ();
+    List<Field> unprotected = fieldManager.getUnprotectedFields ();
+    return unprotected.isEmpty () ? Optional.empty () : Optional.of (unprotected.get (0));
   }
 
   // ---------------------------------------------------------------------------------//
@@ -261,19 +273,20 @@ public final class HeadlessScreenTarget implements ScreenTarget, CursorHost, Fie
   @Override
   public int getFieldCount ()
   {
-    return 0;
+    return fieldManager.size ();
   }
 
   @Override
   public Optional<Field> getFieldAt (int position)
   {
-    return Optional.empty ();
+    return fieldManager.getFieldAt (position);
   }
 
   @Override
   public void buildFields (WriteControlCharacter wcc)
   {
     calls.add ("buildFields");
+    fieldManager.buildFields (screenPositions);
   }
 
   @Override
