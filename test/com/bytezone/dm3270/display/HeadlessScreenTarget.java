@@ -221,6 +221,13 @@ public final class HeadlessScreenTarget implements ScreenTarget, CursorHost, Fie
     // nada a desenhar: o buffer e o que importa
   }
 
+  // So para teste: o ScreenWatcherTest precisa alcancar o observador que o FieldManager
+  // constroi, para conferir o que ele extraiu das telas do ISPF.
+  public ScreenWatcher getScreenWatcher ()
+  {
+    return fieldManager.getScreenWatcher ();
+  }
+
   // So para teste: a aplicacao liga o modo de insercao pela tecla Insert, que passa pela
   // Screen. Aqui o CursorTest precisa alcancar o ramo de insercao do typeChar.
   public void setInsertMode (boolean value)
