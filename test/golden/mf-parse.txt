@@ -1,0 +1,1688 @@
+================================================================
+SESSAO GRAVADA (mf.txt)
+================================================================
+
+--- buffer 01 (4 bytes) ---
+REC  F1C2FFEF
+     WriteCommand
+       Write
+       WCC : reset MDT=no , keyboard=yes, alarm=no , printer=no , partition=yes
+
+--- buffer 02 (1406 bytes) ---
+
+--- buffer 03 (218 bytes) ---
+REC  057A110000290242F6C0E0D4818995869981948540D697859981A389958740E2A8A2A38594404040404040404040404040404040404040404040404040404040404040A961D6E240E5F14BF6110050290242F3C0E04040404040404040C6C6C6C6C64040C1C1C14040D5404040D5404040404040C4C4C4C44040C5C5C5C5C5404040404040E9E9E9E9E940C8404040C84040C9C9C9404040404040404040404040404040404040404040404040C64040404040C1404040C140D5D54040D5404040404040C4404040C440C540404040404040404040404040E94040C8404040C8404040C940404040404040404040404040404040404040404040404040C6C6C6C64040C1C1C1C1C140D540D540D5404040404040C4404040C440C5C5C5C5404040404040404040E9404040C8C8C8C8C8404040C940404040404040404040404040404040404040404040404040C64040404040C1404040C140D54040D5D5404040404040C4404040C440C54040404040404040404040E940404040C8404040C8404040C940404040404040404040404040404040404040404040404040C64040404040C1404040C140D5404040D5404040404040C4C4C4C44040C5C5C5C5C5404040404040E9E9E9E9E940C8404040C84040C9C9C9404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040110230290242F2C0E04040404040404040404040404040404040404040404040E9E9E9E9E94040404040406140D6D6D6D6D64040E2E2E2E24040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040E9404040404040614040D6404040D640E24040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040E940404040404061404040D6404040D64040E2E2E240404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040E94040404040406140404040D6404040D64040404040E24040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040E9E9E9E9E94040614040404040D6D6D6D6D640E2E2E2E2404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040110410290242F4C0E04040404040404040404040404040404040E685938396948540A39640C6819540C485E9888940D4818995869981948540E2A8A2A385945A404040404040404040404040404040404040404040404040401104B0290242F5C0E0404040404040404040404040404040404040404040E2A497979699A37A4088A3A3977A6161A996A24B858687939682854B83969440404040404040404040404040404040404040404040404040404040110508290242F2C0E0E3E2D6110511290242F1C0E06040D39687969540A39640E3E2D661C9E2D7C611052C290242F2C0E0D5C5E3E5C9C5E6110535290242F1C0E06040D585A3A58985A640E2A8A2A38594110558290242F2C0E0C3C9C3E2110561290242F1C0E06040C3C9C3E240E2A8A2A3859411057C290242F2C0E0D5E5C1E2110585290242F1C0E06040D585A3A58985A640C1838385A2A21105A8290242F2C0E0C9D4E21105B1290242F1C0E06040C9D4E240E2A8A2A385941105CC290242F2C0E0C1D6C61105D5290242F1C0E06040D585A3A58985A640C1A4A3969481A3899695110640C595A3859940A896A499408388968983857E7E6E110654290242F2C0C81311068F290242F6C0E0C8895A40C595A385994096958540968640818296A5854083969494819584A2408995409985844B11072F290242F1C0E0E896A49940C9D74DF1F2F44BF1F7F14BF1F3F84BF1F0F57AF5F4F6F0F25D6B40E2D5C140D3E44D40404040404040405D40404040404040F1F161F0F461F1F440F2F37AF0F97AF3F7FFEF
+     WriteCommand
+       Erase Write
+       WCC : reset MDT=no , keyboard=yes, alarm=no , printer=yes, partition=yes
+       SBA : 0000 000/000 : 00 00              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F6 Yellow          Text: [Mainframe Operating System                              z/OS V1.6]
+       SBA : 0080 001/000 : 00 50              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F3 Pink            Text: [        FFFFF  AAA  N   N      DDDD  EEEEE      ZZZZZ H   H  III                        F     A   A NN  N      D   D E             Z  H   H   I                         FFFF  AAAAA N N N      D   D EEEE         Z   HHHHH   I                         F     A   A N  NN      D   D E           Z    H   H   I                         F     A   A N   N      DDDD  EEEEE      ZZZZZ H   H  III                                                                                                ]
+       SBA : 0560 007/000 : 02 30              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F2 Red             Text: [                       ZZZZZ      / OOOOO  SSSS                                                           Z      /  O   O S                                                              Z      /   O   O  SSS                                                          Z      /    O   O     S                                                        ZZZZZ  /     OOOOO SSSS                                                                                                                  ]
+       SBA : 1040 013/000 : 04 10              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F4 Green           Text: [                 Welcome to Fan DeZhi Mainframe System!                         ]
+       SBA : 1200 015/000 : 04 B0              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F5 Turquoise       Text: [                     Support: http://zos.efglobe.com                            ]
+       SBA : 1288 016/008 : 05 08              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F2 Red             Text: [TSO]
+       SBA : 1297 016/017 : 05 11              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F1 Blue            Text: [- Logon to TSO/ISPF]
+       SBA : 1324 016/044 : 05 2C              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F2 Red             Text: [NETVIEW]
+       SBA : 1333 016/053 : 05 35              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F1 Blue            Text: [- Netview System]
+       SBA : 1368 017/008 : 05 58              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F2 Red             Text: [CICS]
+       SBA : 1377 017/017 : 05 61              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F1 Blue            Text: [- CICS System]
+       SBA : 1404 017/044 : 05 7C              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F2 Red             Text: [NVAS]
+       SBA : 1413 017/053 : 05 85              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F1 Blue            Text: [- Netview Access]
+       SBA : 1448 018/008 : 05 A8              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F2 Red             Text: [IMS]
+       SBA : 1457 018/017 : 05 B1              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F1 Blue            Text: [- IMS System]
+       SBA : 1484 018/044 : 05 CC              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F2 Red             Text: [AOF]
+       SBA : 1493 018/053 : 05 D5              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F1 Blue            Text: [- Netview Automation]
+       SBA : 1600 020/000 : 06 40              Text: [Enter your choice==>]
+       SBA : 1620 020/020 : 06 54              
+       SFE : Attribute RE : C8 pAVIDm 
+             Foreground   : F2 Red             
+       IC                                      
+       SBA : 1679 020/079 : 06 8F              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F6 Yellow          Text: [Hi! Enter one of above commands in red.]
+       SBA : 1839 022/079 : 07 2F              
+       SFE : Attribute BL : E0 PAVidm 
+             Foreground   : F1 Blue            Text: [Your IP(124.171.138.105:54602), SNA LU(        )       11/04/14 23:09:37]
+
+--- buffer 04 (1106 bytes) ---
+REC  F5C31140403C4040401140401DE86060606060606060606060606060606060606060606060606060606060606040E3E2D661C540D3D6C7D6D54060606060606060606060606060606060606060606060606060606060606060606060606011C1501DE8404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404011C2601DE84040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040115B601DE8D7C6F161D7C6F1F3407E7E6E40C885939740404040D7C6F361D7C6F1F5407E7E6E40D3968796868640404040D7C1F1407E7E6E40C1A3A38595A389969540404040D7C1F2407E7E6E40D985A28896A6115CF01DE8E896A4409481A840998598A485A2A340A29785838986898340888593974089958696999481A38996954082A8408595A385998995874081407D6F7D408995408195A8408595A399A840868985938411C3F31DE8C595A3859940D3D6C7D6D540978199819485A38599A24082859396A67A11C4E31DE8D9C1C3C640D3D6C7D6D540978199819485A38599A27A11C6D21D6040E4A285998984404040407E7E7E6E11C6E21DE8C4D4D6D3D6D5E81DF011C8F21D6040D781A2A2A696998440407E7E7E6E11C9C21D4C00000000000000001DF0114DF21D6040C18383A340D5948299407E7E7E6E114EC21DC8F1F2F3F4F5F6F7F800000000000000000000000000000000000000000000000000000000000000001DF0114BD21D6040D79996838584A49985407E7E7E6E114BE21DC8E2E8E2E4E2C5D9401DF01150D21D6040E289A9854040404040407E7E7E6E1150E21DC8F2F4F0F0F000001DF011D2F21D6040D78599869699944040407E7E7E6E11D3C21DC80000001DF0114CC21D6040C79996A49740C9848595A340407E7E7E6E114CD51DC800000000000000001DF011C9E21D6040D585A640D781A2A2A6969984407E7E7E6E11C9F51D4C00000000000000001DF011D7F31DE8C595A38599408195407DE27D408285869699854085818388409697A3899695408485A2899985844082859396A67A1D6011D9C71DE80011D9C91DC8401DF060D596948189931D6011D9D71DE80011D9D91DC8401DF060D5969596A38983851D6011D9E81DE80011D96A1DC8001DF060D985839695958583A31D6011D97A1DE80011D97C1DC8401DF060D6C9C483819984401D6011D5D21D6040C39694948195844040407E7E7E6E11D5E21DC840404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040401DF011C7C21D7C40E28583938182859340404040407E7E7E6E11C7D51D7C40404040404040401DF011C9C313FFEF
+     WriteCommand
+       Erase Write
+       WCC : reset MDT=yes, keyboard=yes, alarm=no , printer=no , partition=yes
+       SBA : 0000 000/000 : 40 40              
+       RTA : 0000 000/000 : 40 40 : 40 [ ]     
+       SBA : 0000 000/000 : 40 40              
+       SF  : Attribute WH : E8 PAVIDm (-001)   Text: [------------------------------- TSO/E LOGON ------------------------------------]
+       SBA : 0080 001/000 : C1 50              
+       SF  : Attribute WH : E8 PAVIDm (-001)   Text: [                                                                                ]
+       SBA : 0160 002/000 : C2 60              
+       SF  : Attribute WH : E8 PAVIDm (-001)   Text: [                                                                                ]
+       SBA : 1760 022/000 : 5B 60              
+       SF  : Attribute WH : E8 PAVIDm (-001)   Text: [PF1/PF13 ==> Help    PF3/PF15 ==> Logoff    PA1 ==> Attention    PA2 ==> Reshow]
+       SBA : 1840 023/000 : 5C F0              
+       SF  : Attribute WH : E8 PAVIDm (-001)   Text: [You may request specific help information by entering a '?' in any entry field]
+       SBA : 0243 003/003 : C3 F3              
+       SF  : Attribute WH : E8 PAVIDm (-001)   Text: [Enter LOGON parameters below:]
+       SBA : 0291 003/051 : C4 E3              
+       SF  : Attribute WH : E8 PAVIDm (-001)   Text: [RACF LOGON parameters:]
+       SBA : 0402 005/002 : C6 D2              
+       SF  : Attribute BL : 60 PAVidm (-001)   Text: [ Userid    ===>]
+       SBA : 0418 005/018 : C6 E2              
+       SF  : Attribute WH : E8 PAVIDm (-001)   Text: [DMOLONY]
+       SF  : Attribute BL : F0 PaVidm (-001)   
+       SBA : 0562 007/002 : C8 F2              
+       SF  : Attribute BL : 60 PAVidm (-001)   Text: [ Password  ===>]
+       SBA : 0578 007/018 : C9 C2              
+       SF  : Attribute GR : 4C pAvidm (-001)   
+       FCO : Null         : 00 x 8             
+       SF  : Attribute BL : F0 PaVidm (-001)   
+       SBA : 0882 011/002 : 4D F2              
+       SF  : Attribute BL : 60 PAVidm (-001)   Text: [ Acct Nmbr ===>]
+       SBA : 0898 011/018 : 4E C2              
+       SF  : Attribute RE : C8 pAVIDm (-001)   Text: [12345678]
+       FCO : Null         : 00 x 32            
+       SF  : Attribute BL : F0 PaVidm (-001)   
+       SBA : 0722 009/002 : 4B D2              
+       SF  : Attribute BL : 60 PAVidm (-001)   Text: [ Procedure ===>]
+       SBA : 0738 009/018 : 4B E2              
+       SF  : Attribute RE : C8 pAVIDm (-001)   Text: [SYSUSER ]
+       SF  : Attribute BL : F0 PaVidm (-001)   
+       SBA : 1042 013/002 : 50 D2              
+       SF  : Attribute BL : 60 PAVidm (-001)   Text: [ Size      ===>]
+       SBA : 1058 013/018 : 50 E2              
+       SF  : Attribute RE : C8 pAVIDm (-001)   Text: [24000]
+       FCO : Null         : 00 x 2             
+       SF  : Attribute BL : F0 PaVidm (-001)   
+       SBA : 1202 015/002 : D2 F2              
+       SF  : Attribute BL : 60 PAVidm (-001)   Text: [ Perform   ===>]
+       SBA : 1218 015/018 : D3 C2              
+       SF  : Attribute RE : C8 pAVIDm (-001)   
+       FCO : Null         : 00 x 3             
+       SF  : Attribute BL : F0 PaVidm (-001)   
+       SBA : 0770 009/050 : 4C C2              
+       SF  : Attribute BL : 60 PAVidm (-001)   Text: [ Group Ident  ===>]
+       SBA : 0789 009/069 : 4C D5              
+       SF  : Attribute RE : C8 pAVIDm (-001)   
+       FCO : Null         : 00 x 8             
+       SF  : Attribute BL : F0 PaVidm (-001)   
+       SBA : 0610 007/050 : C9 E2              
+       SF  : Attribute BL : 60 PAVidm (-001)   Text: [ New Password ===>]
+       SBA : 0629 007/069 : C9 F5              
+       SF  : Attribute GR : 4C pAvidm (-001)   
+       FCO : Null         : 00 x 8             
+       SF  : Attribute BL : F0 PaVidm (-001)   
+       SBA : 1523 019/003 : D7 F3              
+       SF  : Attribute WH : E8 PAVIDm (-001)   Text: [Enter an 'S' before each option desired below:]
+       SF  : Attribute BL : 60 PAVidm (-001)   
+       SBA : 1607 020/007 : D9 C7              
+       SF  : Attribute WH : E8 PAVIDm (-001)   
+       FCO : Null         : 00                 
+       SBA : 1609 020/009 : D9 C9              
+       SF  : Attribute RE : C8 pAVIDm (-001)   Text: [ ]
+       SF  : Attribute BL : F0 PaVidm (-001)   Text: [-Nomail]
+       SF  : Attribute BL : 60 PAVidm (-001)   
+       SBA : 1623 020/023 : D9 D7              
+       SF  : Attribute WH : E8 PAVIDm (-001)   
+       FCO : Null         : 00                 
+       SBA : 1625 020/025 : D9 D9              
+       SF  : Attribute RE : C8 pAVIDm (-001)   Text: [ ]
+       SF  : Attribute BL : F0 PaVidm (-001)   Text: [-Nonotice]
+       SF  : Attribute BL : 60 PAVidm (-001)   
+       SBA : 1640 020/040 : D9 E8              
+       SF  : Attribute WH : E8 PAVIDm (-001)   
+       FCO : Null         : 00                 
+       SBA : 1642 020/042 : D9 6A              
+       SF  : Attribute RE : C8 pAVIDm (-001)   
+       FCO : Null         : 00                 
+       SF  : Attribute BL : F0 PaVidm (-001)   Text: [-Reconnect]
+       SF  : Attribute BL : 60 PAVidm (-001)   
+       SBA : 1658 020/058 : D9 7A              
+       SF  : Attribute WH : E8 PAVIDm (-001)   
+       FCO : Null         : 00                 
+       SBA : 1660 020/060 : D9 7C              
+       SF  : Attribute RE : C8 pAVIDm (-001)   Text: [ ]
+       SF  : Attribute BL : F0 PaVidm (-001)   Text: [-OIDcard ]
+       SF  : Attribute BL : 60 PAVidm (-001)   
+       SBA : 1362 017/002 : D5 D2              
+       SF  : Attribute BL : 60 PAVidm (-001)   Text: [ Command   ===>]
+       SBA : 1378 017/018 : D5 E2              
+       SF  : Attribute RE : C8 pAVIDm (-001)   Text: [                                                                                ]
+       SF  : Attribute BL : F0 PaVidm (-001)   
+       SBA : 0450 005/050 : C7 C2              
+       SF  : Attribute BL : 7C Pavidm (-001)   Text: [ Seclabel     ===>]
+       SBA : 0469 005/069 : C7 D5              
+       SF  : Attribute BL : 7C Pavidm (-001)   Text: [        ]
+       SF  : Attribute BL : F0 PaVidm (-001)   
+       SBA : 0579 007/019 : C9 C3              
+       IC                                      
+
+--- buffer 05 (2303 bytes) ---
+REC  05C31100002902C06042F42902C0E842F7402841F4D42800008595A42902C0E842F7402841F4E4280000A3899389A38985A22902C0E842F7402841F4C328000096949789938599A22902C0E842F7402841F4D628000097A3899695A22902C0E842F7402841F4E2280000A381A3A4A22902C0E842F7402841F4C82800008593972902C06042F43C0050402902C06042F108A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A2402902C06042F43C00BB402902C06042F1C9E2D7C640D79989948199A840D697A389969540D48595A42902C06042F43C00EF402902C06042F42902C06042F4D697A3899695407E7E7E6E2903C04041F442F53C013F402902C06042F43C016B402902C0E842F73C0177402902C06042F42902C0E842F13C0190402902C06042F7F0402902C0E842F5E285A3A3899587A23C01A1002902C06042F4E3859994899581934081958440A4A2859940978199819485A38599A23C01C7402902C06042F42902C06042F42842F440E4A2859940C9C4404B407A2800002902C06042F5C4D4D6D3D6D5E8402902C06042F4402902C06042F7F1402902C0E842F5E58985A63C01F1002902C06042F4C489A2979381A840A296A4998385408481A381409699409389A2A3899587A23C0217402902C06042F42902C06042F42842F440E38994854B404B404B407A2800002902C06042F5F2F17AF0F54040402902C06042F4402902C06042F7F2402902C0E842F5C58489A33C0241002902C06042F4C3998581A3854096994083888195878540A296A4998385408481A3813C0267402902C06042F42902C06042F42842F440E3859994899581934B407A2800002902C06042F5F3F2F7F8404040402902C06042F4402902C06042F7F3402902C0E842F5E4A3899389A38985A2000000002902C06042F4D785998696999440A4A3899389A3A84086A49583A3899695A23C02B7402902C06042F42902C06042F42842F440E283998585954B404B407A2800002902C06042F5F13C02CE402902C06042F4402902C06042F7F4402902C0E842F5C6969985879996A495840000002902C06042F4C995A385998183A389A5854093819587A4818785409799968385A2A28995873C0307402902C06042F42902C06042F42842F440D3819587A48187854B407A2800002902C06042F5C5D5C7D3C9E2C8402902C06042F4402902C06042F7F5402902C0E842F5C281A383883C0331002902C06042F4E2A4829489A340919682408696994093819587A4818785409799968385A2A28995874040402902C06042F42902C06042F42842F440C197979340C9C4404B407A2800002902C06042F5C9E2D93C036E402902C06042F4402902C06042F7F6402902C0E842F5C39694948195843C0381002902C06042F4C595A3859940E3E2D640969940E6969992A2A381A38996954083969494819584A2404040402902C06042F42902C06042F42842F440E3E2D6409396879695407A2800002902C06042F5E2E8E2E4E2C5D9402902C06042F4402902C06042F7F7402902C0E842F5C4898193968740E385A2A300002902C06042F4D78599869699944084898193968740A385A2A38995873C03F7402902C06042F42902C06042F42842F440E3E2D6409799858689A77A2800002902C06042F5C4D4D6D3D6D5E8402902C06042F4402902C06042F7F9402902C0E842F5C9C2D440D7999684A483A3A2002902C06042F4C9C2D44097999687998194408485A585939697948595A34097999684A483A3A23C0447402902C06042F42902C06042F42902C0E842F5E2A8A2A3859440C9C4407A40C1C4C3C4404040402902C06042F4402902C06042F7F1F02902C0E842F5E2C3D3D43C0471002902C06042F4E2E640C39695868987A49981A389969540D38982998199A840D48195818785993C0497402902C06042F42902C06042F42902C0E842F5D4E5E240818383A34B407A40F1F2F3F4F5F6F7F82902C06042F42902C0E842F708C508A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208D52902C06042F43C04E7402902C06042F42902C06042F42902C0E842F5D985938581A285404B407A40C9E2D7C640F54BF62902C06042F42902C0E842F708852902C0E842F7D389838595A2858440D481A38599898193A2406040D79996978599A3A840968640C9C2D43C052E402902C0E842F708852902C06042F43C0538402902C06042F42902C0F042F12902C0F042F1402902C06042F43C054F402902C0E842F708852902C0E842F7F5F6F9F460C1F0F1404DC35D40C39697A899898788A340C9C2D440C39699974B40F1F9F8F06B40F2F0F0F44B2902C0E842F708852902C06042F4819584A23C059F402902C0E842F708852902C0E842F7C193934099898788A3A2409985A28599A585844B3C05CE402902C0E842F708852902C06042F43C05EF402902C0E842F708852902C0E842F7E4E240C796A5859995948595A340E4A28599A240D985A2A3998983A3858440D9898788A3A240603C061E402902C0E842F708852902C06042F43C063F402902C0E842F708852902C0E842F7E4A2856B4084A49793898381A3899695409699408489A2839396A2A49985409985A2A3998983A385844040402902C0E842F708852902C06042F43C068F402902C0E842F708852902C0E842F782A840C7E2C140C1C4D740E283888584A4938540C39695A3998183A340A689A38840C9C2D440C39699974B402902C0E842F708852902C06042F4A22902C06042F43C06DF402902C0E842F708C408A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208D42902C0E842F73C0000001100FD13FFEF
+     WriteCommand
+       Erase Write
+       WCC : reset MDT=yes, keyboard=yes, alarm=no , printer=no , partition=yes
+       SBA : 0000 000/000 : 00 00              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SA  : Highlight    : F4 Underscore      Text: [M]
+       SA  : Reset        : 00                 Text: [enu]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SA  : Highlight    : F4 Underscore      Text: [U]
+       SA  : Reset        : 00                 Text: [tilities]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SA  : Highlight    : F4 Underscore      Text: [C]
+       SA  : Reset        : 00                 Text: [ompilers]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SA  : Highlight    : F4 Underscore      Text: [O]
+       SA  : Reset        : 00                 Text: [ptions]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SA  : Highlight    : F4 Underscore      Text: [S]
+       SA  : Reset        : 00                 Text: [tatus]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SA  : Highlight    : F4 Underscore      Text: [H]
+       SA  : Reset        : 00                 Text: [elp]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0080 001/000 : 00 50 : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            
+       GE  : A2 x 78                           Text: [ ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0187 002/027 : 00 BB : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            Text: [ISPF Primary Option Menu]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0239 002/079 : 00 EF : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Option ===>]
+       SFE : Attribute GR : 40 pAVidm 
+             Highlight    : F4 Underscore      
+             Foreground   : F5 Turquoise       
+       RTA : 0319 003/079 : 01 3F : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0363 004/043 : 01 6B : 40 [ ]     
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       RTA : 0375 004/055 : 01 77 : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F1 Blue            
+       RTA : 0400 005/000 : 01 90 : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [0 ]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [Settings]
+       RTA : 0417 005/017 : 01 A1 : 00 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Terminal and user parameters]
+       RTA : 0455 005/055 : 01 C7 : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SA  : Foreground   : F4 Green           Text: [ User ID . :]
+       SA  : Reset        : 00                 
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F5 Turquoise       Text: [DMOLONY ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [1 ]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [View]
+       RTA : 0497 006/017 : 01 F1 : 00 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Display source data or listings]
+       RTA : 0535 006/055 : 02 17 : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SA  : Foreground   : F4 Green           Text: [ Time. . . :]
+       SA  : Reset        : 00                 
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F5 Turquoise       Text: [21:05   ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [2 ]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [Edit]
+       RTA : 0577 007/017 : 02 41 : 00 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Create or change source data]
+       RTA : 0615 007/055 : 02 67 : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SA  : Foreground   : F4 Green           Text: [ Terminal. :]
+       SA  : Reset        : 00                 
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F5 Turquoise       Text: [3278    ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [3 ]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [Utilities]
+       FCO : Null         : 00 x 4             
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Perform utility functions]
+       RTA : 0695 008/055 : 02 B7 : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SA  : Foreground   : F4 Green           Text: [ Screen. . :]
+       SA  : Reset        : 00                 
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F5 Turquoise       Text: [1]
+       RTA : 0718 008/078 : 02 CE : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [4 ]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [Foreground]
+       FCO : Null         : 00 x 3             
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Interactive language processing]
+       RTA : 0775 009/055 : 03 07 : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SA  : Foreground   : F4 Green           Text: [ Language. :]
+       SA  : Reset        : 00                 
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F5 Turquoise       Text: [ENGLISH ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [5 ]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [Batch]
+       RTA : 0817 010/017 : 03 31 : 00 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Submit job for language processing   ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SA  : Foreground   : F4 Green           Text: [ Appl ID . :]
+       SA  : Reset        : 00                 
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F5 Turquoise       Text: [ISR]
+       RTA : 0878 010/078 : 03 6E : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [6 ]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [Command]
+       RTA : 0897 011/017 : 03 81 : 00 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Enter TSO or Workstation commands    ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SA  : Foreground   : F4 Green           Text: [ TSO logon :]
+       SA  : Reset        : 00                 
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F5 Turquoise       Text: [SYSUSER ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [7 ]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [Dialog Test]
+       FCO : Null         : 00 x 2             
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Perform dialog testing]
+       RTA : 1015 012/055 : 03 F7 : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SA  : Foreground   : F4 Green           Text: [ TSO prefix:]
+       SA  : Reset        : 00                 
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F5 Turquoise       Text: [DMOLONY ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [9 ]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [IBM Products]
+       FCO : Null         : 00                 
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [IBM program development products]
+       RTA : 1095 013/055 : 04 47 : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [System ID : ADCD    ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [10]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [SCLM]
+       RTA : 1137 014/017 : 04 71 : 00 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [SW Configuration Library Manager]
+       RTA : 1175 014/055 : 04 97 : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [MVS acct. : 12345678]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : C5                                
+       GE  : A2 x 46                           
+       GE  : D5                                
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 1255 015/055 : 04 E7 : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [Release . : ISPF 5.6]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85                                
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [Licensed Materials - Property of IBM]
+       RTA : 1326 016/046 : 05 2E : 40 [ ]     
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85                                
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 1336 016/056 : 05 38 : 40 [ ]     
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F1 Blue            
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F1 Blue            Text: [ ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 1359 016/079 : 05 4F : 40 [ ]     
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85                                
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [5694-A01 (C) Copyright IBM Corp. 1980, 2004.]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85                                
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ands]
+       RTA : 1439 017/079 : 05 9F : 40 [ ]     
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85                                
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [All rights reserved.]
+       RTA : 1486 018/046 : 05 CE : 40 [ ]     
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85                                
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 1519 018/079 : 05 EF : 40 [ ]     
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85                                
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [US Government Users Restricted Rights -]
+       RTA : 1566 019/046 : 06 1E : 40 [ ]     
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85                                
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 1599 019/079 : 06 3F : 40 [ ]     
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85                                
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [Use, duplication or disclosure restricted   ]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85                                
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 1679 020/079 : 06 8F : 40 [ ]     
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85                                
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [by GSA ADP Schedule Contract with IBM Corp. ]
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85                                
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [s]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 1759 021/079 : 06 DF : 40 [ ]     
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : C4                                
+       GE  : A2 x 46                           
+       GE  : D4                                
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       RTA : 0000 000/000 : 00 00 : 00 [ ]     
+       SBA : 0253 003/013 : 00 FD              
+       IC                                      
+
+--- buffer 06 (1861 bytes) ---
+REC  01C31100092841F4D92800008586D389A2A31100102902C0E842F740D91100132841F48528000086D49684851100192902C0E842F74011001B2841F4E4280000A3899389A38985A21100242902C0E842F7401100262841F4C828000085939711002A2902C06042F43C0050401100BB402902C06042F1C481A38140E285A340D389A2A340E4A3899389A3A81100D22902C06042F43C00EF401100FD3C013F4011016B3C0183401101832902C0E842F73C018F4011018F2902C06042F42902C06042F4401101922902C06042F42902C06042F782938195921101992902C0E842F5C489A2979381A8408481A38140A285A3409389A2A3000000001101B32902C06042F4404040401101B82902C06042F42902C06042F740404040D71101BF2902C0E842F5D7998995A3408481A38140A285A3409389A2A33C01D9001101D92902C06042F43C01DF401101DF2902C06042F42902C06042F4401101E22902C06042F42902C06042F740404040E51101E92902C0E842F5C489A2979381A840E5E3D6C34089958696999481A3899695001102032902C06042F4404040401102082902C06042F42902C06042F7404040D7E511020F2902C0E842F5D7998995A340E5E3D6C34089958696999481A38996950000001102292902C06042F43C022F4011022F2902C06042F42902C06042F43C0280401102802902C0E842F1C595A3859940969585409699408296A38840968640A3888540978199819485A38599A24082859396A67A1102AB2902C0E842F13C02CF401102CF2902C06042F42902C06042F4401102D22902C06042F42902C06042F4C4A29581948540D385A58593404B404B404B1102E62903C04041F442F5C4D4D6D3D6D5E83C0313001103132902C06042F43C0320401103202902C06042F4401103222902C06042F42902C06042F4E59693A4948540A2859989819340404B404B1103362903C04041F442F53C033D4011033D2902C06042F43C0370401103702902C06042F4401103722902C06042F42902C0F042F12902C0F042F1401103762902C06042F43C03C0401103C02902C0E842F1C481A38140A285A3409389A2A3409697A3899695A23C0410001104102902C06042F4401104122902C06042F42902C06042F4C99589A389819340E58985A6404B404B404B1104262903C04041F442F5F21104282902C0F042F42902C06042F7F14B11042C2902C06042F7E59693A4948540401104352902C06042F42902C0F042F1401104382902C06042F42902C06042F4C595A38599407F617F40A39640A285938583A3409697A3899695404040401104582902C06042F43C0460401104602902C06042F4401104622902C06042F43C0479401104792902C06042F7F24B11047C2902C06042F7E2978183854040401104852902C06042F44040401104892903C04041F442F56111048B2902C06042F42902C06042F7C396958689999440C481A38140E285A340C4859385A3853C04AD401104AD2902C06042F440401104B02902C06042F4401104B22902C06042F43C04C9401104C92902C06042F7F34B1104CC2902C06042F7C1A3A399898240401104D52902C06042F44040401104D92903C04041F442F5611104DB2902C06042F42902C06042F7C396958689999440D4859482859940C4859385A3853C04FD401104FD2902C06042F440401105002902C06042F4401105022902C06042F43C0519401105192902C06042F7F44B11051C2902C06042F7E396A381934040401105252902C06042F44040401105292903C04041F442F56111052B2902C06042F42902C06042F7C9958393A4848540C1848489A3899695819340D8A481938986898599A240404011054D2902C06042F440401105502902C06042F4401105522902C06042F43C0579401105792903C04041F442F56111057B2902C06042F42902C06042F7C489A2979381A840C381A38193968740D58194853C059D4011059D2902C06042F440401105A02902C0F042F12902C0F042F1401105A32902C06042F43C05F0401105F02902C0E842F1E688859540A38885408481A38140A285A3409389A2A34089A2408489A2979381A885846B408595A38599408589A38885997A1106232902C0E842F13C063F4011063F2902C06042F42902C06042F42902C06042F42902C0E842F57F617F1106462902C06042F4969540A38885408481A38140A285A3409389A2A340839694948195844086898593844086969940A388854083969494819584409799969497A34097969760A4976B1106882902C06042F43C068F4011068F2902C06042F42902C06042F42902C06042F42902C06042F4819540C9E2D7C6409389958540839694948195846B40A388854095819485409686408140E3E2D640839694948195846B40C3D3C9E2E36B40969940D9C5E7E74085A785836B4096991106DB2902C06042F44040401106DF2902C06042F42902C06042F42902C06042F42902C0E842F57F7E7F1106E62902C06042F4A3964085A78583A4A38540A3888540979985A58996A4A240839694948195844B1107072902C06042F43C072F4011072F2902C06042F43C0000401100FD13FFEF
+     WriteCommand
+       Write
+       WCC : reset MDT=yes, keyboard=yes, alarm=no , printer=no , partition=yes
+       SBA : 0009 000/009 : 00 09              
+       SA  : Highlight    : F4 Underscore      Text: [R]
+       SA  : Reset        : 00                 Text: [efList]
+       SBA : 0016 000/016 : 00 10              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ R]
+       SBA : 0019 000/019 : 00 13              
+       SA  : Highlight    : F4 Underscore      Text: [e]
+       SA  : Reset        : 00                 Text: [fMode]
+       SBA : 0025 000/025 : 00 19              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SBA : 0027 000/027 : 00 1B              
+       SA  : Highlight    : F4 Underscore      Text: [U]
+       SA  : Reset        : 00                 Text: [tilities]
+       SBA : 0036 000/036 : 00 24              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SBA : 0038 000/038 : 00 26              
+       SA  : Highlight    : F4 Underscore      Text: [H]
+       SA  : Reset        : 00                 Text: [elp]
+       SBA : 0042 000/042 : 00 2A              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0080 001/000 : 00 50 : 40 [ ]     
+       SBA : 0187 002/027 : 00 BB              Text: [ ]
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            Text: [Data Set List Utility]
+       SBA : 0210 002/050 : 00 D2              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0239 002/079 : 00 EF : 40 [ ]     
+       SBA : 0253 003/013 : 00 FD              
+       RTA : 0319 003/079 : 01 3F : 40 [ ]     
+       SBA : 0363 004/043 : 01 6B              
+       RTA : 0387 004/067 : 01 83 : 40 [ ]     
+       SBA : 0387 004/067 : 01 83              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       RTA : 0399 004/079 : 01 8F : 40 [ ]     
+       SBA : 0399 004/079 : 01 8F              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SBA : 0402 005/002 : 01 92              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [blank]
+       SBA : 0409 005/009 : 01 99              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [Display data set list]
+       FCO : Null         : 00 x 4             
+       SBA : 0435 005/035 : 01 B3              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [    ]
+       SBA : 0440 005/040 : 01 B8              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [    P]
+       SBA : 0447 005/047 : 01 BF              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [Print data set list]
+       RTA : 0473 005/073 : 01 D9 : 00 [ ]     
+       SBA : 0473 005/073 : 01 D9              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0479 005/079 : 01 DF : 40 [ ]     
+       SBA : 0479 005/079 : 01 DF              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SBA : 0482 006/002 : 01 E2              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [    V]
+       SBA : 0489 006/009 : 01 E9              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [Display VTOC information]
+       FCO : Null         : 00                 
+       SBA : 0515 006/035 : 02 03              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [    ]
+       SBA : 0520 006/040 : 02 08              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [   PV]
+       SBA : 0527 006/047 : 02 0F              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [Print VTOC information]
+       FCO : Null         : 00 x 3             
+       SBA : 0553 006/073 : 02 29              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0559 006/079 : 02 2F : 40 [ ]     
+       SBA : 0559 006/079 : 02 2F              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0640 008/000 : 02 80 : 40 [ ]     
+       SBA : 0640 008/000 : 02 80              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F1 Blue            Text: [Enter one or both of the parameters below:]
+       SBA : 0683 008/043 : 02 AB              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F1 Blue            
+       RTA : 0719 008/079 : 02 CF : 40 [ ]     
+       SBA : 0719 008/079 : 02 CF              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SBA : 0722 009/002 : 02 D2              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Dsname Level . . .]
+       SBA : 0742 009/022 : 02 E6              
+       SFE : Attribute GR : 40 pAVidm 
+             Highlight    : F4 Underscore      
+             Foreground   : F5 Turquoise       Text: [DMOLONY]
+       RTA : 0787 009/067 : 03 13 : 00 [ ]     
+       SBA : 0787 009/067 : 03 13              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0800 010/000 : 03 20 : 40 [ ]     
+       SBA : 0800 010/000 : 03 20              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SBA : 0802 010/002 : 03 22              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Volume serial  . .]
+       SBA : 0822 010/022 : 03 36              
+       SFE : Attribute GR : 40 pAVidm 
+             Highlight    : F4 Underscore      
+             Foreground   : F5 Turquoise       
+       RTA : 0829 010/029 : 03 3D : 40 [ ]     
+       SBA : 0829 010/029 : 03 3D              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0880 011/000 : 03 70 : 40 [ ]     
+       SBA : 0880 011/000 : 03 70              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SBA : 0882 011/002 : 03 72              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F1 Blue            
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F1 Blue            Text: [ ]
+       SBA : 0886 011/006 : 03 76              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0960 012/000 : 03 C0 : 40 [ ]     
+       SBA : 0960 012/000 : 03 C0              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F1 Blue            Text: [Data set list options]
+       RTA : 1040 013/000 : 04 10 : 00 [ ]     
+       SBA : 1040 013/000 : 04 10              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SBA : 1042 013/002 : 04 12              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Initial View . . .]
+       SBA : 1062 013/022 : 04 26              
+       SFE : Attribute GR : 40 pAVidm 
+             Highlight    : F4 Underscore      
+             Foreground   : F5 Turquoise       Text: [2]
+       SBA : 1064 013/024 : 04 28              
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [1.]
+       SBA : 1068 013/028 : 04 2C              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [Volume  ]
+       SBA : 1077 013/037 : 04 35              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F1 Blue            Text: [ ]
+       SBA : 1080 013/040 : 04 38              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Enter "/" to select option    ]
+       SBA : 1112 013/072 : 04 58              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 1120 014/000 : 04 60 : 40 [ ]     
+       SBA : 1120 014/000 : 04 60              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SBA : 1122 014/002 : 04 62              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 1145 014/025 : 04 79 : 40 [ ]     
+       SBA : 1145 014/025 : 04 79              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [2.]
+       SBA : 1148 014/028 : 04 7C              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [Space   ]
+       SBA : 1157 014/037 : 04 85              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [   ]
+       SBA : 1161 014/041 : 04 89              
+       SFE : Attribute GR : 40 pAVidm 
+             Highlight    : F4 Underscore      
+             Foreground   : F5 Turquoise       Text: [/]
+       SBA : 1163 014/043 : 04 8B              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [Confirm Data Set Delete]
+       RTA : 1197 014/077 : 04 AD : 40 [ ]     
+       SBA : 1197 014/077 : 04 AD              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [  ]
+       SBA : 1200 015/000 : 04 B0              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SBA : 1202 015/002 : 04 B2              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 1225 015/025 : 04 C9 : 40 [ ]     
+       SBA : 1225 015/025 : 04 C9              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [3.]
+       SBA : 1228 015/028 : 04 CC              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [Attrib  ]
+       SBA : 1237 015/037 : 04 D5              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [   ]
+       SBA : 1241 015/041 : 04 D9              
+       SFE : Attribute GR : 40 pAVidm 
+             Highlight    : F4 Underscore      
+             Foreground   : F5 Turquoise       Text: [/]
+       SBA : 1243 015/043 : 04 DB              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [Confirm Member Delete]
+       RTA : 1277 015/077 : 04 FD : 40 [ ]     
+       SBA : 1277 015/077 : 04 FD              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [  ]
+       SBA : 1280 016/000 : 05 00              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SBA : 1282 016/002 : 05 02              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 1305 016/025 : 05 19 : 40 [ ]     
+       SBA : 1305 016/025 : 05 19              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [4.]
+       SBA : 1308 016/028 : 05 1C              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [Total   ]
+       SBA : 1317 016/037 : 05 25              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [   ]
+       SBA : 1321 016/041 : 05 29              
+       SFE : Attribute GR : 40 pAVidm 
+             Highlight    : F4 Underscore      
+             Foreground   : F5 Turquoise       Text: [/]
+       SBA : 1323 016/043 : 05 2B              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [Include Additional Qualifiers   ]
+       SBA : 1357 016/077 : 05 4D              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [  ]
+       SBA : 1360 017/000 : 05 50              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SBA : 1362 017/002 : 05 52              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 1401 017/041 : 05 79 : 40 [ ]     
+       SBA : 1401 017/041 : 05 79              
+       SFE : Attribute GR : 40 pAVidm 
+             Highlight    : F4 Underscore      
+             Foreground   : F5 Turquoise       Text: [/]
+       SBA : 1403 017/043 : 05 7B              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [Display Catalog Name]
+       RTA : 1437 017/077 : 05 9D : 40 [ ]     
+       SBA : 1437 017/077 : 05 9D              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [  ]
+       SBA : 1440 018/000 : 05 A0              
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F1 Blue            
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F1 Blue            Text: [ ]
+       SBA : 1443 018/003 : 05 A3              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 1520 019/000 : 05 F0 : 40 [ ]     
+       SBA : 1520 019/000 : 05 F0              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F1 Blue            Text: [When the data set list is displayed, enter either:]
+       SBA : 1571 019/051 : 06 23              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F1 Blue            
+       RTA : 1599 019/079 : 06 3F : 40 [ ]     
+       SBA : 1599 019/079 : 06 3F              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: ["/"]
+       SBA : 1606 020/006 : 06 46              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [on the data set list command field for the command prompt pop-up,]
+       SBA : 1672 020/072 : 06 88              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 1679 020/079 : 06 8F : 40 [ ]     
+       SBA : 1679 020/079 : 06 8F              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [an ISPF line command, the name of a TSO command, CLIST, or REXX exec, or]
+       SBA : 1755 021/075 : 06 DB              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [   ]
+       SBA : 1759 021/079 : 06 DF              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: ["="]
+       SBA : 1766 022/006 : 06 E6              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [to execute the previous command.]
+       SBA : 1799 022/039 : 07 07              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 1839 022/079 : 07 2F : 40 [ ]     
+       SBA : 1839 022/079 : 07 2F              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0000 000/000 : 00 00 : 40 [ ]     
+       SBA : 0253 003/013 : 00 FD              
+       IC                                      
+
+--- buffer 07 (1015 bytes) ---
+REC  F1C31100092841F4D628000097A3899695A21100122841F4E52800008985A61100162902C0E842F7401100182841F4E4280000A3899389A38985A21100212902C0E842F7401100232841F4C328000096949789938599A211002C2902C0E842F74011002E2841F4C82800008593971100322902C06042F43C0050401100A02902C06042F5C4E2D3C9E2E3406040C481A38140E285A3A240D481A3838889958740C4D4D6D3D6D5E83C00E540D996A640F140968640F91100F1C3969494819584407E7E7E6E1100FD2903C04041F442F53C012E4011012E2902C06042F4E28399969393407E7E7E6E11013A2903C04041F442F5C3E2D9001101402902C06042F43C0190401101902902C06042F1C3969494819584406040C595A38599407F617F40A39640A285938583A3408183A38996953C01C1401101C12902C0E842F73C01C740E399818392A2406CE4A2858440E7E34040C485A589838540401101E02902C06042F13C0230601102302902C04042F43C023A40C4D4D6D3D6D5E83C0266401102662902C0E842F73C0280401102802902C04042F43C028A40C4D4D6D3D6D5E84BC1C4C3C44BC9E2D7C3D3E3F13C02B6401102B62902C0E842F740404040F1F540404040F0404040F14040F3F3F9F0404040401102D02902C04042F43C02DA40C4D4D6D3D6D5E84BC1C4C3C44BC9E2D7C3D3E3F23C0306401103062902C0E842F740404040F1F540404040F0404040F14040F3F3F9F0404040401103202902C04042F43C032A40C4D4D6D3D6D5E84BC1C4C3C44BC9E2D7D3E2E3F13C0356401103562902C0E842F740404040F1F540404040F0404040F14040F3F3F9F0404040401103702902C04042F43C037A40C4D4D6D3D6D5E84BC1C4C3C44BC9E2D7D3E2E3F23C03A6401103A62902C0E842F740404040F1F540404040F0404040F14040F3F3F9F0404040401103C02902C04042F43C03CA40C4D4D6D3D6D5E84BC1C4C3C44BC9E2D7D7D9D6C63C03F6401103F62902C0E842F740404040F1F5404040F1F3404040F14040F3F3F9F0404040401104102902C04042F43C041A40C4D4D6D3D6D5E84BC9E2D7C64BC9E2D7D7D9D6C63C0446401104462902C0E842F73C044C40F540404040F8404040F14040F3F3F9F0404040401104602902C04042F43C046A40C4D4D6D3D6D5E84BC9E2D7E3D3C9C23C0496401104962902C0E842F740404040F1F540404040F6404040F14040F3F3F9F0404040401104B02902C04042F43C04BA40C4D4D6D3D6D5E84BD1C3D34BC3D5E3D33C04E6401104E62902C0E842F73C04EC40F24040F1F0F0404040F14040F3F3F9F0404040401105002902C06042F13C051E5C40C5958440968640C481A38140E285A3409389A2A3403C05505C1105502902C06042F13C0731403C0000401100FE13FFEF
+     WriteCommand
+       Write
+       WCC : reset MDT=yes, keyboard=yes, alarm=no , printer=no , partition=yes
+       SBA : 0009 000/009 : 00 09              
+       SA  : Highlight    : F4 Underscore      Text: [O]
+       SA  : Reset        : 00                 Text: [ptions]
+       SBA : 0018 000/018 : 00 12              
+       SA  : Highlight    : F4 Underscore      Text: [V]
+       SA  : Reset        : 00                 Text: [iew]
+       SBA : 0022 000/022 : 00 16              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SBA : 0024 000/024 : 00 18              
+       SA  : Highlight    : F4 Underscore      Text: [U]
+       SA  : Reset        : 00                 Text: [tilities]
+       SBA : 0033 000/033 : 00 21              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SBA : 0035 000/035 : 00 23              
+       SA  : Highlight    : F4 Underscore      Text: [C]
+       SA  : Reset        : 00                 Text: [ompilers]
+       SBA : 0044 000/044 : 00 2C              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SBA : 0046 000/046 : 00 2E              
+       SA  : Highlight    : F4 Underscore      Text: [H]
+       SA  : Reset        : 00                 Text: [elp]
+       SBA : 0050 000/050 : 00 32              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0080 001/000 : 00 50 : 40 [ ]     
+       SBA : 0160 002/000 : 00 A0              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F5 Turquoise       Text: [DSLIST - Data Sets Matching DMOLONY]
+       RTA : 0229 002/069 : 00 E5 : 40 [ ]     Text: [Row 1 of 9]
+       SBA : 0241 003/001 : 00 F1              Text: [Command ===>]
+       SBA : 0253 003/013 : 00 FD              
+       SFE : Attribute GR : 40 pAVidm 
+             Highlight    : F4 Underscore      
+             Foreground   : F5 Turquoise       
+       RTA : 0302 003/062 : 01 2E : 40 [ ]     
+       SBA : 0302 003/062 : 01 2E              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Scroll ===>]
+       SBA : 0314 003/074 : 01 3A              
+       SFE : Attribute GR : 40 pAVidm 
+             Highlight    : F4 Underscore      
+             Foreground   : F5 Turquoise       Text: [CSR]
+       FCO : Null         : 00                 
+       SBA : 0320 004/000 : 01 40              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0400 005/000 : 01 90 : 40 [ ]     
+       SBA : 0400 005/000 : 01 90              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            Text: [Command - Enter "/" to select action]
+       RTA : 0449 005/049 : 01 C1 : 40 [ ]     
+       SBA : 0449 005/049 : 01 C1              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       RTA : 0455 005/055 : 01 C7 : 40 [ ]     Text: [Tracks %Used XT  Device  ]
+       SBA : 0480 006/000 : 01 E0              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            
+       RTA : 0560 007/000 : 02 30 : 60 [-]     
+       SBA : 0560 007/000 : 02 30              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F4 Green           
+       RTA : 0570 007/010 : 02 3A : 40 [ ]     Text: [DMOLONY]
+       RTA : 0614 007/054 : 02 66 : 40 [ ]     
+       SBA : 0614 007/054 : 02 66              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       RTA : 0640 008/000 : 02 80 : 40 [ ]     
+       SBA : 0640 008/000 : 02 80              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F4 Green           
+       RTA : 0650 008/010 : 02 8A : 40 [ ]     Text: [DMOLONY.ADCD.ISPCLT1]
+       RTA : 0694 008/054 : 02 B6 : 40 [ ]     
+       SBA : 0694 008/054 : 02 B6              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [    15    0   1  3390    ]
+       SBA : 0720 009/000 : 02 D0              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F4 Green           
+       RTA : 0730 009/010 : 02 DA : 40 [ ]     Text: [DMOLONY.ADCD.ISPCLT2]
+       RTA : 0774 009/054 : 03 06 : 40 [ ]     
+       SBA : 0774 009/054 : 03 06              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [    15    0   1  3390    ]
+       SBA : 0800 010/000 : 03 20              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F4 Green           
+       RTA : 0810 010/010 : 03 2A : 40 [ ]     Text: [DMOLONY.ADCD.ISPLST1]
+       RTA : 0854 010/054 : 03 56 : 40 [ ]     
+       SBA : 0854 010/054 : 03 56              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [    15    0   1  3390    ]
+       SBA : 0880 011/000 : 03 70              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F4 Green           
+       RTA : 0890 011/010 : 03 7A : 40 [ ]     Text: [DMOLONY.ADCD.ISPLST2]
+       RTA : 0934 011/054 : 03 A6 : 40 [ ]     
+       SBA : 0934 011/054 : 03 A6              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [    15    0   1  3390    ]
+       SBA : 0960 012/000 : 03 C0              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F4 Green           
+       RTA : 0970 012/010 : 03 CA : 40 [ ]     Text: [DMOLONY.ADCD.ISPPROF]
+       RTA : 1014 012/054 : 03 F6 : 40 [ ]     
+       SBA : 1014 012/054 : 03 F6              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [    15   13   1  3390    ]
+       SBA : 1040 013/000 : 04 10              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F4 Green           
+       RTA : 1050 013/010 : 04 1A : 40 [ ]     Text: [DMOLONY.ISPF.ISPPROF]
+       RTA : 1094 013/054 : 04 46 : 40 [ ]     
+       SBA : 1094 013/054 : 04 46              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       RTA : 1100 013/060 : 04 4C : 40 [ ]     Text: [5    8   1  3390    ]
+       SBA : 1120 014/000 : 04 60              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F4 Green           
+       RTA : 1130 014/010 : 04 6A : 40 [ ]     Text: [DMOLONY.ISPTLIB]
+       RTA : 1174 014/054 : 04 96 : 40 [ ]     
+       SBA : 1174 014/054 : 04 96              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [    15    6   1  3390    ]
+       SBA : 1200 015/000 : 04 B0              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F4 Green           
+       RTA : 1210 015/010 : 04 BA : 40 [ ]     Text: [DMOLONY.JCL.CNTL]
+       RTA : 1254 015/054 : 04 E6 : 40 [ ]     
+       SBA : 1254 015/054 : 04 E6              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       RTA : 1260 015/060 : 04 EC : 40 [ ]     Text: [2  100   1  3390    ]
+       SBA : 1280 016/000 : 05 00              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            
+       RTA : 1310 016/030 : 05 1E : 5C [*]     Text: [ End of Data Set list ]
+       RTA : 1360 017/000 : 05 50 : 5C [*]     
+       SBA : 1360 017/000 : 05 50              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            
+       RTA : 1841 023/001 : 07 31 : 40 [ ]     
+       RTA : 0000 000/000 : 00 00 : 40 [ ]     
+       SBA : 0254 003/014 : 00 FE              
+       IC                                      
+
+--- buffer 08 (1047 bytes) ---
+REC  01C31100032841F4C62800008993851100092841F4C52800008489A311000D2902C0E842F740C51100102841F48428000089A36DE285A3A3899587A211001C2902C0E842F74011001E2841F4D42800008595A41100222902C0E842F7401100242841F4E4280000A3899389A38985A211002D2902C0E842F74011002F2841F4C328000096949789938599A21100382902C0E842F74011003A2841F4E328000085A2A311003E2902C0E842F7401100402841F4C82800008593971100442902C06042F43C00504011009F08A22902C06042F5C5C4C9E33C00AB001100AB2902C06042F5C4D4D6D3D6D5E84BD1C3D34BC3D5E3D34DD1D6C2C3C1D9C45D406040F0F14BF0F03C00DB001100DB2902C06042F4C39693A49495A21100E32902C06042F5F0F0F0F0F11100E92902C06042F5F0F0F0F7F21100FD2903C04041F442F53C012E401101402902C0C842F23C01475C1101472902C06042F13C01655C40E3969740968640C481A381403C01905C1101902902C04042F43C0196F0F11101972902C04042F62842F46161C4D4D6D3D6D5E828000040401101A32842F2D1D6C2280000401101A72842F74D2842F4F1F2F3F4F5F6F7F82842F75D2800006B1101B22842F4C4D4D6D3D6D5E82800006B1101BA2842F4D4E2C7C3D3C1E2E22800007E1101C32842F4C82800006B403C01E0001101E02902C04042F43C01E6F0F21101E72902C04042F62842F461612800003C01F2401101F22842F4D4E2C7D3C5E5C5D32800007E1101FB2842F74D2842F4F12800006B1101FE2842F4F12842F75D2800006B1102012842F4C3D3C1E2E22800007E1102072842F4C12800006B1102092842F4D5D6E3C9C6E82800007E501102112842F4E2E8E2E4C9C4280000403C0230001102302902C04042F43C0236F0F31102372902C04042F62842F561615C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C280000403C0280001102802902C04042F43C0286F0F41102872902C04042F62842F561615C5C5C5C5C5C5C5C5C5C5C5C5CD1C3D32800004011029B2842F5C3D9C5C1E3C5C4280000401102A32842F5C2E8280000401102A62842F5C4C5D5C9E2280000401102AC2842F5D4D6D3D6D5E828000040401102B42842F55C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C280000403C02D0001102D02902C04042F43C02D6F0F51102D72902C04042F62842F561615C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C5C280000403C0320001103202902C0C842F23C03275C1103272902C06042F13C03445C40C296A3A3969440968640C481A381403C03705C3C0550403C0730403C0000401100FE13FFEF
+     WriteCommand
+       Write
+       WCC : reset MDT=yes, keyboard=yes, alarm=no , printer=no , partition=yes
+       SBA : 0003 000/003 : 00 03              
+       SA  : Highlight    : F4 Underscore      Text: [F]
+       SA  : Reset        : 00                 Text: [ile]
+       SBA : 0009 000/009 : 00 09              
+       SA  : Highlight    : F4 Underscore      Text: [E]
+       SA  : Reset        : 00                 Text: [dit]
+       SBA : 0013 000/013 : 00 0D              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ E]
+       SBA : 0016 000/016 : 00 10              
+       SA  : Highlight    : F4 Underscore      Text: [d]
+       SA  : Reset        : 00                 Text: [it_Settings]
+       SBA : 0028 000/028 : 00 1C              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SBA : 0030 000/030 : 00 1E              
+       SA  : Highlight    : F4 Underscore      Text: [M]
+       SA  : Reset        : 00                 Text: [enu]
+       SBA : 0034 000/034 : 00 22              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SBA : 0036 000/036 : 00 24              
+       SA  : Highlight    : F4 Underscore      Text: [U]
+       SA  : Reset        : 00                 Text: [tilities]
+       SBA : 0045 000/045 : 00 2D              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SBA : 0047 000/047 : 00 2F              
+       SA  : Highlight    : F4 Underscore      Text: [C]
+       SA  : Reset        : 00                 Text: [ompilers]
+       SBA : 0056 000/056 : 00 38              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SBA : 0058 000/058 : 00 3A              
+       SA  : Highlight    : F4 Underscore      Text: [T]
+       SA  : Reset        : 00                 Text: [est]
+       SBA : 0062 000/062 : 00 3E              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SBA : 0064 000/064 : 00 40              
+       SA  : Highlight    : F4 Underscore      Text: [H]
+       SA  : Reset        : 00                 Text: [elp]
+       SBA : 0068 000/068 : 00 44              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0080 001/000 : 00 50 : 40 [ ]     
+       SBA : 0159 001/079 : 00 9F              
+       GE  : A2                                
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F5 Turquoise       Text: [EDIT]
+       RTA : 0171 002/011 : 00 AB : 00 [ ]     
+       SBA : 0171 002/011 : 00 AB              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F5 Turquoise       Text: [DMOLONY.JCL.CNTL(JOBCARD) - 01.00]
+       RTA : 0219 002/059 : 00 DB : 00 [ ]     
+       SBA : 0219 002/059 : 00 DB              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Columns]
+       SBA : 0227 002/067 : 00 E3              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F5 Turquoise       Text: [00001]
+       SBA : 0233 002/073 : 00 E9              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F5 Turquoise       Text: [00072]
+       SBA : 0253 003/013 : 00 FD              
+       SFE : Attribute GR : 40 pAVidm 
+             Highlight    : F4 Underscore      
+             Foreground   : F5 Turquoise       
+       RTA : 0302 003/062 : 01 2E : 40 [ ]     
+       SBA : 0320 004/000 : 01 40              
+       SFE : Attribute RE : C8 pAVIDm 
+             Foreground   : F2 Red             
+       RTA : 0327 004/007 : 01 47 : 5C [*]     
+       SBA : 0327 004/007 : 01 47              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            
+       RTA : 0357 004/037 : 01 65 : 5C [*]     Text: [ Top of Data ]
+       RTA : 0400 005/000 : 01 90 : 5C [*]     
+       SBA : 0400 005/000 : 01 90              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F4 Green           
+       RTA : 0406 005/006 : 01 96 : F0 [0]     Text: [1]
+       SBA : 0407 005/007 : 01 97              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F6 Yellow          
+       SA  : Foreground   : F4 Green           Text: [//DMOLONY]
+       SA  : Reset        : 00                 Text: [  ]
+       SBA : 0419 005/019 : 01 A3              
+       SA  : Foreground   : F2 Red             Text: [JOB]
+       SA  : Reset        : 00                 Text: [ ]
+       SBA : 0423 005/023 : 01 A7              
+       SA  : Foreground   : F7 Neutral2        Text: [(]
+       SA  : Foreground   : F4 Green           Text: [12345678]
+       SA  : Foreground   : F7 Neutral2        Text: [)]
+       SA  : Reset        : 00                 Text: [,]
+       SBA : 0434 005/034 : 01 B2              
+       SA  : Foreground   : F4 Green           Text: [DMOLONY]
+       SA  : Reset        : 00                 Text: [,]
+       SBA : 0442 005/042 : 01 BA              
+       SA  : Foreground   : F4 Green           Text: [MSGCLASS]
+       SA  : Reset        : 00                 Text: [=]
+       SBA : 0451 005/051 : 01 C3              
+       SA  : Foreground   : F4 Green           Text: [H]
+       SA  : Reset        : 00                 Text: [, ]
+       RTA : 0480 006/000 : 01 E0 : 00 [ ]     
+       SBA : 0480 006/000 : 01 E0              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F4 Green           
+       RTA : 0486 006/006 : 01 E6 : F0 [0]     Text: [2]
+       SBA : 0487 006/007 : 01 E7              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F6 Yellow          
+       SA  : Foreground   : F4 Green           Text: [//]
+       SA  : Reset        : 00                 
+       RTA : 0498 006/018 : 01 F2 : 40 [ ]     
+       SBA : 0498 006/018 : 01 F2              
+       SA  : Foreground   : F4 Green           Text: [MSGLEVEL]
+       SA  : Reset        : 00                 Text: [=]
+       SBA : 0507 006/027 : 01 FB              
+       SA  : Foreground   : F7 Neutral2        Text: [(]
+       SA  : Foreground   : F4 Green           Text: [1]
+       SA  : Reset        : 00                 Text: [,]
+       SBA : 0510 006/030 : 01 FE              
+       SA  : Foreground   : F4 Green           Text: [1]
+       SA  : Foreground   : F7 Neutral2        Text: [)]
+       SA  : Reset        : 00                 Text: [,]
+       SBA : 0513 006/033 : 02 01              
+       SA  : Foreground   : F4 Green           Text: [CLASS]
+       SA  : Reset        : 00                 Text: [=]
+       SBA : 0519 006/039 : 02 07              
+       SA  : Foreground   : F4 Green           Text: [A]
+       SA  : Reset        : 00                 Text: [,]
+       SBA : 0521 006/041 : 02 09              
+       SA  : Foreground   : F4 Green           Text: [NOTIFY]
+       SA  : Reset        : 00                 Text: [=&]
+       SBA : 0529 006/049 : 02 11              
+       SA  : Foreground   : F4 Green           Text: [SYSUID]
+       SA  : Reset        : 00                 Text: [ ]
+       RTA : 0560 007/000 : 02 30 : 00 [ ]     
+       SBA : 0560 007/000 : 02 30              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F4 Green           
+       RTA : 0566 007/006 : 02 36 : F0 [0]     Text: [3]
+       SBA : 0567 007/007 : 02 37              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F6 Yellow          
+       SA  : Foreground   : F5 Turquoise       Text: [//***************************************************************]
+       SA  : Reset        : 00                 Text: [ ]
+       RTA : 0640 008/000 : 02 80 : 00 [ ]     
+       SBA : 0640 008/000 : 02 80              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F4 Green           
+       RTA : 0646 008/006 : 02 86 : F0 [0]     Text: [4]
+       SBA : 0647 008/007 : 02 87              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F6 Yellow          
+       SA  : Foreground   : F5 Turquoise       Text: [//*************JCL]
+       SA  : Reset        : 00                 Text: [ ]
+       SBA : 0667 008/027 : 02 9B              
+       SA  : Foreground   : F5 Turquoise       Text: [CREATED]
+       SA  : Reset        : 00                 Text: [ ]
+       SBA : 0675 008/035 : 02 A3              
+       SA  : Foreground   : F5 Turquoise       Text: [BY]
+       SA  : Reset        : 00                 Text: [ ]
+       SBA : 0678 008/038 : 02 A6              
+       SA  : Foreground   : F5 Turquoise       Text: [DENIS]
+       SA  : Reset        : 00                 Text: [ ]
+       SBA : 0684 008/044 : 02 AC              
+       SA  : Foreground   : F5 Turquoise       Text: [MOLONY]
+       SA  : Reset        : 00                 Text: [  ]
+       SBA : 0692 008/052 : 02 B4              
+       SA  : Foreground   : F5 Turquoise       Text: [*********************]
+       SA  : Reset        : 00                 Text: [ ]
+       RTA : 0720 009/000 : 02 D0 : 00 [ ]     
+       SBA : 0720 009/000 : 02 D0              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F4 Green           
+       RTA : 0726 009/006 : 02 D6 : F0 [0]     Text: [5]
+       SBA : 0727 009/007 : 02 D7              
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F6 Yellow          
+       SA  : Foreground   : F5 Turquoise       Text: [//***************************************************************]
+       SA  : Reset        : 00                 Text: [ ]
+       RTA : 0800 010/000 : 03 20 : 00 [ ]     
+       SBA : 0800 010/000 : 03 20              
+       SFE : Attribute RE : C8 pAVIDm 
+             Foreground   : F2 Red             
+       RTA : 0807 010/007 : 03 27 : 5C [*]     
+       SBA : 0807 010/007 : 03 27              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            
+       RTA : 0836 010/036 : 03 44 : 5C [*]     Text: [ Bottom of Data ]
+       RTA : 0880 011/000 : 03 70 : 5C [*]     
+       RTA : 1360 017/000 : 05 50 : 40 [ ]     
+       RTA : 1840 023/000 : 07 30 : 40 [ ]     
+       RTA : 0000 000/000 : 00 00 : 40 [ ]     
+       SBA : 0254 003/014 : 00 FE              
+       IC                                      
+
+--- buffer 09 (1743 bytes) ---
+REC  F1C31100032841F4C62800008993851100092841F4E52800008985A611000D2902C0E842F74011000F2841F4D628000097A3899695A21100162902C0E842F7401100182841F4E22800009781838511001FE22841F4A4280000978599C31100252902C0E842F7401100272841F4E328000085A2A311002B2902C0E842F74011002D2841F4C82800008593971100312902C06042F43C0050401100A02902C06042F5E2948199A340C183A38996953C00BF001100BF2902C06042F1C9E2D7C640E696999297938183853C00DE001100DE2902C06042F43C00ED401100ED2902C0E842F7001100F1C183A3899695407E7E7E6E1100FD3C012E4011012E2902C06042F4E28399969393407E7E7E6E11013A2903C04041F442F5C3E2D9001101402902C06042F43C0190401101902902C0E842F1C481A38140E285A36B40C4E2D3C9E2E340D385A585936B40969940E6969992A2A381A389969540C68993853C01E0001101E02902C06042F4401101E22902C06042F42902C06042F4D682918583A340D5819485404B404B404B1101F52903C04041F442F53C022E401102302902C06042F4401102322902C06042F42902C06042F4E59693A4948540E28599898193404B404B1102452903C04041F442F53C024C4011024C2902C06042F42902C06042F44DC69699408183A3899695A240A38881A340998598A4899985408140A59693A4948540A285998981935D1102782902C06042F43C0280401102802902C0F042F12902C06042F43C02D0401102D02842F14008C508A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A228000040C9E2D7C640D985868599998193409389A2A3A240869699409682918583A340A285938583A38996954011030D2842F108A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208D5402800002902C06042F16A001103232902C0E842F5C481A38140E285A340E58985A61103324040C183A389969511033A2902C06042F440404011033E2902C06042F42902C0E842F57BF160F3F07ED985A3998985A58540C595A399A84040C4D37EC4E2D3C9E2E34040617ED697859540D389A2A311036C2902C06042F42902C06042F16A11036F2902C06042F42902C06042F16A1103722902C06042F42902C06042F7D9C5C6D3C9E2E30011037C2902C06042F44B404B404B1103822903C04041F442F53C038B4011038B2902C06042F440404011038F2902C06042F4D381A2A340F3F04099858685998595838584408481A38140A285A3A21103AC2902C06042F4401103AE2902C06042F4E6C1D9D5004B4B873C03BD001103BD2902C06042F16A1103BF2902C06042F42902C06042F13C03DA5C40C5958440968640C9E2D7C640D985868599998193409389A2A3A2403C040F5C3C054F4011054F2902C0E842F708C508A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208D508851105A12902C0E842F7E685938396948540A39640A3888540C9E2D7C640E696999297938183854B40C4858681A493A340A58985A6408881A2408285859540A285A340A39640C481A38140E285A34B40C595A38599401105EE2902C0E842F7088508851105F12902C0E842F7C183A3899695407FD389A2A3E58985A67F40A3964083888195878540A58985A640A39640C9E2D7C640D38982998199A84B40C4858681A493A340A285A3A3899587A2408881A585408285859511063E2902C0E842F7088508851106412902C0E842F785A2A381829389A28885844086969940C19797938984407DC9E2D97D4B40E285938583A3407FE6969992979381838540E285A3A3899587A27F408699969440D697A3899695408183A389969511068E2902C0E842F7088508851106912902C0E842F782819940A3964083888195878540E6969992979381838540A285A3A3899587A24081A3408195A840A38994854B3C06DE401106DE2902C0E842F7088508C408A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208A208D41107302902C06042F13C0000401100FD13FFEF
+     WriteCommand
+       Write
+       WCC : reset MDT=yes, keyboard=yes, alarm=no , printer=no , partition=yes
+       SBA : 0003 000/003 : 00 03              
+       SA  : Highlight    : F4 Underscore      Text: [F]
+       SA  : Reset        : 00                 Text: [ile]
+       SBA : 0009 000/009 : 00 09              
+       SA  : Highlight    : F4 Underscore      Text: [V]
+       SA  : Reset        : 00                 Text: [iew]
+       SBA : 0013 000/013 : 00 0D              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SBA : 0015 000/015 : 00 0F              
+       SA  : Highlight    : F4 Underscore      Text: [O]
+       SA  : Reset        : 00                 Text: [ptions]
+       SBA : 0022 000/022 : 00 16              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SBA : 0024 000/024 : 00 18              
+       SA  : Highlight    : F4 Underscore      Text: [S]
+       SA  : Reset        : 00                 Text: [pace]
+       SBA : 0031 000/031 : 00 1F              Text: [S]
+       SA  : Highlight    : F4 Underscore      Text: [u]
+       SA  : Reset        : 00                 Text: [perC]
+       SBA : 0037 000/037 : 00 25              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SBA : 0039 000/039 : 00 27              
+       SA  : Highlight    : F4 Underscore      Text: [T]
+       SA  : Reset        : 00                 Text: [est]
+       SBA : 0043 000/043 : 00 2B              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [ ]
+       SBA : 0045 000/045 : 00 2D              
+       SA  : Highlight    : F4 Underscore      Text: [H]
+       SA  : Reset        : 00                 Text: [elp]
+       SBA : 0049 000/049 : 00 31              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0080 001/000 : 00 50 : 40 [ ]     
+       SBA : 0160 002/000 : 00 A0              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F5 Turquoise       Text: [Smart Action]
+       RTA : 0191 002/031 : 00 BF : 00 [ ]     
+       SBA : 0191 002/031 : 00 BF              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            Text: [ISPF Workplace]
+       RTA : 0222 002/062 : 00 DE : 00 [ ]     
+       SBA : 0222 002/062 : 00 DE              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0237 002/077 : 00 ED : 40 [ ]     
+       SBA : 0237 002/077 : 00 ED              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       FCO : Null         : 00                 
+       SBA : 0241 003/001 : 00 F1              Text: [Action ===>]
+       SBA : 0253 003/013 : 00 FD              
+       RTA : 0302 003/062 : 01 2E : 40 [ ]     
+       SBA : 0302 003/062 : 01 2E              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Scroll ===>]
+       SBA : 0314 003/074 : 01 3A              
+       SFE : Attribute GR : 40 pAVidm 
+             Highlight    : F4 Underscore      
+             Foreground   : F5 Turquoise       Text: [CSR]
+       FCO : Null         : 00                 
+       SBA : 0320 004/000 : 01 40              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0400 005/000 : 01 90 : 40 [ ]     
+       SBA : 0400 005/000 : 01 90              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F1 Blue            Text: [Data Set, DSLIST Level, or Workstation File]
+       RTA : 0480 006/000 : 01 E0 : 00 [ ]     
+       SBA : 0480 006/000 : 01 E0              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SBA : 0482 006/002 : 01 E2              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Object Name . . .]
+       SBA : 0501 006/021 : 01 F5              
+       SFE : Attribute GR : 40 pAVidm 
+             Highlight    : F4 Underscore      
+             Foreground   : F5 Turquoise       
+       RTA : 0558 006/078 : 02 2E : 40 [ ]     
+       SBA : 0560 007/000 : 02 30              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SBA : 0562 007/002 : 02 32              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Volume Serial . .]
+       SBA : 0581 007/021 : 02 45              
+       SFE : Attribute GR : 40 pAVidm 
+             Highlight    : F4 Underscore      
+             Foreground   : F5 Turquoise       
+       RTA : 0588 007/028 : 02 4C : 40 [ ]     
+       SBA : 0588 007/028 : 02 4C              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [(For actions that require a volume serial)]
+       SBA : 0632 007/072 : 02 78              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0640 008/000 : 02 80 : 40 [ ]     
+       SBA : 0640 008/000 : 02 80              
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F1 Blue            
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       RTA : 0720 009/000 : 02 D0 : 40 [ ]     
+       SBA : 0720 009/000 : 02 D0              
+       SA  : Foreground   : F1 Blue            Text: [ ]
+       GE  : C5                                
+       GE  : A2 x 17                           
+       SA  : Reset        : 00                 Text: [ ISPF Referral lists for object selection ]
+       SBA : 0781 009/061 : 03 0D              
+       SA  : Foreground   : F1 Blue            
+       GE  : A2 x 17                           
+       GE  : D5                                Text: [ ]
+       SA  : Reset        : 00                 
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            Text: [¦]
+       FCO : Null         : 00                 
+       SBA : 0803 010/003 : 03 23              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [Data Set View]
+       SBA : 0818 010/018 : 03 32              Text: [  Action]
+       SBA : 0826 010/026 : 03 3A              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [   ]
+       SBA : 0830 010/030 : 03 3E              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F5 Turquoise       Text: [#1-30=Retrieve Entry  DL=DSLIST  /=Open List]
+       SBA : 0876 010/076 : 03 6C              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            Text: [¦]
+       SBA : 0879 010/079 : 03 6F              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            Text: [¦]
+       SBA : 0882 011/002 : 03 72              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F7 Neutral2        Text: [REFLIST]
+       FCO : Null         : 00                 
+       SBA : 0892 011/012 : 03 7C              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [. . .]
+       SBA : 0898 011/018 : 03 82              
+       SFE : Attribute GR : 40 pAVidm 
+             Highlight    : F4 Underscore      
+             Foreground   : F5 Turquoise       
+       RTA : 0907 011/027 : 03 8B : 40 [ ]     
+       SBA : 0907 011/027 : 03 8B              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [   ]
+       SBA : 0911 011/031 : 03 8F              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [Last 30 referenced data sets]
+       SBA : 0940 011/060 : 03 AC              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [ ]
+       SBA : 0942 011/062 : 03 AE              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           Text: [WARN]
+       FCO : Null         : 00                 Text: [..g]
+       RTA : 0957 011/077 : 03 BD : 00 [ ]     
+       SBA : 0957 011/077 : 03 BD              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            Text: [¦]
+       SBA : 0959 011/079 : 03 BF              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F4 Green           
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            
+       RTA : 0986 012/026 : 03 DA : 5C [*]     Text: [ End of ISPF Referral lists ]
+       RTA : 1039 012/079 : 04 0F : 5C [*]     
+       RTA : 1359 016/079 : 05 4F : 40 [ ]     
+       SBA : 1359 016/079 : 05 4F              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : C5                                
+       GE  : A2 x 78                           
+       GE  : D5                                
+       GE  : 85                                
+       SBA : 1441 018/001 : 05 A1              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [Welcome to the ISPF Workplace. Default view has been set to Data Set. Enter ]
+       SBA : 1518 018/078 : 05 EE              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85 x 2                            
+       SBA : 1521 019/001 : 05 F1              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [Action "ListView" to change view to ISPF Library. Default settings have been]
+       SBA : 1598 019/078 : 06 3E              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85 x 2                            
+       SBA : 1601 020/001 : 06 41              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [established for Applid 'ISR'. Select "Workplace Settings" from Option action]
+       SBA : 1678 020/078 : 06 8E              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85 x 2                            
+       SBA : 1681 021/001 : 06 91              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        Text: [bar to change Workplace settings at any time.]
+       RTA : 1758 021/078 : 06 DE : 40 [ ]     
+       SBA : 1758 021/078 : 06 DE              
+       SFE : Attribute WH : E8 PAVIDm 
+             Foreground   : F7 Neutral2        
+       GE  : 85                                
+       GE  : C4                                
+       GE  : A2 x 78                           
+       GE  : D4                                
+       SBA : 1840 023/000 : 07 30              
+       SFE : Attribute BL : 60 PAVidm 
+             Foreground   : F1 Blue            
+       RTA : 0000 000/000 : 00 00 : 40 [ ]     
+       SBA : 0253 003/013 : 00 FD              
+       IC                                      
+
+--- buffer 10 (1556 bytes) ---
+REC  F1C31140402902C0F842F63C405D405C5C5C5C404040D740C540C540D24040405C5C5C5C3CC14F402902C0F042F62902C0F042F4C4C4D44B4B4B4B2902C0F842F6C5D4D7D3D6E8C5C5E23CC17C402902C0F042F1402902C0F042F4C4C22902C0F842F6404040F02902C0F042F4C6952902C0F842F6404040F12902C0F042F12902C0F042F4D78187852902C0F042F12902C05042F76DF12902C0F042F496862902C0F842F64040F14E2902C0F042F4C1838385A2A24B2902C0F842F6D98581844082A840D7C5D9E2D6D5D5C5D360C9C43CC35D402902C0F042F1402902C0F042F4E28399952902C05042F76D6DF52902C0F042F496862902C0F842F64040F52902C0F042F12902C0F042F4E2A38199A34B4B2902C0F842F6F1F2F33CC47F402902C0F042F1402902C0F042F5D78599A29695958540C35C93858140D38581A58560A2A38140D38581A5856085958440C35C93819540D38195405CC9E2D53CC650402902C0F042F12902C0F042F53CC65A7E40606060606040606060605C6060606040606060605C6060606040606060606040605C604060606060606060606060603CC760402902C0F842F540F1F2F3F4404040404040404040F0404040404040404040F0404040404040404040F04040404040F0404040404040404040404040F1F1F5F03CC8F14040F2F0F0F0F0F0F0F04040404040F34040F1F9F9F8F0F1F1F24040F1F9F9F8F0F1F1F24040404040F340C5D5C74040404040404040F1F1F0F63C4AC14040F2F0F0F0F0F1F0F04040404040F34040F1F9F9F8F0F1F0F24040F1F9F9F8F0F1F0F64040404040F140C5D5C7404040404040404040F7F8F23C4BD14040F2F0F0F0F0F2F0F04040404040F34040F1F9F9F8F0F1F1F24040F1F9F9F8F0F1F1F24040404040F140C5D5C7404040404040404040F7F8F33C4C614040F2F0F0F0F0F3F0F04040404040F34040F1F9F9F8F0F1F1F24040F1F9F9F8F0F1F1F24040404040F140C5D5C7404040404040404040F7F8F43C4DF14040F2F0F0F0F0F4F0F04040404040F34040F1F9F9F8F0F1F1F24040F1F9F9F8F0F1F1F24040404040F140C5D5C7404040404040404040F7F8F53C4FC14040F2F0F0F0F0F5F0F04040404040F34040F1F9F9F8F0F1F1F24040F1F9F9F8F0F1F1F24040404040F140C5D5C7404040404040404040F7F8F63C50D14040F2F0F0F0F0F6F0F04040404040F34040F1F9F9F8F0F1F1F24040F1F9F9F8F0F1F1F24040404040F140C5D5C7404040404040404040F7F8F73CD1614040F2F0F0F0F0F7F0F04040404040F34040F1F9F9F8F0F1F1F24040F1F9F9F8F0F1F1F24040404040F240C5D5C7404040404040404040F7F8F83CD2F14040F2F0F0F0F0F8F0F04040404040F34040F1F9F9F8F0F1F1F24040F1F9F9F8F0F1F1F24040404040F240C5D5C7404040404040404040F7F8F93CD4C14040F2F0F0F0F0F9F0F04040404040F34040F1F9F9F8F0F1F1F24040F1F9F9F8F0F1F1F24040404040F440C5D5C7404040404040404040F7F9F03CD5D14040F2F0F0F0F1F0F0F04040404040F34040F1F9F9F8F0F1F1F24040F1F9F9F8F0F1F1F24040404040F140C5D5C7404040404040404040F7F9F13CD6614040F2F0F0F0F1F1F0F04040404040F34040F1F9F9F8F0F1F1F24040F1F9F9F8F0F1F1F24040404040F140C5D5C7404040404040404040F7F9F23CD7F14040F2F0F0F0F1F2F0F04040404040F34040F1F9F9F8F0F1F0F24040F1F9F9F8F0F1F0F64040404040F140C5D5C74040404040404040F1F1F0F73CD9C14040F2F0F0F0F1F3F0F04040404040F34040F1F9F9F8F0F1F0F24040F1F9F9F8F0F1F0F34040404040F140C5D5C7404040404040404040F7F9F33C5A50402902C0F042F4C394842902C04042F73C5BD76D2902C0F042F4D481A2922902C0F842F6D686862902C0F042F4C595A3859960D7C6F1606060D7C6F2606060D7C6F3606060D7C6F4606060D7C6F5606060D7C6F6606060D7C6F7606060D7C6F8606060D7C6F9606060D7C6F1F06060D7C6F1F16060D7C6F1F26060602902C0F042F44E4040404040C88593974040D7998586A240D285A8A24040C68993854040E2A38199A340E2609985834060D7818785404ED78187854060E2839995404EE28399954060D7818785404ED78187854040115AD513FFEF
+     WriteCommand
+       Write
+       WCC : reset MDT=yes, keyboard=yes, alarm=no , printer=no , partition=yes
+       SBA : 0000 000/000 : 40 40              
+       SFE : Attribute WH : F8 PaVIDm 
+             Foreground   : F6 Yellow          
+       RTA : 0029 000/029 : 40 5D : 40 [ ]     Text: [****   P E E K   ****]
+       RTA : 0079 000/079 : C1 4F : 40 [ ]     
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F6 Yellow          
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F4 Green           Text: [DDM....]
+       SFE : Attribute WH : F8 PaVIDm 
+             Foreground   : F6 Yellow          Text: [EMPLOYEES]
+       RTA : 0124 001/044 : C1 7C : 40 [ ]     
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F1 Blue            Text: [ ]
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F4 Green           Text: [DB]
+       SFE : Attribute WH : F8 PaVIDm 
+             Foreground   : F6 Yellow          Text: [   0]
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F4 Green           Text: [Fn]
+       SFE : Attribute WH : F8 PaVIDm 
+             Foreground   : F6 Yellow          Text: [   1]
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F1 Blue            
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F4 Green           Text: [Page]
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F1 Blue            
+       SFE : Attribute GR : 50 paVidm 
+             Foreground   : F7 Neutral2        Text: [_1]
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F4 Green           Text: [of]
+       SFE : Attribute WH : F8 PaVIDm 
+             Foreground   : F6 Yellow          Text: [  1+]
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F4 Green           Text: [Access.]
+       SFE : Attribute WH : F8 PaVIDm 
+             Foreground   : F6 Yellow          Text: [Read by PERSONNEL-ID]
+       RTA : 0221 002/061 : C3 5D : 40 [ ]     
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F1 Blue            Text: [ ]
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F4 Green           Text: [Scrn]
+       SFE : Attribute GR : 50 paVidm 
+             Foreground   : F7 Neutral2        Text: [__5]
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F4 Green           Text: [of]
+       SFE : Attribute WH : F8 PaVIDm 
+             Foreground   : F6 Yellow          Text: [  5]
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F1 Blue            
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F4 Green           Text: [Start..]
+       SFE : Attribute WH : F8 PaVIDm 
+             Foreground   : F6 Yellow          Text: [123]
+       RTA : 0319 003/079 : C4 7F : 40 [ ]     
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F1 Blue            Text: [ ]
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F5 Turquoise       Text: [Personne C*lea Leave-sta Leave-end C*lan Lan *ISN]
+       RTA : 0400 005/000 : C6 50 : 40 [ ]     
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F1 Blue            
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F5 Turquoise       
+       RTA : 0410 005/010 : C6 5A : 7E [=]     Text: [ ----- ----*---- ----*---- ----- -*- -----------]
+       RTA : 0480 006/000 : C7 60 : 40 [ ]     
+       SFE : Attribute WH : F8 PaVIDm 
+             Foreground   : F5 Turquoise       Text: [ 1234         0         0         0     0            1150]
+       RTA : 0561 007/001 : C8 F1 : 40 [ ]     Text: [ 20000000     3  19980112  19980112     3 ENG        1106]
+       RTA : 0641 008/001 : 4A C1 : 40 [ ]     Text: [ 20000100     3  19980102  19980106     1 ENG         782]
+       RTA : 0721 009/001 : 4B D1 : 40 [ ]     Text: [ 20000200     3  19980112  19980112     1 ENG         783]
+       RTA : 0801 010/001 : 4C 61 : 40 [ ]     Text: [ 20000300     3  19980112  19980112     1 ENG         784]
+       RTA : 0881 011/001 : 4D F1 : 40 [ ]     Text: [ 20000400     3  19980112  19980112     1 ENG         785]
+       RTA : 0961 012/001 : 4F C1 : 40 [ ]     Text: [ 20000500     3  19980112  19980112     1 ENG         786]
+       RTA : 1041 013/001 : 50 D1 : 40 [ ]     Text: [ 20000600     3  19980112  19980112     1 ENG         787]
+       RTA : 1121 014/001 : D1 61 : 40 [ ]     Text: [ 20000700     3  19980112  19980112     2 ENG         788]
+       RTA : 1201 015/001 : D2 F1 : 40 [ ]     Text: [ 20000800     3  19980112  19980112     2 ENG         789]
+       RTA : 1281 016/001 : D4 C1 : 40 [ ]     Text: [ 20000900     3  19980112  19980112     4 ENG         790]
+       RTA : 1361 017/001 : D5 D1 : 40 [ ]     Text: [ 20001000     3  19980112  19980112     1 ENG         791]
+       RTA : 1441 018/001 : D6 61 : 40 [ ]     Text: [ 20001100     3  19980112  19980112     1 ENG         792]
+       RTA : 1521 019/001 : D7 F1 : 40 [ ]     Text: [ 20001200     3  19980102  19980106     1 ENG        1107]
+       RTA : 1601 020/001 : D9 C1 : 40 [ ]     Text: [ 20001300     3  19980102  19980103     1 ENG         793]
+       RTA : 1680 021/000 : 5A 50 : 40 [ ]     
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F4 Green           Text: [Cmd]
+       SFE : Attribute GR : 40 pAVidm 
+             Foreground   : F7 Neutral2        
+       RTA : 1751 021/071 : 5B D7 : 6D [_]     
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F4 Green           Text: [Mask]
+       SFE : Attribute WH : F8 PaVIDm 
+             Foreground   : F6 Yellow          Text: [Off]
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F4 Green           Text: [Enter-PF1---PF2---PF3---PF4---PF5---PF6---PF7---PF8---PF9---PF10--PF11--PF12---]
+       SFE : Attribute BL : F0 PaVidm 
+             Foreground   : F4 Green           Text: [+     Help  Prefs Keys  File  Start S-rec -Page +Page -Scrn +Scrn -Page +Page  ]
+       SBA : 1685 021/005 : 5A D5              
+       IC                                      
+
+--- estado final do telnet ---
+does3270Extended : false
+doesTerminalType : false
+doesEOR          : false
+doesBinary       : false
+Nothing to report
+================================================================
+NEGOCIACAO TN3270E
+================================================================
+
+--- DO TN3270E ---
+CMD  FFFD28
+     TelnetCommand
+       DO TN3270_EXTENDED
+     reply: FFFB28
+
+--- SB TN3270E SEND DEVICE-TYPE ---
+SUB  FFFA280802FFF0
+     TN3270ExtendedSubcommand
+       SEND DEVICE_TYPE
+
+--- SB TN3270E DEVICE-TYPE IS + CONNECT ---
+SUB  FFFA28020449424D2D333237382D322D45014C5531FFF0
+     TN3270ExtendedSubcommand
+       DEVICE_TYPE IS IBM-3278-2-E (LU1)
+
+--- SB TN3270E FUNCTIONS IS ---
+SUB  FFFA2803040002FFF0
+     TN3270ExtendedSubcommand
+       FUNCTIONS IS : BIND, RESPONSES
+
+--- DO TERMINAL-TYPE ---
+CMD  FFFD18
+     TelnetCommand
+       DO TERMINAL_TYPE
+     reply: FFFB18
+
+--- SB TERMINAL-TYPE SEND ---
+SUB  FFFA1801FFF0
+     TerminalTypeSubcommand
+       SEND TerminalType
+
+--- DO EOR ---
+CMD  FFFD19
+     TelnetCommand
+       DO EOR
+     reply: FFFB19
+
+--- DO BINARY ---
+CMD  FFFD00
+     TelnetCommand
+       DO BINARY
+     reply: FFFB00
+
+--- registro TN3270E (cabecalho + Write/WCC) ---
+REC  0000000001F1C2FFEF
+     header: HDR: 0001, TN3270_DATA , , NO_RESPONSE
+     TN3270ExtendedCommand
+       Write
+       WCC : reset MDT=no , keyboard=yes, alarm=no , printer=no , partition=yes
+
+--- estado final do telnet ---
+does3270Extended : true
+doesTerminalType : true
+doesEOR          : true
+doesBinary       : true
+Nothing to report
