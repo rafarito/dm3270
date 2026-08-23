@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.display;
+package com.bytezone.dm3270.screen;
 
 /*
  * Qual das duas geometrias de tela esta em uso: a default negociada no telnet ou a

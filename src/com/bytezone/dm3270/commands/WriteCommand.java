@@ -3,9 +3,9 @@ package com.bytezone.dm3270.commands;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.bytezone.dm3270.display.Cursor;
-import com.bytezone.dm3270.display.ScreenTarget;
-import com.bytezone.dm3270.display.ScreenOption;
+import com.bytezone.dm3270.screen.Cursor;
+import com.bytezone.dm3270.screen.ScreenTarget;
+import com.bytezone.dm3270.screen.ScreenOption;
 import com.bytezone.dm3270.orders.Order;
 import com.bytezone.dm3270.orders.TextOrder;
 

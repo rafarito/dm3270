@@ -11,6 +11,9 @@ import com.bytezone.dm3270.attributes.StartFieldAttribute;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.orders.BufferAddress;
 import com.bytezone.dm3270.orders.Order;
+import com.bytezone.dm3270.screen.Field;
+import com.bytezone.dm3270.screen.Pen;
+import com.bytezone.dm3270.screen.ScreenPosition;
 import com.bytezone.dm3270.structuredfields.SetReplyModeSF;
 
 import org.slf4j.Logger;

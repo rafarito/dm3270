@@ -1,7 +1,7 @@
 package com.bytezone.dm3270.extended;
 
 import com.bytezone.dm3270.buffers.AbstractReplyBuffer;
-import com.bytezone.dm3270.display.ScreenTarget;
+import com.bytezone.dm3270.screen.ScreenTarget;
 
 public abstract class AbstractExtendedCommand extends AbstractReplyBuffer
 {

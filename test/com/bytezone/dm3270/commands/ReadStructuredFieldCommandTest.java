@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import com.bytezone.dm3270.display.ScreenDimensions;
+import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.replyfield.QueryReplyField;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.structuredfields.StructuredField;

@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.display;
+package com.bytezone.dm3270.screen;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,12 +67,12 @@ public final class ScreenPosition
     reset ();
   }
 
-  void setSelected (boolean selected)
+  public void setSelected (boolean selected)
   {
     this.selected = selected;
   }
 
-  boolean isSelected ()
+  public boolean isSelected ()
   {
     return selected;
   }
@@ -102,7 +102,7 @@ public final class ScreenPosition
   // called from Field.push()
   // called from Field.setText()
   // ---------------------------------------------------------------------------------//
-  void setChar (byte value)
+  public void setChar (byte value)
   // ---------------------------------------------------------------------------------//
   {
     this.value = value;
@@ -111,7 +111,7 @@ public final class ScreenPosition
 
   // called from Pen.writeGraphics()
   // ---------------------------------------------------------------------------------//
-  void setGraphicsChar (byte value)
+  public void setGraphicsChar (byte value)
   // ---------------------------------------------------------------------------------//
   {
     this.value = value;
@@ -119,7 +119,7 @@ public final class ScreenPosition
   }
 
   // ---------------------------------------------------------------------------------//
-  StartFieldAttribute getStartFieldAttribute ()
+  public StartFieldAttribute getStartFieldAttribute ()
   // ---------------------------------------------------------------------------------//
   {
     return startFieldAttribute;
@@ -146,7 +146,7 @@ public final class ScreenPosition
   }
 
   // ---------------------------------------------------------------------------------//
-  List<Attribute> getAttributes ()
+  public List<Attribute> getAttributes ()
   // ---------------------------------------------------------------------------------//
   {
     return attributes;
@@ -185,7 +185,7 @@ public final class ScreenPosition
   // called from PenType1.startField()
   // called from Field constructor
   // ---------------------------------------------------------------------------------//
-  void setVisible (boolean visible)
+  public void setVisible (boolean visible)
   // ---------------------------------------------------------------------------------//
   {
     this.isVisible = visible;
@@ -193,7 +193,7 @@ public final class ScreenPosition
 
   // All the colour and highlight options
   // ---------------------------------------------------------------------------------//
-  void setScreenContext (ScreenContext screenContext)
+  public void setScreenContext (ScreenContext screenContext)
   // ---------------------------------------------------------------------------------//
   {
     if (screenContext == null)
@@ -209,14 +209,14 @@ public final class ScreenPosition
   }
 
   // ---------------------------------------------------------------------------------//
-  boolean isStartField ()
+  public boolean isStartField ()
   // ---------------------------------------------------------------------------------//
   {
     return startFieldAttribute != null;
   }
 
   // ---------------------------------------------------------------------------------//
-  boolean isGraphicsChar ()
+  public boolean isGraphicsChar ()
   // ---------------------------------------------------------------------------------//
   {
     return isGraphics;
@@ -224,7 +224,7 @@ public final class ScreenPosition
 
   // used by Field.getText()
   // ---------------------------------------------------------------------------------//
-  char getChar ()
+  public char getChar ()
   // ---------------------------------------------------------------------------------//
   {
     if ((value & 0xC0) == 0)
@@ -271,14 +271,14 @@ public final class ScreenPosition
   }
 
   // ---------------------------------------------------------------------------------//
-  byte getByte ()
+  public byte getByte ()
   // ---------------------------------------------------------------------------------//
   {
     return value;
   }
 
   // ---------------------------------------------------------------------------------//
-  boolean isNull ()
+  public boolean isNull ()
   // ---------------------------------------------------------------------------------//
   {
     return value == 0;
@@ -329,7 +329,7 @@ public final class ScreenPosition
   // called by Screen.drawPosition()
   // called by UserScreen.drawScreen()
   // ---------------------------------------------------------------------------------//
-  void draw (boolean hasCursor)
+  public void draw (boolean hasCursor)
   // ---------------------------------------------------------------------------------//
   {
     FontMetrics metrics = screenContext.fontMetrics;

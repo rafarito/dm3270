@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.bytezone.dm3270.commands.AIDCommand;
+import com.bytezone.dm3270.screen.ContextManager;
+import com.bytezone.dm3270.screen.ScreenDimensions;
 
 public class HistoryManager
 {

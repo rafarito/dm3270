@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.display;
+package com.bytezone.dm3270.screen;
 
 import com.bytezone.dm3270.orders.BufferAddress;
 

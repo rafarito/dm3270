@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.bytezone.dm3270.display.ScreenDimensions;
+import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.telnet.TN3270ExtendedSubcommand.Function;
 
 import org.slf4j.Logger;

@@ -1,8 +1,8 @@
 package com.bytezone.dm3270.application;
 
 import com.bytezone.dm3270.commands.AIDCommand;
-import com.bytezone.dm3270.display.Cursor;
-import com.bytezone.dm3270.display.Cursor.Direction;
+import com.bytezone.dm3270.screen.Cursor;
+import com.bytezone.dm3270.screen.Cursor.Direction;
 import com.bytezone.dm3270.display.Screen;
 
 import javafx.event.EventHandler;

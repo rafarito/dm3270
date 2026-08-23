@@ -5,6 +5,11 @@ import java.util.List;
 import com.bytezone.dm3270.attributes.ColorAttribute;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.orders.Order;
+import com.bytezone.dm3270.screen.ContextManager;
+import com.bytezone.dm3270.screen.DisplayScreen;
+import com.bytezone.dm3270.screen.Pen;
+import com.bytezone.dm3270.screen.ScreenDimensions;
+import com.bytezone.dm3270.screen.ScreenPosition;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;

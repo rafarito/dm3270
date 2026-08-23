@@ -1,5 +1,7 @@
 package com.bytezone.dm3270.display;
 
+import com.bytezone.dm3270.screen.ScreenDimensions;
+
 import javafx.animation.PauseTransition;
 import javafx.util.Duration;
 

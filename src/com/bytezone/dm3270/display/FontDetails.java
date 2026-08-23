@@ -1,5 +1,7 @@
 package com.bytezone.dm3270.display;
 
+import com.bytezone.dm3270.screen.FontMetrics;
+
 import javafx.geometry.Bounds;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;

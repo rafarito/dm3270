@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import com.bytezone.dm3270.display.ScreenTarget;
+import com.bytezone.dm3270.screen.ScreenTarget;
 
 // -----------------------------------------------------------------------------------//
 @DisplayName ("Buffers - encapsulamento telnet dos dados 3270")

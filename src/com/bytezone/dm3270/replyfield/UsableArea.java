@@ -1,6 +1,6 @@
 package com.bytezone.dm3270.replyfield;
 
-import com.bytezone.dm3270.display.ScreenDimensions;
+import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 // -----------------------------------------------------------------------------------//

@@ -1,6 +1,7 @@
 package com.bytezone.dm3270.display;
 
 import com.bytezone.dm3270.attributes.TerminalColor;
+import com.bytezone.dm3270.screen.ScreenCanvas;
 
 import javafx.scene.canvas.GraphicsContext;
 

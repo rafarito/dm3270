@@ -1,7 +1,7 @@
 package com.bytezone.dm3270.structuredfields;
 
 import com.bytezone.dm3270.buffers.AbstractTN3270Command;
-import com.bytezone.dm3270.display.ScreenTarget;
+import com.bytezone.dm3270.screen.ScreenTarget;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 // -----------------------------------------------------------------------------------//

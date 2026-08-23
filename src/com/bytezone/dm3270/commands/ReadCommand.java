@@ -3,7 +3,7 @@ package com.bytezone.dm3270.commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bytezone.dm3270.display.ScreenTarget;
+import com.bytezone.dm3270.screen.ScreenTarget;
 
 // Inbound only command - creates a Reply of AID
 

@@ -5,8 +5,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.bytezone.dm3270.assistant.BatchJobListener;
-import com.bytezone.dm3270.display.ScreenTarget;
-import com.bytezone.dm3270.display.ScreenDimensions;
+import com.bytezone.dm3270.screen.ScreenTarget;
+import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.orders.Order;
 import com.bytezone.dm3270.orders.TextOrder;
 import com.bytezone.dm3270.utilities.Dm3270Utility;

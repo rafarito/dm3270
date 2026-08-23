@@ -5,7 +5,7 @@ import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.bytezone.dm3270.display.ScreenTarget;
+import com.bytezone.dm3270.screen.ScreenTarget;
 import com.bytezone.dm3270.streams.TelnetState;
 
 import org.slf4j.Logger;

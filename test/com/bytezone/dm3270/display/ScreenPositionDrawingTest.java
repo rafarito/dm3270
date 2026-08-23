@@ -11,6 +11,11 @@ import org.junit.jupiter.api.Test;
 
 import com.bytezone.dm3270.attributes.ColorAttribute;
 import com.bytezone.dm3270.attributes.TerminalColor;
+import com.bytezone.dm3270.screen.FontMetrics;
+import com.bytezone.dm3270.screen.ScreenCanvas;
+import com.bytezone.dm3270.screen.ScreenContext;
+import com.bytezone.dm3270.screen.ScreenDimensions;
+import com.bytezone.dm3270.screen.ScreenPosition;
 
 /*
  * A sequencia de desenho de uma posicao de tela, congelada.

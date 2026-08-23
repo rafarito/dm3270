@@ -7,8 +7,8 @@ import java.util.Optional;
 import com.bytezone.dm3270.attributes.Attribute;
 import com.bytezone.dm3270.attributes.Attribute.AttributeType;
 import com.bytezone.dm3270.attributes.StartFieldAttribute;
-import com.bytezone.dm3270.display.DisplayScreen;
-import com.bytezone.dm3270.display.Pen;
+import com.bytezone.dm3270.screen.DisplayScreen;
+import com.bytezone.dm3270.screen.Pen;
 
 // -----------------------------------------------------------------------------------//
 public class StartFieldExtendedOrder extends Order

@@ -7,7 +7,7 @@ import java.util.Optional;
 import com.bytezone.dm3270.buffers.Buffer;
 import com.bytezone.dm3270.buffers.MultiBuffer;
 import com.bytezone.dm3270.commands.Command;
-import com.bytezone.dm3270.display.ScreenTarget;
+import com.bytezone.dm3270.screen.ScreenTarget;
 
 public class TN3270ExtendedCommand extends AbstractExtendedCommand
 {

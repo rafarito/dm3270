@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.display;
+package com.bytezone.dm3270.screen;
 
 /*
  * As dimensoes de uma fonte, ja medidas, sem depender do toolkit grafico.

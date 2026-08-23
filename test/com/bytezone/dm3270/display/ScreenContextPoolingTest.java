@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Test;
 
 import com.bytezone.dm3270.attributes.ColorAttribute;
 import com.bytezone.dm3270.attributes.TerminalColor;
+import com.bytezone.dm3270.screen.ContextManager;
+import com.bytezone.dm3270.screen.ScreenContext;
 
 /*
  * Caracterizacao do pool de ScreenContext.

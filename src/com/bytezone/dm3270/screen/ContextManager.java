@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.display;
+package com.bytezone.dm3270.screen;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,7 @@ public class ContextManager
     return contextPool.get (0);
   }
 
-  void setFontMetrics (FontMetrics fontMetrics)
+  public void setFontMetrics (FontMetrics fontMetrics)
   {
     this.fontMetrics = fontMetrics;
     contextPool.forEach (sc -> sc.setFontMetrics (fontMetrics));

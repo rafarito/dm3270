@@ -1,6 +1,6 @@
 package com.bytezone.dm3270.application;
 
-import com.bytezone.dm3270.display.Cursor;
+import com.bytezone.dm3270.screen.Cursor;
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 

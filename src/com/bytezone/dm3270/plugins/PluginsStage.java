@@ -23,11 +23,11 @@ import org.slf4j.LoggerFactory;
 
 import com.bytezone.dm3270.application.ConsolePane;
 import com.bytezone.dm3270.commands.AIDCommand;
-import com.bytezone.dm3270.display.Cursor;
-import com.bytezone.dm3270.display.Field;
+import com.bytezone.dm3270.screen.Cursor;
+import com.bytezone.dm3270.screen.Field;
 import com.bytezone.dm3270.display.FieldManager;
 import com.bytezone.dm3270.display.Screen;
-import com.bytezone.dm3270.display.ScreenDimensions;
+import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.utilities.PreferencesStage;
 import com.bytezone.dm3270.utilities.Site;
 

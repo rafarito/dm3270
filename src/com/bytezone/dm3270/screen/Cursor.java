@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.display;
+package com.bytezone.dm3270.screen;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -48,7 +48,7 @@ public class Cursor
     return visible;
   }
 
-  void setScreenDimensions (ScreenDimensions screenDimensions)
+  public void setScreenDimensions (ScreenDimensions screenDimensions)
   {
     this.screenDimensions = screenDimensions;
   }

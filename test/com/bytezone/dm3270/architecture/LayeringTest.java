@@ -49,6 +49,10 @@ class LayeringTest
         "com.bytezone.dm3270.console..", "com.bytezone.dm3270.display..",
         "com.bytezone.dm3270.plugins..", "com.bytezone.reporter.application.." };
 
+  // O modelo de tela: o buffer, os campos, o cursor, a paleta e as portas por onde o
+  // protocolo fala com a tela. Saiu de dentro de display, que ficou sendo so a view.
+  private static final String[] SCREEN_MODEL = { "com.bytezone.dm3270.screen.." };
+
   // A pilha que transforma bytes do socket em estrutura. E o que precisa rodar headless.
   private static final String[] PROTOCOL_PACKAGES =
       { "com.bytezone.dm3270.buffers..", "com.bytezone.dm3270.commands..",
@@ -76,13 +80,46 @@ class LayeringTest
           .should ().dependOnClassesThat ().resideInAnyPackage ("javafx..")             //
           .because ("a pilha de protocolo tem de rodar headless");
 
+  /*
+   * A segunda regra a valer integralmente, e a que da nome ao trabalho.
+   *
+   * Comecou em 163 violacoes, todas apontando para nove tipos: ScreenTarget, DisplayScreen,
+   * ScreenContext, ContextManager, ScreenDimensions, Pen, Field, Cursor e ScreenOption.
+   * Nenhuma apontava para Screen, FieldManager ou ScreenWatcher. Ou seja: o protocolo nunca
+   * quis o widget - queria o modelo de tela, que por acidente historico morava no mesmo
+   * pacote que o widget.
+   *
+   * Separar os dois pacotes zerou a regra de uma vez. NAO ESTA CONGELADA: display e agora
+   * so a view JavaFX, e nenhuma classe de protocolo pode voltar a nomea-la.
+   */
   // ---------------------------------------------------------------------------------//
   @ArchTest
-  static final ArchRule protocolDoesNotDependOnDisplay = FreezingArchRule.freeze (      //
+  static final ArchRule protocolDoesNotDependOnDisplay =                                //
       noClasses ().that ().resideInAnyPackage (PROTOCOL_PACKAGES)                       //
           .should ().dependOnClassesThat ()                                             //
           .resideInAnyPackage ("com.bytezone.dm3270.display..")                         //
-          .because ("o protocolo fala com uma abstracao de tela, nao com o widget"));
+          .because ("o protocolo fala com uma abstracao de tela, nao com o widget");
+
+  /*
+   * As duas regras que sustentam a separacao. Enquanto valerem, o modelo de tela roda
+   * headless e pode ser extraido para um modulo proprio no dia em que isso interessar.
+   *
+   * Nenhuma das duas e congelada, porque as duas nascem em zero.
+   */
+  // ---------------------------------------------------------------------------------//
+  @ArchTest
+  static final ArchRule screenModelDoesNotKnowJavaFx =                                  //
+      noClasses ().that ().resideInAnyPackage (SCREEN_MODEL)                            //
+          .should ().dependOnClassesThat ().resideInAnyPackage ("javafx..")             //
+          .because ("o modelo de tela e a fronteira do headless");
+
+  // ---------------------------------------------------------------------------------//
+  @ArchTest
+  static final ArchRule screenModelDoesNotDependOnTheView =                             //
+      noClasses ().that ().resideInAnyPackage (SCREEN_MODEL)                            //
+          .should ().dependOnClassesThat ()                                             //
+          .resideInAnyPackage ("com.bytezone.dm3270.display..")                         //
+          .because ("o modelo nao conhece o widget que o desenha");
 
   /*
    * FieldManager, cuja responsabilidade e agrupar posicoes de tela em campos, cria o
@@ -141,8 +178,25 @@ class LayeringTest
    * aparecem como import, e exclui import declarado mas nao usado. As duas listas se
    * sobrepoem quase todo; a do bytecode e a que vale como placar, porque e a que descreve o
    * acoplamento que o compilador realmente impoe.
+   *
+   * SOBRE O 24 DE AGORA, que subiu de 23: e o unico aumento desta refatoracao, e tem uma
+   * causa so, nomeada. Separar o modelo de tela da view criou um pacote novo, e tres ciclos
+   * que estavam escondidos DENTRO de display passaram a ser contados duas vezes - uma pela
+   * view, outra pelo modelo. Dois foram cortados antes do split, de proposito:
+   *
+   *   screen <-> plugins   Field.getPluginField foi para o FieldManager
+   *   screen <-> streams   getTelnetState () virou buildQueryReply ()
+   *
+   * O terceiro nao da para cortar aqui: ScreenTarget.getTransferManager () existe porque a
+   * Screen possui o gerenciador de transferencias, como possui tudo o mais, e
+   * FileTransferOutboundSF o guarda num campo e despacha sobre ele - nao ha o que estreitar.
+   * Sai na onda 3, quando o composition root passar a injetar o gerenciador em quem precisa.
+   * Esta marcado com TODO na propria ScreenTarget.
+   *
+   * O acoplamento nao cresceu: o conjunto de dependencias entre tipos e o mesmo de antes do
+   * split. Cresceu a contagem, porque ha um pacote a mais para conta-la.
    */
-  private static final int MAX_MUTUAL_CYCLES = 23;
+  private static final int MAX_MUTUAL_CYCLES = 24;
 
   // ---------------------------------------------------------------------------------//
   @ArchTest

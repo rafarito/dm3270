@@ -1,7 +1,7 @@
 package com.bytezone.dm3270.structuredfields;
 
 import com.bytezone.dm3270.attributes.Attribute;
-import com.bytezone.dm3270.display.ScreenTarget;
+import com.bytezone.dm3270.screen.ScreenTarget;
 
 // -----------------------------------------------------------------------------------//
 public class SetReplyModeSF extends StructuredField

@@ -2,8 +2,8 @@ package com.bytezone.dm3270.attributes;
 
 import java.util.Optional;
 
-import com.bytezone.dm3270.display.ContextManager;
-import com.bytezone.dm3270.display.ScreenContext;
+import com.bytezone.dm3270.screen.ContextManager;
+import com.bytezone.dm3270.screen.ScreenContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

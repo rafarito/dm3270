@@ -1,7 +1,7 @@
 package com.bytezone.dm3270.orders;
 
-import com.bytezone.dm3270.display.DisplayScreen;
-import com.bytezone.dm3270.display.Pen;
+import com.bytezone.dm3270.screen.DisplayScreen;
+import com.bytezone.dm3270.screen.Pen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

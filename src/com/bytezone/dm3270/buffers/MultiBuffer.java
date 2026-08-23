@@ -3,7 +3,7 @@ package com.bytezone.dm3270.buffers;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.bytezone.dm3270.display.ScreenTarget;
+import com.bytezone.dm3270.screen.ScreenTarget;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

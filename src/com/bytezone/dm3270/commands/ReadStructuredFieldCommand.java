@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.bytezone.dm3270.display.ScreenTarget;
-import com.bytezone.dm3270.display.ScreenDimensions;
+import com.bytezone.dm3270.screen.ScreenTarget;
+import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.filetransfer.FileTransferInboundSF;
 import com.bytezone.dm3270.replyfield.*;
 import com.bytezone.dm3270.streams.TelnetState;

@@ -1,6 +1,6 @@
 package com.bytezone.dm3270.orders;
 
-import com.bytezone.dm3270.display.DisplayScreen;
+import com.bytezone.dm3270.screen.DisplayScreen;
 
 // -----------------------------------------------------------------------------------//
 public abstract class Order

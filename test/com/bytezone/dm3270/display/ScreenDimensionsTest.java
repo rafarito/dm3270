@@ -8,6 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import com.bytezone.dm3270.orders.BufferAddress;
+import com.bytezone.dm3270.screen.ScreenDimensions;
 
 // -----------------------------------------------------------------------------------//
 @DisplayName ("ScreenDimensions - modelos de tela 3270")

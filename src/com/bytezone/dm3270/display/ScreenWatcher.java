@@ -18,6 +18,8 @@ import com.bytezone.dm3270.database.DatasetRequest;
 import com.bytezone.dm3270.database.Initiator;
 import com.bytezone.dm3270.database.Member;
 import com.bytezone.dm3270.database.MemberRequest;
+import com.bytezone.dm3270.screen.Field;
+import com.bytezone.dm3270.screen.ScreenDimensions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

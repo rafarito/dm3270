@@ -1,7 +1,7 @@
 package com.bytezone.dm3270.telnet;
 
 import com.bytezone.dm3270.buffers.AbstractTelnetCommand;
-import com.bytezone.dm3270.display.ScreenTarget;
+import com.bytezone.dm3270.screen.ScreenTarget;
 import com.bytezone.dm3270.streams.TelnetState;
 
 import org.slf4j.Logger;

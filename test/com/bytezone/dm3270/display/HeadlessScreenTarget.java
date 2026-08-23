@@ -6,12 +6,24 @@ import java.util.Optional;
 
 import com.bytezone.dm3270.assistant.BatchJobListener;
 import com.bytezone.dm3270.commands.AIDCommand;
-import com.bytezone.dm3270.commands.SystemMessage;
 import com.bytezone.dm3270.commands.ConsoleLines;
 import com.bytezone.dm3270.commands.ReadStructuredFieldCommand;
+import com.bytezone.dm3270.commands.SystemMessage;
 import com.bytezone.dm3270.commands.SystemMessageView;
 import com.bytezone.dm3270.commands.WriteControlCharacter;
 import com.bytezone.dm3270.filetransfer.TransferManager;
+import com.bytezone.dm3270.screen.ContextManager;
+import com.bytezone.dm3270.screen.Cursor;
+import com.bytezone.dm3270.screen.CursorHost;
+import com.bytezone.dm3270.screen.Field;
+import com.bytezone.dm3270.screen.FieldHost;
+import com.bytezone.dm3270.screen.FontMetrics;
+import com.bytezone.dm3270.screen.Pen;
+import com.bytezone.dm3270.screen.ScreenCanvas;
+import com.bytezone.dm3270.screen.ScreenDimensions;
+import com.bytezone.dm3270.screen.ScreenOption;
+import com.bytezone.dm3270.screen.ScreenPosition;
+import com.bytezone.dm3270.screen.ScreenTarget;
 import com.bytezone.dm3270.streams.TelnetState;
 
 /*

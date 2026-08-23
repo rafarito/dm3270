@@ -17,6 +17,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.bytezone.dm3270.buffers.Buffer;
+import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.telnet.TN3270ExtendedSubcommand.Function;
 import com.bytezone.dm3270.telnet.TN3270ExtendedSubcommand.SubType;

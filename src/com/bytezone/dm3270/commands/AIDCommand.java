@@ -5,9 +5,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
-import com.bytezone.dm3270.display.Cursor;
-import com.bytezone.dm3270.display.Field;
-import com.bytezone.dm3270.display.ScreenTarget;
+import com.bytezone.dm3270.screen.Cursor;
+import com.bytezone.dm3270.screen.Field;
+import com.bytezone.dm3270.screen.ScreenTarget;
 import com.bytezone.dm3270.orders.BufferAddress;
 import com.bytezone.dm3270.orders.BufferAddressSource;
 import com.bytezone.dm3270.orders.Order;

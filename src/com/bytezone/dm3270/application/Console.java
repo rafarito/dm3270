@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.prefs.Preferences;
 
 import com.bytezone.dm3270.display.Screen;
-import com.bytezone.dm3270.display.ScreenDimensions;
+import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.plugins.PluginsStage;
 import com.bytezone.dm3270.session.Session;
 import com.bytezone.dm3270.streams.TelnetState;

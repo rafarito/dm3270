@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.display;
+package com.bytezone.dm3270.screen;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ public class Field implements Iterable<ScreenPosition>
   }
 
   // link two unprotected fields to each other
-  void linkToNext (Field nextField)
+  public void linkToNext (Field nextField)
   {
     assert isUnprotected ();
     assert nextField.isUnprotected ();
@@ -49,17 +49,17 @@ public class Field implements Iterable<ScreenPosition>
     nextField.previous = this;
   }
 
-  void setPrevious (Field field)
+  public void setPrevious (Field field)
   {
     this.previous = field;
   }
 
-  void setNext (Field field)
+  public void setNext (Field field)
   {
     this.next = field;
   }
 
-  Field getNextUnprotectedField ()
+  public Field getNextUnprotectedField ()
   {
     return next;
   }

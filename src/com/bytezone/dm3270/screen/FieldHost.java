@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.display;
+package com.bytezone.dm3270.screen;
 
 /*
  * O que um campo precisa da tela onde ele vive.

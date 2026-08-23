@@ -4,7 +4,7 @@ import java.io.File;
 
 import com.bytezone.dm3270.application.ConsolePane;
 import com.bytezone.dm3270.commands.AIDCommand;
-import com.bytezone.dm3270.display.Field;
+import com.bytezone.dm3270.screen.Field;
 import com.bytezone.dm3270.display.ScreenChangeListener;
 import com.bytezone.dm3270.display.ScreenWatcher;
 import com.bytezone.dm3270.filetransfer.IndFileCommand;

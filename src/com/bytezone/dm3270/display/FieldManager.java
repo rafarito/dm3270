@@ -19,6 +19,12 @@ import com.bytezone.dm3270.database.Initiator;
 import com.bytezone.dm3270.plugins.PluginData;
 import com.bytezone.dm3270.plugins.PluginField;
 import com.bytezone.dm3270.plugins.ScreenLocation;
+import com.bytezone.dm3270.screen.ContextManager;
+import com.bytezone.dm3270.screen.Field;
+import com.bytezone.dm3270.screen.FieldHost;
+import com.bytezone.dm3270.screen.ScreenContext;
+import com.bytezone.dm3270.screen.ScreenDimensions;
+import com.bytezone.dm3270.screen.ScreenPosition;
 import com.bytezone.dm3270.utilities.Site;
 
 import org.slf4j.Logger;
