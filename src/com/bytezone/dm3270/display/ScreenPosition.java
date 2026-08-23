@@ -5,11 +5,9 @@ import java.util.List;
 
 import com.bytezone.dm3270.attributes.Attribute;
 import com.bytezone.dm3270.attributes.StartFieldAttribute;
+import com.bytezone.dm3270.attributes.TerminalColor;
 import com.bytezone.dm3270.orders.Order;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
-
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +29,7 @@ public final class ScreenPosition
   public static final byte HORIZONTAL_LINE = (byte) 0xA2;
   public static final byte VERTICAL_LINE = (byte) 0x85;
 
-  private final GraphicsContext gc;
+  private final ScreenCanvas canvas;
   private ScreenDimensions screenDimensions;
   private final int position;
 
@@ -57,13 +55,13 @@ public final class ScreenPosition
   }
 
   // ---------------------------------------------------------------------------------//
-  public ScreenPosition (int position, GraphicsContext gc,
+  public ScreenPosition (int position, ScreenCanvas canvas,
       ScreenDimensions screenDimensions, ScreenContext screenContext)
   // ---------------------------------------------------------------------------------//
   {
     this.position = position;
     this.screenDimensions = screenDimensions;
-    this.gc = gc;
+    this.canvas = canvas;
 
     this.screenContext = screenContext;
     reset ();
@@ -343,40 +341,40 @@ public final class ScreenPosition
     if (isVisible)
     {
       boolean invert = hasCursor ^ screenContext.reverseVideo ^ selected;
-      gc.setFill (FxPalette.toFx (invert ? screenContext.foregroundColor
-          : screenContext.backgroundColor));
+      canvas.setFill (
+          invert ? screenContext.foregroundColor : screenContext.backgroundColor);
     }
     else
     {
       boolean invert = hasCursor ^ selected;
-      gc.setFill (FxPalette.toFx (
-          invert ? screenContext.foregroundColor : screenContext.backgroundColor));
+      canvas.setFill (
+          invert ? screenContext.foregroundColor : screenContext.backgroundColor);
     }
 
-    gc.fillRect (x, y, fontDetails.width, fontDetails.height);
+    canvas.fillRect (x, y, fontDetails.width, fontDetails.height);
 
-    Color foreground = FxPalette.toFx (hasCursor ^ screenContext.reverseVideo ^ selected
-        ? screenContext.backgroundColor : screenContext.foregroundColor);
+    TerminalColor foreground = hasCursor ^ screenContext.reverseVideo ^ selected
+        ? screenContext.backgroundColor : screenContext.foregroundColor;
 
     // Draw foreground
     if (isVisible)
       if (isGraphics)
       {
-        gc.setStroke (foreground);
+        canvas.setStroke (foreground);
         doGraphics (x, y);
       }
       else
       {
-        gc.setFill (foreground);
-        gc.fillText (getCharString (), x, y + fontDetails.ascent);
+        canvas.setFill (foreground);
+        canvas.fillText (getCharString (), x, y + fontDetails.ascent);
 
         if (screenContext.underscore)
         {
-          gc.setStroke (foreground);
+          canvas.setStroke (foreground);
           x += 0.5;     // stroke commands need to be offset for Windows
           y += 0.5;
           double y2 = y + fontDetails.height - 1;
-          gc.strokeLine (x, y2, x + fontDetails.width, y2);
+          canvas.strokeLine (x, y2, x + fontDetails.width, y2);
         }
       }
   }
@@ -396,35 +394,35 @@ public final class ScreenPosition
     switch (value)
     {
       case HORIZONTAL_LINE:
-        gc.strokeLine (x, y + dy, x + fontDetails.width, y + dy);
+        canvas.strokeLine (x, y + dy, x + fontDetails.width, y + dy);
         break;
 
       case VERTICAL_LINE:
-        gc.strokeLine (x + dx, y, x + dx, y + fontDetails.height);
+        canvas.strokeLine (x + dx, y, x + dx, y + fontDetails.height);
         break;
 
       case TOP_LEFT:
-        gc.strokeLine (x + dx, y + dy, x + dx, y + fontDetails.height);   // vertical
-        gc.strokeLine (x + dx, y + dy, x + fontDetails.width, y + dy);    // horizontal
+        canvas.strokeLine (x + dx, y + dy, x + dx, y + fontDetails.height);   // vertical
+        canvas.strokeLine (x + dx, y + dy, x + fontDetails.width, y + dy);    // horizontal
         break;
 
       case TOP_RIGHT:
-        gc.strokeLine (x + dx, y + dy, x + dx, y + fontDetails.height);   // vertical
-        gc.strokeLine (x, y + dy, x + dx, y + dy);                        // horizontal
+        canvas.strokeLine (x + dx, y + dy, x + dx, y + fontDetails.height);   // vertical
+        canvas.strokeLine (x, y + dy, x + dx, y + dy);                        // horizontal
         break;
 
       case BOTTOM_LEFT:
-        gc.strokeLine (x + dx, y, x + dx, y + dy);                        // vertical
-        gc.strokeLine (x + dx, y + dy, x + fontDetails.width, y + dy);    // horizontal
+        canvas.strokeLine (x + dx, y, x + dx, y + dy);                        // vertical
+        canvas.strokeLine (x + dx, y + dy, x + fontDetails.width, y + dy);    // horizontal
         break;
 
       case BOTTOM_RIGHT:
-        gc.strokeLine (x + dx, y, x + dx, y + dy);                        // vertical
-        gc.strokeLine (x, y + dy, x + dx, y + dy);                        // horizontal
+        canvas.strokeLine (x + dx, y, x + dx, y + dy);                        // vertical
+        canvas.strokeLine (x, y + dy, x + dx, y + dy);                        // horizontal
         break;
 
       default:
-        gc.fillText (".", x, y + fontDetails.ascent);
+        canvas.fillText (".", x, y + fontDetails.ascent);
     }
   }
 

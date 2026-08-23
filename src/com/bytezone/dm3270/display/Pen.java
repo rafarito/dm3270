@@ -3,14 +3,12 @@ package com.bytezone.dm3270.display;
 import com.bytezone.dm3270.attributes.Attribute;
 import com.bytezone.dm3270.attributes.StartFieldAttribute;
 
-import javafx.scene.canvas.GraphicsContext;
-
 public interface Pen extends Iterable<ScreenPosition>
 {
-  static Pen getInstance (ScreenPosition[] screenPositions, GraphicsContext gc,
+  static Pen getInstance (ScreenPosition[] screenPositions, ScreenCanvas canvas,
       ContextManager contextManager, ScreenDimensions screenDimensions)
   {
-    return new PenType1 (screenPositions, gc, contextManager, screenDimensions);
+    return new PenType1 (screenPositions, canvas, contextManager, screenDimensions);
   }
 
   void clearScreen ();

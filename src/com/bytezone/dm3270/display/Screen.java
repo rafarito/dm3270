@@ -144,7 +144,8 @@ public class Screen extends Canvas
     transfersStage.setTransferManager (transferManager);
 
     screenPositions = new ScreenPosition[screenDimensions.size];
-    pen = Pen.getInstance (screenPositions, gc, contextManager, screenDimensions);
+    pen = Pen.getInstance (screenPositions, new FxScreenCanvas (gc), contextManager,
+        screenDimensions);
 
     screenPacker = new ScreenPacker (pen, fieldManager);
 

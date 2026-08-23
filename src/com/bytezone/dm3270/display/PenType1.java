@@ -7,8 +7,6 @@ import java.util.List;
 import com.bytezone.dm3270.attributes.Attribute;
 import com.bytezone.dm3270.attributes.StartFieldAttribute;
 
-import javafx.scene.canvas.GraphicsContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +23,7 @@ class PenType1 implements Pen
   private final List<Attribute> pendingAttributes = new ArrayList<> ();
 
   // created by Screen and HistoryScreen
-  PenType1 (ScreenPosition[] screenPositions, GraphicsContext gc,
+  PenType1 (ScreenPosition[] screenPositions, ScreenCanvas canvas,
       ContextManager contextManager, ScreenDimensions screenDimensions)
   {
     this.screenPositions = screenPositions;
@@ -35,7 +33,7 @@ class PenType1 implements Pen
     ScreenContext defaultContext = contextManager.getDefaultScreenContext ();
 
     for (int i = 0; i < screenPositions.length; i++)
-      screenPositions[i] = new ScreenPosition (i, gc, screenDimensions, defaultContext);
+      screenPositions[i] = new ScreenPosition (i, canvas, screenDimensions, defaultContext);
   }
 
   // called from Screen.clearScreen()
