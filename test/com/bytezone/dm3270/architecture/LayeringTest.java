@@ -57,18 +57,24 @@ class LayeringTest
         "com.bytezone.dm3270.replyfield..", "com.bytezone.dm3270.attributes.." };
 
   /*
-   * A regra central do trabalho todo.
+   * A regra central do trabalho todo - e a primeira a valer integralmente.
    *
-   * A causa raiz do acoplamento e Buffer.process (Screen): ela obriga 25 implementacoes
-   * espalhadas pelo protocolo a importar JavaFX. Enquanto esta regra tiver violacao, nao da
-   * para testar um comando 3270 sem um toolkit grafico ativo.
+   * A causa raiz do acoplamento era Buffer.process (Screen): ela obrigava 25 implementacoes
+   * espalhadas pelo protocolo a importar JavaFX. Comecou em 58 violacoes; a onda de
+   * desacoplamento levou a 31, e tres commits fecharam a conta - o item de menu morto do
+   * SystemMessage, o dialogo de PROFILE que morava em commands e a criacao do ConsoleLog.
+   *
+   * NAO ESTA CONGELADA, de proposito. Chegou a zero, entao vale inteira: qualquer classe de
+   * buffers, commands, orders, telnet, extended, structuredfields, replyfield ou attributes
+   * que voltar a tocar em JavaFX quebra a build, sem baseline nenhum para absorver. E a
+   * garantia permanente de que a pilha que transforma bytes em estrutura roda headless.
    */
   // ---------------------------------------------------------------------------------//
   @ArchTest
-  static final ArchRule protocolDoesNotKnowJavaFx = FreezingArchRule.freeze (           //
+  static final ArchRule protocolDoesNotKnowJavaFx =                                     //
       noClasses ().that ().resideInAnyPackage (PROTOCOL_PACKAGES)                       //
           .should ().dependOnClassesThat ().resideInAnyPackage ("javafx..")             //
-          .because ("a pilha de protocolo tem de rodar headless"));
+          .because ("a pilha de protocolo tem de rodar headless");
 
   // ---------------------------------------------------------------------------------//
   @ArchTest
