@@ -332,10 +332,10 @@ public final class ScreenPosition
   void draw (boolean hasCursor)
   // ---------------------------------------------------------------------------------//
   {
-    FontDetails fontDetails = screenContext.fontDetails;
+    FontMetrics metrics = screenContext.fontMetrics;
 
-    double x = 4 + position % screenDimensions.columns * fontDetails.width;
-    double y = 4 + position / screenDimensions.columns * fontDetails.height;
+    double x = 4 + position % screenDimensions.columns * metrics.width ();
+    double y = 4 + position / screenDimensions.columns * metrics.height ();
 
     // Draw background
     if (isVisible)
@@ -351,7 +351,7 @@ public final class ScreenPosition
           invert ? screenContext.foregroundColor : screenContext.backgroundColor);
     }
 
-    canvas.fillRect (x, y, fontDetails.width, fontDetails.height);
+    canvas.fillRect (x, y, metrics.width (), metrics.height ());
 
     TerminalColor foreground = hasCursor ^ screenContext.reverseVideo ^ selected
         ? screenContext.backgroundColor : screenContext.foregroundColor;
@@ -366,15 +366,15 @@ public final class ScreenPosition
       else
       {
         canvas.setFill (foreground);
-        canvas.fillText (getCharString (), x, y + fontDetails.ascent);
+        canvas.fillText (getCharString (), x, y + metrics.ascent ());
 
         if (screenContext.underscore)
         {
           canvas.setStroke (foreground);
           x += 0.5;     // stroke commands need to be offset for Windows
           y += 0.5;
-          double y2 = y + fontDetails.height - 1;
-          canvas.strokeLine (x, y2, x + fontDetails.width, y2);
+          double y2 = y + metrics.height () - 1;
+          canvas.strokeLine (x, y2, x + metrics.width (), y2);
         }
       }
   }
@@ -386,34 +386,34 @@ public final class ScreenPosition
     x += 0.5;     // stroke commands need to be offset for Windows
     y += 0.5;
 
-    FontDetails fontDetails = screenContext.fontDetails;
+    FontMetrics metrics = screenContext.fontMetrics;
 
-    int dx = fontDetails.width / 2;
-    int dy = fontDetails.height / 2;
+    int dx = metrics.width () / 2;
+    int dy = metrics.height () / 2;
 
     switch (value)
     {
       case HORIZONTAL_LINE:
-        canvas.strokeLine (x, y + dy, x + fontDetails.width, y + dy);
+        canvas.strokeLine (x, y + dy, x + metrics.width (), y + dy);
         break;
 
       case VERTICAL_LINE:
-        canvas.strokeLine (x + dx, y, x + dx, y + fontDetails.height);
+        canvas.strokeLine (x + dx, y, x + dx, y + metrics.height ());
         break;
 
       case TOP_LEFT:
-        canvas.strokeLine (x + dx, y + dy, x + dx, y + fontDetails.height);   // vertical
-        canvas.strokeLine (x + dx, y + dy, x + fontDetails.width, y + dy);    // horizontal
+        canvas.strokeLine (x + dx, y + dy, x + dx, y + metrics.height ());   // vertical
+        canvas.strokeLine (x + dx, y + dy, x + metrics.width (), y + dy);    // horizontal
         break;
 
       case TOP_RIGHT:
-        canvas.strokeLine (x + dx, y + dy, x + dx, y + fontDetails.height);   // vertical
+        canvas.strokeLine (x + dx, y + dy, x + dx, y + metrics.height ());   // vertical
         canvas.strokeLine (x, y + dy, x + dx, y + dy);                        // horizontal
         break;
 
       case BOTTOM_LEFT:
         canvas.strokeLine (x + dx, y, x + dx, y + dy);                        // vertical
-        canvas.strokeLine (x + dx, y + dy, x + fontDetails.width, y + dy);    // horizontal
+        canvas.strokeLine (x + dx, y + dy, x + metrics.width (), y + dy);    // horizontal
         break;
 
       case BOTTOM_RIGHT:
@@ -422,7 +422,7 @@ public final class ScreenPosition
         break;
 
       default:
-        canvas.fillText (".", x, y + fontDetails.ascent);
+        canvas.fillText (".", x, y + metrics.ascent ());
     }
   }
 

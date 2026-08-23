@@ -630,7 +630,7 @@ public class Screen extends Canvas
   // called with adjustStage=false when resize comes from user dragging the window
   void fontChanged (FontDetails fontDetails, boolean adjustStage)
   {
-    contextManager.setFontDetails (fontDetails);
+    contextManager.setFontMetrics (fontDetails.metrics ());
 
     // always use the largest available screen
     ScreenDimensions screenDimensions = alternateScreenDimensions == null

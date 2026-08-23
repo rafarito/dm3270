@@ -16,7 +16,7 @@ public class ContextManager
   private static final Logger logger = LoggerFactory.getLogger (ContextManager.class);
 
   private static final List<ScreenContext> contextPool = new ArrayList<> ();
-  private FontDetails fontDetails;
+  private FontMetrics fontMetrics;
 
   public ContextManager ()
   {
@@ -28,10 +28,10 @@ public class ContextManager
     return contextPool.get (0);
   }
 
-  void setFontDetails (FontDetails fontDetails)
+  void setFontMetrics (FontMetrics fontMetrics)
   {
-    this.fontDetails = fontDetails;
-    contextPool.forEach (sc -> sc.setFontDetails (fontDetails));
+    this.fontMetrics = fontMetrics;
+    contextPool.forEach (sc -> sc.setFontMetrics (fontMetrics));
   }
 
   public void dump ()
@@ -111,7 +111,7 @@ public class ContextManager
       byte highlight, boolean highIntensity)
   {
     ScreenContext newContext = new ScreenContext (foregroundColor, backgroundColor,
-        highlight, highIntensity, fontDetails);
+        highlight, highIntensity, fontMetrics);
     contextPool.add (newContext);
     return newContext;
   }
