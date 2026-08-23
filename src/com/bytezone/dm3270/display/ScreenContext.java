@@ -2,14 +2,14 @@ package com.bytezone.dm3270.display;
 
 import com.bytezone.dm3270.attributes.ColorAttribute;
 
-import javafx.scene.paint.Color;
+import com.bytezone.dm3270.attributes.TerminalColor;
 
 // -----------------------------------------------------------------------------------//
 public class ScreenContext
 // -----------------------------------------------------------------------------------//
 {
-  final public Color foregroundColor;
-  final public Color backgroundColor;
+  final public TerminalColor foregroundColor;
+  final public TerminalColor backgroundColor;
   final public byte highlight;
   final public boolean highIntensity;
 
@@ -20,8 +20,8 @@ public class ScreenContext
   FontDetails fontDetails;
 
   // ---------------------------------------------------------------------------------//
-  public ScreenContext (Color foregroundColor, Color backgroundColor, byte highlight,
-      boolean highIntensity, FontDetails fontDetails)
+  public ScreenContext (TerminalColor foregroundColor, TerminalColor backgroundColor,
+      byte highlight, boolean highIntensity, FontDetails fontDetails)
   // ---------------------------------------------------------------------------------//
   {
     this.foregroundColor = foregroundColor;
@@ -48,8 +48,8 @@ public class ScreenContext
   }
 
   // ---------------------------------------------------------------------------------//
-  public boolean matches (Color foregroundColor, Color backgroundColor, byte highlight,
-      boolean highIntensity)
+  public boolean matches (TerminalColor foregroundColor, TerminalColor backgroundColor,
+      byte highlight, boolean highIntensity)
   // ---------------------------------------------------------------------------------//
   {
     return this.foregroundColor == foregroundColor

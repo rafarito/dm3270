@@ -493,9 +493,9 @@ public class Screen extends Canvas
   public void displayText (String text)
   // ---------------------------------------------------------------------------------//
   {
-    gc.setFill (ColorAttribute.colors[8]);                // black
+    gc.setFill (FxPalette.toFx (ColorAttribute.colors[8]));                // black
     gc.fillRect (0, 0, getWidth (), getHeight ());
-    gc.setFill (ColorAttribute.colors[5]);                // turquoise
+    gc.setFill (FxPalette.toFx (ColorAttribute.colors[5]));                // turquoise
 
     int x = 120;
     int y = 100;
@@ -668,7 +668,7 @@ public class Screen extends Canvas
   void eraseScreen ()
   // ---------------------------------------------------------------------------------//
   {
-    gc.setFill (ColorAttribute.colors[8]);             // black
+    gc.setFill (FxPalette.toFx (ColorAttribute.colors[8]));             // black
     gc.fillRect (0, 0, getWidth (), getHeight ());
   }
 

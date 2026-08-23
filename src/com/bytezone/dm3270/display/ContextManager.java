@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bytezone.dm3270.attributes.ColorAttribute;
 
-import javafx.scene.paint.Color;
+import com.bytezone.dm3270.attributes.TerminalColor;
 
 public class ContextManager
 {
@@ -40,7 +40,8 @@ public class ContextManager
     contextPool.forEach (sc -> logger.debug ("{}", sc));
   }
 
-  public ScreenContext getScreenContext (Color foregroundColor, Color backgroundColor,
+  public ScreenContext getScreenContext (TerminalColor foregroundColor,
+      TerminalColor backgroundColor,
       byte highlight, boolean highIntensity)
   {
     Optional<ScreenContext> opt = contextPool.stream ().filter (sc -> sc
@@ -51,7 +52,8 @@ public class ContextManager
         : addNewContext (foregroundColor, backgroundColor, highlight, highIntensity);
   }
 
-  public ScreenContext setForeground (ScreenContext oldContext, Color foregroundColor)
+  public ScreenContext setForeground (ScreenContext oldContext,
+      TerminalColor foregroundColor)
   {
     Optional<ScreenContext> opt = contextPool.stream ()
         .filter (sc -> sc.matches (foregroundColor, oldContext.backgroundColor,
@@ -63,7 +65,8 @@ public class ContextManager
                          oldContext.highlight, oldContext.highIntensity);
   }
 
-  public ScreenContext setBackground (ScreenContext oldContext, Color backgroundColor)
+  public ScreenContext setBackground (ScreenContext oldContext,
+      TerminalColor backgroundColor)
   {
     Optional<ScreenContext> opt = contextPool.stream ()
         .filter (sc -> sc.matches (oldContext.foregroundColor, backgroundColor,
@@ -103,7 +106,8 @@ public class ContextManager
                          oldContext.highlight, highIntensity);
   }
 
-  private ScreenContext addNewContext (Color foregroundColor, Color backgroundColor,
+  private ScreenContext addNewContext (TerminalColor foregroundColor,
+      TerminalColor backgroundColor,
       byte highlight, boolean highIntensity)
   {
     ScreenContext newContext = new ScreenContext (foregroundColor, backgroundColor,

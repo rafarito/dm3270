@@ -343,20 +343,20 @@ public final class ScreenPosition
     if (isVisible)
     {
       boolean invert = hasCursor ^ screenContext.reverseVideo ^ selected;
-      gc.setFill (invert ? screenContext.foregroundColor
-          : screenContext.backgroundColor);
+      gc.setFill (FxPalette.toFx (invert ? screenContext.foregroundColor
+          : screenContext.backgroundColor));
     }
     else
     {
       boolean invert = hasCursor ^ selected;
-      gc.setFill (
-          invert ? screenContext.foregroundColor : screenContext.backgroundColor);
+      gc.setFill (FxPalette.toFx (
+          invert ? screenContext.foregroundColor : screenContext.backgroundColor));
     }
 
     gc.fillRect (x, y, fontDetails.width, fontDetails.height);
 
-    Color foreground = hasCursor ^ screenContext.reverseVideo ^ selected
-        ? screenContext.backgroundColor : screenContext.foregroundColor;
+    Color foreground = FxPalette.toFx (hasCursor ^ screenContext.reverseVideo ^ selected
+        ? screenContext.backgroundColor : screenContext.foregroundColor);
 
     // Draw foreground
     if (isVisible)

@@ -33,9 +33,31 @@ final class ArchUnitStore
 
     configuration.setProperty ("freeze.store.default.path", STORE_PATH);
     configuration.setProperty ("freeze.store.default.allowStoreCreation", "true");
+    configuration.setProperty ("freeze.refreeze", refreeze ());
+  }
 
-    // O baseline so encolhe sozinho. Ele nunca ganha entradas por conta propria: uma
-    // violacao nova tem de quebrar a build para ser vista.
-    configuration.setProperty ("freeze.refreeze", "false");
+  /*
+   * Por padrao o baseline so encolhe: violacao resolvida sai sozinha, violacao nova quebra a
+   * build.
+   *
+   * Ha um caso legitimo em que uma violacao ANTIGA aparece como nova, e ele acontece
+   * exatamente durante uma refatoracao: o FreezingArchRule identifica cada violacao pelo
+   * texto, e o texto inclui a assinatura completa do metodo. Trocar o tipo de um parametro -
+   * de javafx.scene.paint.Color para TerminalColor, por exemplo - reescreve a descricao da
+   * mesma dependencia, que entao nao casa mais com a entrada guardada.
+   *
+   * Para esses casos, e SOMENTE para eles:
+   *
+   *     mvn test -Darchunit.freeze.refreeze=true -Dtest=LayeringTest
+   *
+   * A absorcao deixa de ser automatica e passa a ser um ato deliberado, com o diff do
+   * baseline visivel no commit. Se o diff mostrar mais do que a reescrita esperada, e porque
+   * havia regressao de verdade escondida ali.
+   */
+  // ---------------------------------------------------------------------------------//
+  private static String refreeze ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return Boolean.getBoolean ("archunit.freeze.refreeze") ? "true" : "false";
   }
 }

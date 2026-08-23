@@ -4,15 +4,13 @@ import com.bytezone.dm3270.display.ContextManager;
 import com.bytezone.dm3270.display.ScreenContext;
 import com.bytezone.dm3270.orders.BufferAddress;
 
-import javafx.scene.paint.Color;
-
 public class StartFieldAttribute extends Attribute
 {
-  private static final Color WHITE = ColorAttribute.colors[0];
-  private static final Color BLUE = ColorAttribute.colors[1];
-  private static final Color RED = ColorAttribute.colors[2];
-  private static final Color GREEN = ColorAttribute.colors[4];
-  private static final Color BLACK = ColorAttribute.colors[8];
+  private static final TerminalColor WHITE = ColorAttribute.colors[0];
+  private static final TerminalColor BLUE = ColorAttribute.colors[1];
+  private static final TerminalColor RED = ColorAttribute.colors[2];
+  private static final TerminalColor GREEN = ColorAttribute.colors[4];
+  private static final TerminalColor BLACK = ColorAttribute.colors[8];
 
   private final boolean isProtected;      // bit 2
   private final boolean isNumeric;        // bit 3
@@ -137,7 +135,7 @@ public class StartFieldAttribute extends Attribute
   {
     assert unused1 == null && unused2 == null;
 
-    Color color = isHighIntensity ? //
+    TerminalColor color = isHighIntensity ? //
         isProtected ? WHITE : RED : //
         isProtected ? BLUE : GREEN;
 

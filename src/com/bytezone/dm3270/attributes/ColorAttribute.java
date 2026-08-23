@@ -1,7 +1,5 @@
 package com.bytezone.dm3270.attributes;
 
-import javafx.scene.paint.Color;
-
 public abstract class ColorAttribute extends Attribute
 {
   public static final byte COLOR_NEUTRAL1 = 0x00;
@@ -26,31 +24,34 @@ public abstract class ColorAttribute extends Attribute
         "Black", "Deep blue", "Orange", "Purple", "Pale green", "Pale turquoise", "Grey",
         "White" };
 
-  public static final Color[] colors = //
-      { Color.WHITESMOKE,     //
-        Color.DODGERBLUE,     // or DEEPSKYBLUE, SKYBLUE, LIGHTSKYBLUE
-        Color.RED,            //
-        Color.PINK,           //
-        Color.LIME,           //
-        Color.TURQUOISE,      //
-        Color.YELLOW,         //
-        Color.WHITESMOKE,     //
-        Color.BLACK,          //
-        Color.DARKBLUE,       //
-        Color.ORANGE,         //
-        Color.PURPLE,         //
-        Color.PALEGREEN,      //
-        Color.PALETURQUOISE,  //
-        Color.GREY,           //
-        Color.WHITESMOKE      //
+  // Neutral1, Neutral2 e White apontam de proposito para a MESMA instancia: sao 16 slots
+  // para 14 objetos. ScreenContext.matches compara cor por identidade (==), e o pool de
+  // ContextManager depende desse aliasing - ver TerminalColor.
+  public static final TerminalColor[] colors = //
+      { TerminalColor.WHITE_SMOKE,     // Neutral1
+        TerminalColor.DODGER_BLUE,     // or DEEPSKYBLUE, SKYBLUE, LIGHTSKYBLUE
+        TerminalColor.RED,             //
+        TerminalColor.PINK,            //
+        TerminalColor.LIME,            //
+        TerminalColor.TURQUOISE,       //
+        TerminalColor.YELLOW,          //
+        TerminalColor.WHITE_SMOKE,     // Neutral2 - mesma instancia de Neutral1
+        TerminalColor.BLACK,           //
+        TerminalColor.DARK_BLUE,       //
+        TerminalColor.ORANGE,          //
+        TerminalColor.PURPLE,          //
+        TerminalColor.PALE_GREEN,      //
+        TerminalColor.PALE_TURQUOISE,  //
+        TerminalColor.GREY,            //
+        TerminalColor.WHITE_SMOKE      // White - mesma instancia de Neutral1
   };
 
-  protected final Color color;
+  protected final TerminalColor color;
 
-  public static String getName (Color searchColor)
+  public static String getName (TerminalColor searchColor)
   {
     int count = 0;
-    for (Color color : colors)
+    for (TerminalColor color : colors)
     {
       if (color == searchColor)
         return colorNames[count];
@@ -65,7 +66,7 @@ public abstract class ColorAttribute extends Attribute
     color = colors[value & 0x0F];
   }
 
-  public Color getColor ()
+  public TerminalColor getColor ()
   {
     return color;
   }

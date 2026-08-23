@@ -14,8 +14,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.bytezone.dm3270.attributes.ColorAttribute;
-
-import javafx.scene.paint.Color;
+import com.bytezone.dm3270.attributes.TerminalColor;
 
 /*
  * Caracterizacao do pool de ScreenContext.
@@ -23,17 +22,19 @@ import javafx.scene.paint.Color;
  * Existe por causa de uma armadilha: ScreenContext.matches compara as cores por
  * IDENTIDADE (==), nao por equals. Isso so funciona hoje porque toda cor vem da paleta
  * de ColorAttribute, que e um array de constantes - e nesse array tres posicoes apontam
- * para o MESMO objeto Color.WHITESMOKE (Neutral1, Neutral2 e White).
+ * para o MESMO objeto TerminalColor.WHITE_SMOKE (Neutral1, Neutral2 e White).
  *
  * Consequencia pratica: pedir um contexto com colors[0] e depois com colors[15] devolve
- * o mesmo ScreenContext, e o pool cresce uma vez so. Trocar javafx.scene.paint.Color por
- * um tipo neutro proprio precisa reproduzir esse aliasing exatamente. Um enum com 16
- * constantes distintas, por exemplo, quebraria a equivalencia: o pool passaria a ter
- * entradas a mais e matches passaria a responder diferente.
+ * o mesmo ScreenContext, e o pool cresce uma vez so.
  *
- * Estes testes congelam o comportamento atual para que a substituicao seja verificavel.
+ * Estes testes nasceram ANTES da troca de javafx.scene.paint.Color por TerminalColor,
+ * justamente para que a substituicao fosse verificavel: era preciso provar que o aliasing
+ * sobreviveu. Um enum com 16 constantes distintas, que seria o refactor obvio, teria
+ * quebrado a equivalencia sem quebrar nada visivelmente - o pool ganharia entradas a mais e
+ * matches passaria a responder diferente. Continuam valendo como guarda contra qualquer
+ * mexida futura na paleta.
  *
- * Nao ha toolkit JavaFX envolvido: Color e uma classe de valor e nao exige Platform.startup.
+ * Nao ha toolkit JavaFX envolvido, e agora nem tipo do JavaFX: TerminalColor e neutro.
  *
  * O pool de ContextManager e um campo static, compartilhado entre todas as instancias e
  * que so cresce. Por isso os testes abaixo verificam sempre relacoes de identidade e
@@ -57,14 +58,14 @@ class ScreenContextPoolingTest
     @DisplayName ("os 16 slots apontam para apenas 14 objetos distintos")
     void sixteenSlotsAreFourteenObjects ()
     {
-      Set<Color> distinct =
-          java.util.Collections.newSetFromMap (new IdentityHashMap<Color, Boolean> ());
-      for (Color color : ColorAttribute.colors)
+      Set<TerminalColor> distinct = java.util.Collections
+          .newSetFromMap (new IdentityHashMap<TerminalColor, Boolean> ());
+      for (TerminalColor color : ColorAttribute.colors)
         distinct.add (color);
 
       assertEquals (16, ColorAttribute.colors.length, "a paleta tem 16 posicoes");
       assertEquals (14, distinct.size (),
-          "Neutral1, Neutral2 e White compartilham o mesmo Color.WHITESMOKE");
+          "Neutral1, Neutral2 e White compartilham o mesmo TerminalColor.WHITE_SMOKE");
     }
 
     @Test
@@ -73,7 +74,8 @@ class ScreenContextPoolingTest
     {
       assertSame (ColorAttribute.colors[0], ColorAttribute.colors[7], "Neutral1 vs Neutral2");
       assertSame (ColorAttribute.colors[0], ColorAttribute.colors[15], "Neutral1 vs White");
-      assertSame (Color.WHITESMOKE, ColorAttribute.colors[0], "todos sao WHITESMOKE");
+      assertSame (TerminalColor.WHITE_SMOKE, ColorAttribute.colors[0],
+          "todos sao WHITE_SMOKE");
     }
   }
 
@@ -98,15 +100,17 @@ class ScreenContextPoolingTest
     @DisplayName ("recusa uma cor igual por valor mas de outra instancia")
     void rejectsEqualButDistinctInstance ()
     {
-      Color sameValue = Color.rgb (245, 245, 245);            // igual a WHITESMOKE
+      TerminalColor sameValue = TerminalColor.rgb (245, 245, 245);   // igual a WHITE_SMOKE
 
-      assertEquals (Color.WHITESMOKE, sameValue, "as duas cores sao iguais por valor");
-      assertNotSame (Color.WHITESMOKE, sameValue, "mas nao sao o mesmo objeto");
+      assertEquals (TerminalColor.WHITE_SMOKE, sameValue,
+          "as duas cores sao iguais por valor");
+      assertNotSame (TerminalColor.WHITE_SMOKE, sameValue, "mas nao sao o mesmo objeto");
 
-      ScreenContext context = new ScreenContext (Color.WHITESMOKE, ColorAttribute.colors[8],
-          NO_HIGHLIGHT, false, null);
+      ScreenContext context = new ScreenContext (TerminalColor.WHITE_SMOKE,
+          ColorAttribute.colors[8], NO_HIGHLIGHT, false, null);
 
-      assertFalse (context.matches (sameValue, ColorAttribute.colors[8], NO_HIGHLIGHT, false),
+      assertFalse (
+          context.matches (sameValue, ColorAttribute.colors[8], NO_HIGHLIGHT, false),
           "matches usa ==, entao valor igual nao basta");
     }
   }

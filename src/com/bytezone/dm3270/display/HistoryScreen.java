@@ -100,7 +100,7 @@ public class HistoryScreen extends Canvas implements DisplayScreen
   @Override
   public void clearScreen ()
   {
-    gc.setFill (ColorAttribute.colors[8]);                // black
+    gc.setFill (FxPalette.toFx (ColorAttribute.colors[8]));                // black
     gc.fillRect (0, 0, getWidth (), getHeight ());
     pen.clearScreen ();
   }
