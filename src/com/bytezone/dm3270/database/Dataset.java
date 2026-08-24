@@ -15,29 +15,29 @@ public class Dataset
 
   private static final SimpleDateFormat fmt1 = new SimpleDateFormat ("yyyy/MM/dd");
 
-  final String name;
+  private final String name;
 
-  String volume;
-  String device;
-  String catalog;
+  private String volume;
+  private String device;
+  private String catalog;
 
-  int tracks;
-  int cylinders;
-  int extents;
-  int percent;
+  private int tracks;
+  private int cylinders;
+  private int extents;
+  private int percent;
 
-  String dsorg;
-  String recfm;
-  int lrecl;
-  int blksize;
+  private String dsorg;
+  private String recfm;
+  private int lrecl;
+  private int blksize;
 
-  Date created;
-  Date expires;
-  Date referred;
+  private Date created;
+  private Date expires;
+  private Date referred;
 
-  java.sql.Date createdSQL;
-  java.sql.Date expiresSQL;
-  java.sql.Date referredSQL;
+  private java.sql.Date createdSQL;
+  private java.sql.Date expiresSQL;
+  private java.sql.Date referredSQL;
 
   // ---------------------------------------------------------------------------------//
   public Dataset (String name)
@@ -158,7 +158,7 @@ public class Dataset
   }
 
   // ---------------------------------------------------------------------------------//
-  void merge (Dataset other)
+  public void merge (Dataset other)
   // ---------------------------------------------------------------------------------//
   {
     assert name.equals (other.name);
@@ -208,7 +208,7 @@ public class Dataset
   }
 
   // ---------------------------------------------------------------------------------//
-  boolean differsFrom (Dataset other)
+  public boolean differsFrom (Dataset other)
   // ---------------------------------------------------------------------------------//
   {
     //    System.out.println ("Comparing:");
@@ -270,6 +270,135 @@ public class Dataset
   // ---------------------------------------------------------------------------------//
   {
     return dsorg != null && dsorg.equals ("PO");
+  }
+
+  // ---------------------------------------------------------------------------------//
+  // Leitura
+  // ---------------------------------------------------------------------------------//
+
+  /*
+   * O DatabaseThread montava o SQL lendo estes campos direto, sem passar por metodo
+   * nenhum - quinze acessos de fora para dentro, num tipo cujo unico proposito e carregar
+   * o que a tela mostrou ate a persistencia. Enquanto isso valesse, Dataset so podia morar
+   * no mesmo pacote que a thread do banco, e o pacote display - que so usa os setters -
+   * ficava preso a persistencia junto.
+   *
+   * Sao acessores de LEITURA: a unica escrita que vinha de fora era dsorg = "PO", que virou
+   * markPartitioned () logo abaixo.
+   *
+   * Sobre getCreatedSQL, getExpiresSQL e getReferredSQL devolverem java.sql.Date: e o
+   * campo tal como esta guardado, de proposito. Derivar a data SQL de created na hora de
+   * gravar pareceria equivalente e nao e - setDates (java.sql.Date...) atribui createdSQL
+   * mesmo quando o argumento e null, mas so atribui created quando nao e, entao os dois
+   * podem divergir. Reproduzir o campo e o que preserva o comportamento.
+   */
+  // ---------------------------------------------------------------------------------//
+  public String getVolume ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return volume;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public String getDevice ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return device;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public String getCatalog ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return catalog;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public int getTracks ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return tracks;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public int getCylinders ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return cylinders;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public int getExtents ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return extents;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public int getPercent ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return percent;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public String getDsorg ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return dsorg;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public String getRecfm ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return recfm;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public int getLrecl ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return lrecl;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public int getBlksize ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return blksize;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public java.sql.Date getCreatedSQL ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return createdSQL;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public java.sql.Date getExpiresSQL ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return expiresSQL;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public java.sql.Date getReferredSQL ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return referredSQL;
+  }
+
+  /*
+   * Um dataset que tem membros e particionado por definicao. O DatabaseThread descobre isso
+   * ao gravar o primeiro membro, e ate agora escrevia dsorg = "PO" de fora.
+   */
+  // ---------------------------------------------------------------------------------//
+  public void markPartitioned ()
+  // ---------------------------------------------------------------------------------//
+  {
+    dsorg = "PO";
   }
 
   // ---------------------------------------------------------------------------------//

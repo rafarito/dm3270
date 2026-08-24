@@ -212,7 +212,7 @@ public class DatabaseThread extends Thread
   {
     Optional<Member> optMember = null;
     if (request.command != LIST)
-      optMember = findMember (request.member.dataset, request.member.name);
+      optMember = findMember (request.member.getDataset (), request.member.getName ());
 
     switch (request.command)
     {
@@ -399,7 +399,7 @@ public class DatabaseThread extends Thread
       ResultSet rs = stmt.executeQuery (query);
       while (rs.next ())
       {
-        Dataset dataset = createDataset (rs);
+        Dataset dataset = DatasetMapper.read (rs);
         request.datasets.add (dataset);
         CacheEntry cacheEntry = cache.get (dataset.getName ());
         if (cacheEntry == null)
@@ -445,7 +445,7 @@ public class DatabaseThread extends Thread
       ResultSet rs = stmt.executeQuery (query);
       while (rs.next ())
       {
-        Member member = createMember (rs, dataset);
+        Member member = MemberMapper.read (rs, dataset);
         request.members.add (member);
         cacheEntry.addMember (member);
       }
@@ -470,10 +470,10 @@ public class DatabaseThread extends Thread
           stmt.executeQuery ("SELECT * FROM DATASETS where NAME = '" + datasetName + "'");
       if (rs.next ())
       {
-        Dataset dataset = createDataset (rs);
-        CacheEntry cacheEntry = cache.get (dataset.name);
+        Dataset dataset = DatasetMapper.read (rs);
+        CacheEntry cacheEntry = cache.get (dataset.getName ());
         if (cacheEntry == null)
-          cache.put (dataset.name, new CacheEntry (dataset));
+          cache.put (dataset.getName (), new CacheEntry (dataset));
         return Optional.of (dataset);
       }
     }
@@ -500,9 +500,9 @@ public class DatabaseThread extends Thread
         if (optDataset.isPresent ())
           dataset = optDataset.get ();        // replace the parameter we were given
 
-        CacheEntry cacheEntry = cache.get (dataset.name);
+        CacheEntry cacheEntry = cache.get (dataset.getName ());
 
-        Member member = createMember (rs, dataset);
+        Member member = MemberMapper.read (rs, dataset);
         cacheEntry.putMember (member);
         return Optional.of (member);
       }
@@ -519,7 +519,7 @@ public class DatabaseThread extends Thread
   // ---------------------------------------------------------------------------------//
   {
     Dataset dataset = request.dataset;
-    Optional<Dataset> optDataset = findDataset (dataset.name);
+    Optional<Dataset> optDataset = findDataset (dataset.getName ());
     if (optDataset.isPresent ())
     {
       Dataset currentDataset = optDataset.get ();
@@ -533,7 +533,7 @@ public class DatabaseThread extends Thread
     else
     {
       CacheEntry cacheEntry = new CacheEntry (dataset);
-      cache.put (dataset.name, cacheEntry);
+      cache.put (dataset.getName (), cacheEntry);
     }
 
     try
@@ -543,12 +543,12 @@ public class DatabaseThread extends Thread
 
       PreparedStatement ps3 = connection.prepareStatement (UPDATE_DATASET);
 
-      setDatasetStatement (ps3, dataset);
+      DatasetMapper.bind (ps3, dataset);
       ps3.executeUpdate ();
       ps3.close ();
       request.databaseUpdated = true;
 
-      CacheEntry cacheEntry = cache.get (dataset.name);
+      CacheEntry cacheEntry = cache.get (dataset.getName ());
       cacheEntry.dataset = dataset;
 
       return true;
@@ -565,8 +565,8 @@ public class DatabaseThread extends Thread
   // ---------------------------------------------------------------------------------//
   {
     Member member = request.member;
-    Optional<Dataset> optDataset = findDataset (member.dataset.name);
-    Optional<Member> optMember = findMember (member.dataset, member.name);
+    Optional<Dataset> optDataset = findDataset (member.getDataset ().getName ());
+    Optional<Member> optMember = findMember (member.getDataset (), member.getName ());
     if (optMember.isPresent ())
     {
       Member currentMember = optMember.get ();
@@ -578,7 +578,7 @@ public class DatabaseThread extends Thread
       request.member = member;
 
       Dataset dataset = optDataset.get ();
-      CacheEntry cacheEntry = cache.get (dataset.name);
+      CacheEntry cacheEntry = cache.get (dataset.getName ());
       cacheEntry.putMember (currentMember);
     }
     else
@@ -586,25 +586,25 @@ public class DatabaseThread extends Thread
       if (optDataset.isPresent ())
       {
         Dataset dataset = optDataset.get ();
-        CacheEntry cacheEntry = cache.get (dataset.name);
+        CacheEntry cacheEntry = cache.get (dataset.getName ());
         cacheEntry.putMember (member);
       }
       else
       {
-        CacheEntry cacheEntry = new CacheEntry (member.dataset);
-        cache.put (member.dataset.name, cacheEntry);
+        CacheEntry cacheEntry = new CacheEntry (member.getDataset ());
+        cache.put (member.getDataset ().getName (), cacheEntry);
         cacheEntry.putMember (member);
       }
     }
 
     try
     {
-      logger.info ("Member modified: {}({})", member.dataset.name, member.name);
+      logger.info ("Member modified: {}({})", member.getDataset ().getName (), member.getName ());
       logger.info ("{}", member);
 
       PreparedStatement ps4 = connection.prepareStatement (UPDATE_MEMBER);
 
-      setMemberStatement (ps4, member);
+      MemberMapper.bind (ps4, member);
       ps4.executeUpdate ();
       ps4.close ();
       request.databaseUpdated = true;
@@ -665,7 +665,7 @@ public class DatabaseThread extends Thread
     {
       Statement stmt = connection.createStatement ();
       stmt.executeUpdate ("delete from MEMBERS where DATASET='"
-          + member.dataset.getName () + "' and NAME='" + member.getName () + "'");
+          + member.getDataset ().getName () + "' and NAME='" + member.getName () + "'");
       stmt.close ();
       return true;
     }
@@ -684,7 +684,7 @@ public class DatabaseThread extends Thread
     {
       PreparedStatement ps1 = connection.prepareStatement (INSERT_DATASET);
 
-      setDatasetStatement (ps1, dataset);
+      DatasetMapper.bind (ps1, dataset);
       ps1.executeUpdate ();
       ps1.close ();
 
@@ -705,10 +705,10 @@ public class DatabaseThread extends Thread
     if (optDataset.isPresent ())
     {
       Dataset dataset = optDataset.get ();
-      if (dataset.dsorg == null)
+      if (dataset.getDsorg () == null)
       {
-        dataset.dsorg = "PO";
-        String cmd = "update DATASETS set DSORG='PO' where NAME='" + dataset.name + "'";
+        dataset.markPartitioned ();
+        String cmd = "update DATASETS set DSORG='PO' where NAME='" + dataset.getName () + "'";
         try
         {
           Statement stmt = connection.createStatement ();
@@ -724,9 +724,9 @@ public class DatabaseThread extends Thread
     else
     {
       Dataset dataset = new Dataset (request.datasetName);
-      dataset.dsorg = "PO";
+      dataset.markPartitioned ();
       String cmd =
-          "insert into DATASETS (NAME,DSORG) values ('" + dataset.name + "', 'PO')";
+          "insert into DATASETS (NAME,DSORG) values ('" + dataset.getName () + "', 'PO')";
       try
       {
         Statement stmt = connection.createStatement ();
@@ -744,7 +744,7 @@ public class DatabaseThread extends Thread
     {
       PreparedStatement ps2 = connection.prepareStatement (INSERT_MEMBER);
 
-      setMemberStatement (ps2, member);
+      MemberMapper.bind (ps2, member);
       ps2.executeUpdate ();
       ps2.close ();
 
@@ -755,72 +755,5 @@ public class DatabaseThread extends Thread
       logger.error ("Error inserting member", e);
       return false;
     }
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private void setDatasetStatement (PreparedStatement ps, Dataset dataset)
-      throws SQLException
-  // ---------------------------------------------------------------------------------//
-  {
-    ps.setString (1, dataset.volume);
-    ps.setString (2, dataset.device);
-    ps.setString (3, dataset.catalog);
-    ps.setInt (4, dataset.tracks);
-    ps.setInt (5, dataset.cylinders);
-    ps.setInt (6, dataset.percent);
-    ps.setInt (7, dataset.extents);
-    ps.setString (8, dataset.dsorg);
-    ps.setString (9, dataset.recfm);
-    ps.setInt (10, dataset.lrecl);
-    ps.setInt (11, dataset.blksize);
-    ps.setDate (12, dataset.createdSQL == null ? null : dataset.createdSQL);
-    ps.setDate (13, dataset.expiresSQL == null ? null : dataset.expiresSQL);
-    ps.setDate (14, dataset.referredSQL == null ? null : dataset.referredSQL);
-    ps.setString (15, dataset.getName ());
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private void setMemberStatement (PreparedStatement ps, Member member)
-      throws SQLException
-  // ---------------------------------------------------------------------------------//
-  {
-    ps.setString (1, member.id);
-    ps.setInt (2, member.size);
-    ps.setInt (3, member.init);
-    ps.setInt (4, member.mod);
-    ps.setInt (5, member.vv);
-    ps.setInt (6, member.mm);
-    ps.setDate (7, member.createdSQL == null ? null : member.createdSQL);
-    ps.setDate (8, member.changedSQL == null ? null : member.changedSQL);
-    ps.setString (9, member.dataset.getName ());
-    ps.setString (10, member.getName ());
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private Dataset createDataset (ResultSet rs) throws SQLException
-  // ---------------------------------------------------------------------------------//
-  {
-    Dataset dataset = new Dataset (rs.getString ("name"));
-    dataset.setSpace (rs.getInt ("tracks"), rs.getInt ("cylinders"),
-        rs.getInt ("extents"), rs.getInt ("percent"));
-    dataset.setDisposition (rs.getString ("dsorg"), rs.getString ("recfm"),
-        rs.getInt ("lrecl"), rs.getInt ("blksize"));
-    dataset.setLocation (rs.getString ("volume"), rs.getString ("device"),
-        rs.getString ("catalog"));
-    dataset.setDates (rs.getDate ("created"), rs.getDate ("expires"),
-        rs.getDate ("referred"));
-    return dataset;
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private Member createMember (ResultSet rs, Dataset dataset) throws SQLException
-  // ---------------------------------------------------------------------------------//
-  {
-    Member member = new Member (dataset, rs.getString ("name"));
-    member.setID (rs.getString ("id"));
-    member.setSize (rs.getInt ("size"), rs.getInt ("init"), rs.getInt ("mod"),
-        rs.getInt ("vv"), rs.getInt ("mm"));
-    member.setDates (rs.getDate ("created"), rs.getDate ("changed"));
-    return member;
   }
 }

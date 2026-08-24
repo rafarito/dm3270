@@ -24,14 +24,14 @@ class CacheEntry
     if (members == null)
     {
       members = new TreeMap<String, Member> ();
-      members.put (member.name, member);
+      members.put (member.getName (), member);
       return member;
     }
 
     Member currentMember = members.get (member.getName ());
     if (currentMember == null)
     {
-      members.put (member.name, member);
+      members.put (member.getName (), member);
       return member;
     }
 
@@ -46,7 +46,7 @@ class CacheEntry
     if (members == null)
       members = new TreeMap<String, Member> ();
 
-    members.put (member.name, member);
+    members.put (member.getName (), member);
   }
 
   // ---------------------------------------------------------------------------------//

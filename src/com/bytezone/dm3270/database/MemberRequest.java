@@ -18,7 +18,7 @@ public class MemberRequest extends DatabaseRequest
   {
     super (initiator, command);
     this.member = member;
-    this.datasetName = member.dataset.getName ();
+    this.datasetName = member.getDataset ().getName ();
     this.memberName = member.getName ();
   }
 

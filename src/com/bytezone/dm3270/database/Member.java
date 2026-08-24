@@ -17,20 +17,20 @@ public class Member
   private static final SimpleDateFormat fmt2 =
       new SimpleDateFormat ("yyyy/MM/dd HH:mm:ss");
 
-  final String name;
-  final Dataset dataset;
+  private final String name;
+  private final Dataset dataset;
 
-  String id;
-  int size;
-  int init;
-  int mod;
-  int vv;
-  int mm;
+  private String id;
+  private int size;
+  private int init;
+  private int mod;
+  private int vv;
+  private int mm;
 
-  Date created;
-  Date changed;
-  java.sql.Date createdSQL;
-  java.sql.Date changedSQL;
+  private Date created;
+  private Date changed;
+  private java.sql.Date createdSQL;
+  private java.sql.Date changedSQL;
 
   // ---------------------------------------------------------------------------------//
   public Member (Dataset dataset, String name)
@@ -110,7 +110,7 @@ public class Member
   }
 
   // ---------------------------------------------------------------------------------//
-  void merge (Member other)
+  public void merge (Member other)
   // ---------------------------------------------------------------------------------//
   {
     assert dataset.getName ().equals (other.dataset.getName ());
@@ -147,7 +147,7 @@ public class Member
   }
 
   // ---------------------------------------------------------------------------------//
-  boolean differsFrom (Member other)
+  public boolean differsFrom (Member other)
   // ---------------------------------------------------------------------------------//
   {
     //    System.out.println ("Comparing:");
@@ -190,6 +190,81 @@ public class Member
   // ---------------------------------------------------------------------------------//
   {
     return name;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  // Leitura
+  // ---------------------------------------------------------------------------------//
+
+  /*
+   * Pelo mesmo motivo do Dataset: o DatabaseThread montava o INSERT_MEMBER lendo estes oito
+   * campos direto, e o CacheEntry indexava o mapa por member.name. Sao acessores de leitura;
+   * nada de fora escreve num Member.
+   *
+   * getCreatedSQL e getChangedSQL devolvem o campo tal como esta guardado, e nao uma data
+   * derivada de created e changed - ver a explicacao equivalente em Dataset.
+   */
+  // ---------------------------------------------------------------------------------//
+  public Dataset getDataset ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return dataset;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public String getId ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return id;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public int getSize ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return size;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public int getInit ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return init;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public int getMod ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return mod;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public int getVv ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return vv;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public int getMm ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return mm;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public java.sql.Date getCreatedSQL ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return createdSQL;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public java.sql.Date getChangedSQL ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return changedSQL;
   }
 
   // ---------------------------------------------------------------------------------//

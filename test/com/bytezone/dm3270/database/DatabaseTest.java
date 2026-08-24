@@ -270,7 +270,7 @@ class DatabaseTest
       Member member = new Member (dataset, "IEFBR14");
 
       assertEquals ("IEFBR14", member.getName ());
-      assertSame (dataset, member.dataset);
+      assertSame (dataset, member.getDataset ());
       assertTrue (member.toString ().startsWith ("IEFBR14"));
     }
 
