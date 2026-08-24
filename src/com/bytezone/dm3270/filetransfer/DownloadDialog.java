@@ -5,7 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-import com.bytezone.dm3270.assistant.TableDataset;
+import com.bytezone.dm3270.datasets.DatasetSummary;
 import com.bytezone.dm3270.display.ScreenWatcher;
 import com.bytezone.dm3270.utilities.FileSaver;
 
@@ -57,7 +57,7 @@ class DownloadDialog extends TransferDialog
 
     labelToFolder.setText (saveFolderName.substring (baseLength));
 
-    Optional<TableDataset> dataset = screenWatcher.getDataset (datasetSelected);
+    Optional<DatasetSummary> dataset = screenWatcher.getDataset (datasetSelected);
     if (dataset.isPresent ())
       labelDatasetDate.setText (formatDate (dataset.get ()));
     else

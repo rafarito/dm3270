@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bytezone.dm3270.assistant.TableDataset;
+import com.bytezone.dm3270.datasets.DatasetSummary;
 import com.bytezone.dm3270.display.ScreenWatcher;
 import com.bytezone.dm3270.utilities.FileSaver;
 
@@ -129,7 +129,7 @@ public class TransferDialog
                           options);
   }
 
-  protected String formatDate (TableDataset dataset)
+  protected String formatDate (DatasetSummary dataset)
   {
     String date = dataset.getReferredDate ();
     if (date == null || date.isEmpty ())

@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.bytezone.dm3270.datasets.DatasetSummary;
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.display.ScreenWatcher;
 
@@ -22,6 +23,9 @@ public class DatasetTab extends AbstractTransferTab
   private final boolean useTable = false;
   private final DatasetTable datasetTable = new DatasetTable ();
   private final DatasetTreeTable datasetTreeTable = new DatasetTreeTable ();
+
+  // uma linha por nome, reaproveitada entre telas - ver a nota em TableDatasets
+  private final TableDatasets tableDatasets = new TableDatasets ();
 
   public DatasetTab (Screen screen, TSOCommand tsoCommand)
   {
@@ -64,20 +68,22 @@ public class DatasetTab extends AbstractTransferTab
   @Override
   public void screenChanged (ScreenWatcher screenDetails)
   {
-    List<TableDataset> datasets = screenDetails.getDatasets ();
+    List<DatasetSummary> datasets = screenDetails.getDatasets ();
     if (datasets != null)
-      for (TableDataset dataset : datasets)
+      for (DatasetSummary summary : datasets)
       {
+        TableDataset dataset = tableDatasets.rowFor (summary);
         if (useTable)
           datasetTable.addDataset (dataset);
         else
           datasetTreeTable.addDataset (dataset);
       }
 
-    List<TableDataset> members = screenDetails.getMembers ();
+    List<DatasetSummary> members = screenDetails.getMembers ();
     if (members != null)
-      for (TableDataset dataset : members)
+      for (DatasetSummary summary : members)
       {
+        TableDataset dataset = tableDatasets.rowFor (summary);
         if (useTable)
           datasetTable.addMember (dataset);
         else

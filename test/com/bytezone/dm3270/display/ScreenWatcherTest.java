@@ -12,7 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import com.bytezone.dm3270.assistant.TableDataset;
+import com.bytezone.dm3270.datasets.DatasetSummary;
 import com.bytezone.dm3270.commands.Command;
 import com.bytezone.dm3270.datasets.Dataset;
 import com.bytezone.dm3270.datasets.DatasetStore;
@@ -181,10 +181,10 @@ class ScreenWatcherTest
   }
 
   // ---------------------------------------------------------------------------------//
-  private TableDataset onlyDataset ()
+  private DatasetSummary onlyDataset ()
   // ---------------------------------------------------------------------------------//
   {
-    List<TableDataset> datasets = watcher.getDatasets ();
+    List<DatasetSummary> datasets = watcher.getDatasets ();
     assertEquals (1, datasets.size (), "esperava um dataset, veio " + datasets.size ());
     return datasets.get (0);
   }
@@ -456,7 +456,7 @@ class ScreenWatcherTest
     @DisplayName ("o espaco e lido em 6/10/14, e nao em 6/11/15 como no screenType 1")
     void spaceUsesTheCatalogOffsets ()
     {
-      TableDataset dataset = onlyDataset ();
+      DatasetSummary dataset = onlyDataset ();
 
       assertEquals (150, dataset.getTracks ());
       assertEquals (75, dataset.getPercentUsed ());
@@ -468,7 +468,7 @@ class ScreenWatcherTest
     @DisplayName ("a disposicao e lida em 5/10/16, e nao em 5/11/18 como no screenType 2")
     void dispositionUsesTheCatalogOffsets ()
     {
-      TableDataset dataset = onlyDataset ();
+      DatasetSummary dataset = onlyDataset ();
 
       assertEquals ("PO", dataset.getDsorg ());
       assertEquals ("FB", dataset.getRecfm ());
@@ -480,7 +480,7 @@ class ScreenWatcherTest
     @DisplayName ("as datas saem em blocos de 11, 11 e o resto")
     void datesAreSplitInElevenColumnBlocks ()
     {
-      TableDataset dataset = onlyDataset ();
+      DatasetSummary dataset = onlyDataset ();
 
       assertEquals ("2024/01/15", dataset.getCreated ());
       assertEquals ("***None***", dataset.getExpires ());
@@ -533,7 +533,7 @@ class ScreenWatcherTest
     @DisplayName ("o nome e o volume vem da primeira das duas linhas")
     void nameAndVolumeComeFromTheFirstLine ()
     {
-      TableDataset dataset = onlyDataset ();
+      DatasetSummary dataset = onlyDataset ();
 
       assertEquals ("MY.OTHER.DATASET", dataset.getDatasetName ());
       assertEquals ("PRD002", dataset.getVolume ());
@@ -543,7 +543,7 @@ class ScreenWatcherTest
     @DisplayName ("o espaco e a disposicao usam os mesmos deslocamentos do screenType 4")
     void spaceAndDispositionShareTheCatalogOffsets ()
     {
-      TableDataset dataset = onlyDataset ();
+      DatasetSummary dataset = onlyDataset ();
 
       assertEquals (300, dataset.getTracks ());
       assertEquals (50, dataset.getPercentUsed ());
@@ -560,7 +560,7 @@ class ScreenWatcherTest
     @DisplayName ("as datas tambem saem em blocos de 11")
     void datesAreSplitTheSameWay ()
     {
-      TableDataset dataset = onlyDataset ();
+      DatasetSummary dataset = onlyDataset ();
 
       assertEquals ("2023/02/20", dataset.getCreated ());
       assertEquals ("2025/12/31", dataset.getExpires ());
@@ -593,7 +593,7 @@ class ScreenWatcherTest
       endOfList (9);
       send ();
 
-      List<TableDataset> datasets = watcher.getDatasets ();
+      List<DatasetSummary> datasets = watcher.getDatasets ();
       assertEquals (2, datasets.size ());
       assertEquals ("FIRST.DATA.SET", datasets.get (0).getDatasetName ());
       assertEquals ("SECOND.DATA.SET", datasets.get (1).getDatasetName ());
@@ -610,7 +610,7 @@ class ScreenWatcherTest
       endOfList (9);
       send ();
 
-      List<TableDataset> datasets = watcher.getDatasets ();
+      List<DatasetSummary> datasets = watcher.getDatasets ();
       assertEquals (1, datasets.size (), "veio " + datasets.size ());
       assertEquals ("VALID.DATA.SET", datasets.get (0).getDatasetName ());
     }
@@ -760,10 +760,10 @@ class ScreenWatcherTest
   }
 
   // ---------------------------------------------------------------------------------//
-  private TableDataset onlyMember ()
+  private DatasetSummary onlyMember ()
   // ---------------------------------------------------------------------------------//
   {
-    List<TableDataset> members = watcher.getMembers ();
+    List<DatasetSummary> members = watcher.getMembers ();
     assertEquals (1, members.size (), "esperava um membro, veio " + members.size ());
     return members.get (0);
   }

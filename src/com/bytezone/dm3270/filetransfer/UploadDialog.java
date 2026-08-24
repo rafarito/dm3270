@@ -8,7 +8,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bytezone.dm3270.assistant.TableDataset;
+import com.bytezone.dm3270.datasets.DatasetSummary;
 import com.bytezone.dm3270.display.ScreenWatcher;
 import com.bytezone.dm3270.utilities.FileSaver;
 
@@ -63,7 +63,7 @@ class UploadDialog extends TransferDialog
     Path saveFile = Paths.get (saveFolderName, datasetSelected);
 
     labelFromFolder.setText (saveFolderName.substring (baseLength));
-    Optional<TableDataset> dataset = screenWatcher.getDataset (datasetSelected);
+    Optional<DatasetSummary> dataset = screenWatcher.getDataset (datasetSelected);
     if (dataset.isPresent ())
     {
       String date = dataset.get ().getReferredDate ();

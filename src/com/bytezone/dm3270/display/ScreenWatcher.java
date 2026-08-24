@@ -9,7 +9,7 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.bytezone.dm3270.assistant.TableDataset;
+import com.bytezone.dm3270.datasets.DatasetSummary;
 import com.bytezone.dm3270.datasets.Dataset;
 import com.bytezone.dm3270.datasets.DatasetStore;
 import com.bytezone.dm3270.datasets.Member;
@@ -51,9 +51,9 @@ public class ScreenWatcher
   private final ScreenDimensions screenDimensions;
   private final DatasetStore datasetStore;
 
-  private final Map<String, TableDataset> siteDatasets = new TreeMap<> ();
-  private final List<TableDataset> screenDatasets = new ArrayList<> ();
-  private final List<TableDataset> screenMembers = new ArrayList<> ();
+  private final Map<String, DatasetSummary> siteDatasets = new TreeMap<> ();
+  private final List<DatasetSummary> screenDatasets = new ArrayList<> ();
+  private final List<DatasetSummary> screenMembers = new ArrayList<> ();
   private final List<String> recentDatasetNames = new ArrayList<> ();
 
   private String datasetsMatching;
@@ -112,7 +112,7 @@ public class ScreenWatcher
   // called by UploadDialog
   // called by DownloadDialog
   // ---------------------------------------------------------------------------------//
-  public Optional<TableDataset> getDataset (String datasetName)
+  public Optional<DatasetSummary> getDataset (String datasetName)
   // ---------------------------------------------------------------------------------//
   {
     if (siteDatasets.containsKey (datasetName))
@@ -121,14 +121,14 @@ public class ScreenWatcher
   }
 
   // ---------------------------------------------------------------------------------//
-  public List<TableDataset> getDatasets ()
+  public List<DatasetSummary> getDatasets ()
   // ---------------------------------------------------------------------------------//
   {
     return screenDatasets;
   }
 
   // ---------------------------------------------------------------------------------//
-  public List<TableDataset> getMembers ()
+  public List<DatasetSummary> getMembers ()
   // ---------------------------------------------------------------------------------//
   {
     return screenMembers;
@@ -476,12 +476,12 @@ public class ScreenWatcher
   private void addDataset (String datasetName, int screenType, List<Field> rowFields)
   // ---------------------------------------------------------------------------------//
   {
-    TableDataset dataset;
+    DatasetSummary dataset;
     if (siteDatasets.containsKey (datasetName))
       dataset = siteDatasets.get (datasetName);
     else
     {
-      dataset = new TableDataset (datasetName);
+      dataset = new DatasetSummary (datasetName);
       siteDatasets.put (datasetName, dataset);
     }
 
@@ -564,7 +564,7 @@ public class ScreenWatcher
   }
 
   // ---------------------------------------------------------------------------------//
-  private void setSpace (TableDataset dataset, String details, int t1, int t2, int t3)
+  private void setSpace (DatasetSummary dataset, String details, int t1, int t2, int t3)
   // ---------------------------------------------------------------------------------//
   {
     if (details.trim ().isEmpty ())
@@ -581,7 +581,7 @@ public class ScreenWatcher
   }
 
   // ---------------------------------------------------------------------------------//
-  private void setDisposition (TableDataset dataset, String details, int t1, int t2,
+  private void setDisposition (DatasetSummary dataset, String details, int t1, int t2,
       int t3)
   // ---------------------------------------------------------------------------------//
   {
@@ -599,7 +599,7 @@ public class ScreenWatcher
   }
 
   // ---------------------------------------------------------------------------------//
-  private void setDates (TableDataset dataset, String details, Dataset ds)
+  private void setDates (DatasetSummary dataset, String details, Dataset ds)
   // ---------------------------------------------------------------------------------//
   {
     if (details.trim ().isEmpty ())
@@ -698,7 +698,7 @@ public class ScreenWatcher
 
       //      Dataset member = new Dataset (datasetName + "(" + memberName + ")");
       //      screenMembers.add (member);
-      TableDataset member = addMember (datasetName, memberName);
+      DatasetSummary member = addMember (datasetName, memberName);
       Member m = new Member (ds, memberName);
 
       if (headings.size () == 7 || headings.size () == 10)
@@ -770,7 +770,7 @@ public class ScreenWatcher
       }
       String details = rowFields.get (3).getText ();
 
-      TableDataset member = addMember (datasetName, memberName);
+      DatasetSummary member = addMember (datasetName, memberName);
       Member m = new Member (ds, memberName);
 
       if (screenType == 1)
@@ -785,17 +785,17 @@ public class ScreenWatcher
   }
 
   // ---------------------------------------------------------------------------------//
-  private TableDataset addMember (String pdsName, String memberName)
+  private DatasetSummary addMember (String pdsName, String memberName)
   // ---------------------------------------------------------------------------------//
   {
     String datasetName = pdsName + "(" + memberName.trim () + ")";
-    TableDataset member;
+    DatasetSummary member;
 
     if (siteDatasets.containsKey (datasetName))
       member = siteDatasets.get (datasetName);
     else
     {
-      member = new TableDataset (datasetName);
+      member = new DatasetSummary (datasetName);
       siteDatasets.put (datasetName, member);
     }
 
@@ -805,7 +805,7 @@ public class ScreenWatcher
   }
 
   // ---------------------------------------------------------------------------------//
-  private void screenType1 (TableDataset member, String details, int[] tabs, Member m)
+  private void screenType1 (DatasetSummary member, String details, int[] tabs, Member m)
   // ---------------------------------------------------------------------------------//
   {
     member.setCreated (details.substring (tabs[0], tabs[1]).trim ());
@@ -827,7 +827,7 @@ public class ScreenWatcher
   }
 
   // ---------------------------------------------------------------------------------//
-  private void screenType2 (TableDataset member, String details, int[] tabs, Member m)
+  private void screenType2 (DatasetSummary member, String details, int[] tabs, Member m)
   // ---------------------------------------------------------------------------------//
   {
     //    String size = details.substring (0, tabs[0]);

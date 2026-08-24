@@ -286,8 +286,15 @@ class LayeringTest
    * inteiro nomeava display. streams.SessionDisplay estende ScreenTarget e acrescenta
    * displayText (); a TerminalFunction, a outra coisa que o construtor pedia ao widget, passou
    * a vir de quem constroi. SpyServer so repassava a tela e seguiu junto.
+   *
+   * E caiu a 16. O ScreenWatcher produzia assistant.TableDataset - o modelo de linha da
+   * TableView, feito de StringProperty - e os tres dialogos de transferencia liam duas datas
+   * dele. Era a causa UNICA de filetransfer nomear assistant, e portanto do ciclo
+   * assistant <-> filetransfer. Agora o ScreenWatcher produz datasets.DatasetSummary, o mesmo
+   * dado sem JavaFX, e a conversao para linha de tabela acontece em assistant.TableDatasets,
+   * na borda da interface.
    */
-  private static final int MAX_MUTUAL_CYCLES = 17;
+  private static final int MAX_MUTUAL_CYCLES = 16;
 
   // ---------------------------------------------------------------------------------//
   @ArchTest
