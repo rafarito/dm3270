@@ -34,6 +34,7 @@ import com.bytezone.dm3270.filetransfer.TransferManager;
 import com.bytezone.dm3270.filetransfer.TransferManager.TransferStatus;
 import com.bytezone.dm3270.filetransfer.TransferMenu;
 import com.bytezone.dm3270.orders.BufferAddress;
+import com.bytezone.dm3270.plugins.PluginHost;
 import com.bytezone.dm3270.plugins.PluginsStage;
 import com.bytezone.dm3270.screen.ContextManager;
 import com.bytezone.dm3270.screen.Cursor;
@@ -67,7 +68,7 @@ import javafx.util.Duration;
 
 // -----------------------------------------------------------------------------------//
 public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHost,
-    SystemMessageView, TransferListener, TelnetStateListener
+    SystemMessageView, TransferListener, TelnetStateListener, PluginHost
 // -----------------------------------------------------------------------------------//
 {
   private static final Logger logger = LoggerFactory.getLogger (Screen.class);
@@ -459,6 +460,14 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   // ---------------------------------------------------------------------------------//
   {
     return fieldManager.getFieldAt (position);
+  }
+
+  // ---------------------------------------------------------------------------------//
+  @Override
+  public List<Field> getFields ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return fieldManager.getFields ();
   }
 
   // ---------------------------------------------------------------------------------//

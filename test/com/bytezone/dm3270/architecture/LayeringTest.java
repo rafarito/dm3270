@@ -237,8 +237,14 @@ class LayeringTest
    * ela - nem guardava. Era a UNICA aresta de console para display, entao apagar o parametro
    * desfez o ciclo inteiro. E o corte mais barato que esta refatoracao encontrou, e so
    * apareceu porque a medicao foi feita aresta por aresta em vez de por tamanho de classe.
+   *
+   * E caiu a 18. O PluginsStage guardava a Screen inteira e pedia a ela o FieldManager a
+   * cada chamada, so para converter os campos no formato da API de plugins. A porta
+   * plugins.PluginHost esta declarada no lado que consome - e isso que inverte a dependencia
+   * - e a traducao Field -> PluginField saiu do FieldManager para plugins.PluginFields, onde
+   * mora quem define o formato. plugins deixou de nomear display.
    */
-  private static final int MAX_MUTUAL_CYCLES = 19;
+  private static final int MAX_MUTUAL_CYCLES = 18;
 
   // ---------------------------------------------------------------------------------//
   @ArchTest

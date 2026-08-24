@@ -25,8 +25,6 @@ import com.bytezone.dm3270.screen.AidSender;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.screen.Cursor;
 import com.bytezone.dm3270.screen.Field;
-import com.bytezone.dm3270.display.FieldManager;
-import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.utilities.PreferencesStage;
 import com.bytezone.dm3270.utilities.Site;
@@ -66,7 +64,7 @@ public class PluginsStage extends PreferencesStage
   private final MenuItem editMenuItem = new MenuItem ("Plugin Manager...");
   private int requestMenus;
   private int baseMenuSize;
-  private Screen screen;
+  private PluginHost screen;
   private ScreenDimensions screenDimensions;
   private int sequence;
   private AidSender consolePane;
@@ -137,7 +135,7 @@ public class PluginsStage extends PreferencesStage
   }
 
   // ---------------------------------------------------------------------------------//
-  public void setScreen (Screen screen)
+  public void setScreen (PluginHost screen)
   // ---------------------------------------------------------------------------------//
   {
     this.screen = screen;
@@ -321,7 +319,6 @@ public class PluginsStage extends PreferencesStage
   {
     assert !screen.isKeyboardLocked ();
 
-    FieldManager fieldManager = screen.getFieldManager ();
     Cursor cursor = screen.getScreenCursor ();
 
     if (activePlugins () > 0)
@@ -330,7 +327,8 @@ public class PluginsStage extends PreferencesStage
       ScreenLocation screenLocation =
           new ScreenLocation (cursorPosition / screenDimensions.columns,
               cursorPosition % screenDimensions.columns);
-      PluginData pluginData = fieldManager.getPluginScreen (sequence++, screenLocation);
+      PluginData pluginData =
+          PluginFields.toPluginData (sequence++, screenLocation, screen.getFields ());
 
       if (false)
       {
@@ -355,14 +353,14 @@ public class PluginsStage extends PreferencesStage
   {
     assert consolePane != null;
 
-    FieldManager fieldManager = screen.getFieldManager ();
     Cursor cursor = screen.getScreenCursor ();
 
     int cursorPosition = cursor.getLocation ();
     ScreenLocation screenLocation =
         new ScreenLocation (cursorPosition / screenDimensions.columns,
             cursorPosition % screenDimensions.columns);
-    PluginData pluginData = fieldManager.getPluginScreen (sequence++, screenLocation);
+    PluginData pluginData =
+        PluginFields.toPluginData (sequence++, screenLocation, screen.getFields ());
     plugin.processRequest (pluginData);
     AIDCommand command = processReply (pluginData);
     if (command != null)
@@ -376,7 +374,6 @@ public class PluginsStage extends PreferencesStage
   private AIDCommand processReply (PluginData data)
   // ---------------------------------------------------------------------------------//
   {
-    FieldManager fieldManager = screen.getFieldManager ();
     Cursor cursor = screen.getScreenCursor ();
 
     int currentLocation = cursor.getLocation ();
@@ -387,8 +384,8 @@ public class PluginsStage extends PreferencesStage
 
     for (PluginField screenField : data.changedFields)
     {
-      Optional<Field> optField = fieldManager.getFieldAt (screenField.location.location);
-      //      Field field = fieldManager.getFieldAt (screenField.location.location);   // first display location
+      Optional<Field> optField = screen.getFieldAt (screenField.location.location);
+      //      Field field = screen.getFieldAt (screenField.location.location);   // first display location
       //      assert field != null;
       assert optField.isPresent ();
       Field field = optField.get ();

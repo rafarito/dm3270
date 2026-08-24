@@ -9,9 +9,6 @@ import java.util.Set;
 import com.bytezone.dm3270.attributes.Attribute;
 import com.bytezone.dm3270.attributes.StartFieldAttribute;
 import com.bytezone.dm3270.database.DatasetStore;
-import com.bytezone.dm3270.plugins.PluginData;
-import com.bytezone.dm3270.plugins.PluginField;
-import com.bytezone.dm3270.plugins.ScreenLocation;
 import com.bytezone.dm3270.screen.ContextManager;
 import com.bytezone.dm3270.screen.Field;
 import com.bytezone.dm3270.screen.FieldHost;
@@ -270,38 +267,6 @@ public class FieldManager
     }
 
     return menus;
-  }
-
-  // ---------------------------------------------------------------------------------//
-  // Convert internal Fields to ScreenFields for use by plugins
-  // ---------------------------------------------------------------------------------//
-
-  public PluginData getPluginScreen (int sequence, ScreenLocation screenLocation)
-  {
-    List<PluginField> pluginFields = new ArrayList<> ();
-    int count = 0;
-
-    for (Field field : fields)
-      pluginFields.add (toPluginField (field, count++));
-
-    return new PluginData (sequence, screenLocation, pluginFields);
-  }
-
-  /*
-   * A traducao de um Field para o PluginField que a API de plugins expoe. Morava dentro do
-   * proprio Field, e era a unica coisa que fazia o modelo de tela conhecer o pacote plugins -
-   * com um chamador so, este. Do lado de quem consome, a aresta desaparece.
-   *
-   * As duas linhas que calculavam row e column sairam: o ScreenLocation e montado a partir de
-   * firstLocation, e nada mais lia esses dois valores.
-   */
-  private PluginField toPluginField (Field field, int fieldSequence)
-  {
-    ScreenLocation screenLocation = new ScreenLocation (field.getFirstLocation ());
-
-    return new PluginField (fieldSequence, screenLocation, field.getDisplayLength (),
-        field.isProtected (), field.isAlphanumeric (), field.isVisible (),
-        field.isModified (), field.getText ());
   }
 
   // ---------------------------------------------------------------------------------//
