@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.display;
+package com.bytezone.dm3270.watch;
 
 // -----------------------------------------------------------------------------------//
 public interface TSOCommandListener

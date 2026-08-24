@@ -15,12 +15,15 @@ import com.bytezone.dm3270.screen.FieldHost;
 import com.bytezone.dm3270.screen.ScreenContext;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.screen.ScreenPosition;
+import com.bytezone.dm3270.watch.ScreenChangeListener;
+import com.bytezone.dm3270.watch.ScreenFields;
+import com.bytezone.dm3270.watch.ScreenWatcher;
 import com.bytezone.dm3270.utilities.Site;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FieldManager
+public class FieldManager implements ScreenFields
 {
   private static final Logger logger = LoggerFactory.getLogger (FieldManager.class);
 
@@ -165,6 +168,7 @@ public class FieldManager
     return unprotectedFields;
   }
 
+  @Override
   public List<Field> getFields ()
   {
     return fields;
@@ -187,14 +191,16 @@ public class FieldManager
   // Field utilities
   // ---------------------------------------------------------------------------------//
 
-  List<Field> getRowFields (int requestedRow)
+  @Override
+  public List<Field> getRowFields (int requestedRow)
   {
     int firstLocation = requestedRow * screenDimensions.columns;
     int lastLocation = firstLocation + screenDimensions.columns - 1;
     return getFieldsInRange (firstLocation, lastLocation);
   }
 
-  List<Field> getRowFields (int requestedRowFrom, int rows)
+  @Override
+  public List<Field> getRowFields (int requestedRowFrom, int rows)
   {
     int firstLocation = requestedRowFrom * screenDimensions.columns;
     int lastLocation = (requestedRowFrom + rows) * screenDimensions.columns - 1;
@@ -222,7 +228,8 @@ public class FieldManager
     return text.equals (field.getText ());
   }
 
-  boolean textMatches (int fieldNo, String text)
+  @Override
+  public boolean textMatches (int fieldNo, String text)
   {
     return text.equals (fields.get (fieldNo).getText ());
   }
@@ -232,13 +239,15 @@ public class FieldManager
     return field.getFirstLocation () == location && text.equals (field.getText ());
   }
 
-  boolean textMatches (int fieldNo, String text, int location)
+  @Override
+  public boolean textMatches (int fieldNo, String text, int location)
   {
     Field field = fields.get (fieldNo);
     return field.getFirstLocation () == location && text.equals (field.getText ());
   }
 
-  boolean textMatchesTrim (Field field, String text)
+  @Override
+  public boolean textMatchesTrim (Field field, String text)
   {
     return text.equals (field.getText ().trim ());
   }
@@ -249,7 +258,8 @@ public class FieldManager
         && text.equals (field.getText ().trim ());
   }
 
-  List<String> getMenus ()
+  @Override
+  public List<String> getMenus ()
   {
     List<String> menus = new ArrayList<> ();
 

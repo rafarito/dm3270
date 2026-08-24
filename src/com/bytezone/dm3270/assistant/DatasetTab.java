@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 import com.bytezone.dm3270.datasets.DatasetSummary;
 import com.bytezone.dm3270.display.Screen;
-import com.bytezone.dm3270.display.ScreenWatcher;
+import com.bytezone.dm3270.watch.ScreenWatcher;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.scene.control.TreeItem;

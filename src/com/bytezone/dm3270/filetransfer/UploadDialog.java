@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bytezone.dm3270.datasets.DatasetSummary;
-import com.bytezone.dm3270.display.ScreenWatcher;
+import com.bytezone.dm3270.watch.ScreenWatcher;
 import com.bytezone.dm3270.utilities.FileSaver;
 
 import javafx.scene.Node;

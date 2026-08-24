@@ -293,8 +293,24 @@ class LayeringTest
    * assistant <-> filetransfer. Agora o ScreenWatcher produz datasets.DatasetSummary, o mesmo
    * dado sem JavaFX, e a conversao para linha de tabela acontece em assistant.TableDatasets,
    * na borda da interface.
+   *
+   * E caiu a 15. O ScreenWatcher, o ScreenChangeListener e o TSOCommandListener foram para o
+   * pacote com.bytezone.dm3270.watch. Eram a razao inteira de filetransfer nomear display -
+   * quatro classes importavam o observador para ler o dataset selecionado e o campo de comando
+   * TSO -, e display precisa nomear o observador de volta, porque o FieldManager e quem o
+   * constroi e quem dispara o screenChanged.
+   *
+   * Mover sozinho nao resolveria: o ScreenWatcher levaria o FieldManager junto e o ciclo
+   * reapareceria como watch <-> display. O que corta e a porta watch.ScreenFields, sete
+   * metodos declarados do lado que consome e implementados pelo FieldManager. Agora display
+   * nomeia watch numa direcao so.
+   *
+   * Este e o passo que a Regra 5 mandava adiar ate o acoplamento cair de verdade: mover o
+   * ScreenWatcher antes de a regra de banco chegar a zero teria feito displayDoesNotDependOnDatabase
+   * ler zero sem que uma aresta fosse cortada. A ordem foi a inversa, e por isso as duas
+   * medidas valem.
    */
-  private static final int MAX_MUTUAL_CYCLES = 16;
+  private static final int MAX_MUTUAL_CYCLES = 15;
 
   // ---------------------------------------------------------------------------------//
   @ArchTest

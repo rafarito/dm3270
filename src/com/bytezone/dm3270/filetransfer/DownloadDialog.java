@@ -6,7 +6,7 @@ import java.nio.file.Paths;
 import java.util.Optional;
 
 import com.bytezone.dm3270.datasets.DatasetSummary;
-import com.bytezone.dm3270.display.ScreenWatcher;
+import com.bytezone.dm3270.watch.ScreenWatcher;
 import com.bytezone.dm3270.utilities.FileSaver;
 
 import javafx.scene.control.Label;

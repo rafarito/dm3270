@@ -46,6 +46,8 @@ import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.screen.ScreenOption;
 import com.bytezone.dm3270.screen.ScreenPosition;
 import com.bytezone.dm3270.screen.ScreenTarget;
+import com.bytezone.dm3270.watch.ScreenChangeListener;
+import com.bytezone.dm3270.watch.ScreenWatcher;
 import com.bytezone.dm3270.streams.SessionDisplay;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.streams.TelnetStateListener;

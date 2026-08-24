@@ -12,6 +12,7 @@ import com.bytezone.dm3270.commands.SystemMessage;
 import com.bytezone.dm3270.commands.SystemMessageView;
 import com.bytezone.dm3270.commands.WriteControlCharacter;
 import com.bytezone.dm3270.filetransfer.TransferManager;
+import com.bytezone.dm3270.watch.ScreenWatcher;
 import com.bytezone.dm3270.screen.ContextManager;
 import com.bytezone.dm3270.screen.Cursor;
 import com.bytezone.dm3270.screen.CursorHost;

@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.display;
+package com.bytezone.dm3270.watch;
 
 
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ public class ScreenWatcher
   private static final String zosScreen = "z/OS Primary Option Menu";
   private static final String ispfShell = "ISPF Command Shell";
 
-  private final FieldManager fieldManager;
+  private final ScreenFields fieldManager;
   private final ScreenDimensions screenDimensions;
   private final DatasetStore datasetStore;
 
@@ -72,7 +72,7 @@ public class ScreenWatcher
   private String prefix = "";
 
   // ---------------------------------------------------------------------------------//
-  public ScreenWatcher (FieldManager fieldManager, ScreenDimensions screenDimensions,
+  public ScreenWatcher (ScreenFields fieldManager, ScreenDimensions screenDimensions,
       DatasetStore datasetStore)
   // ---------------------------------------------------------------------------------//
   {
@@ -157,7 +157,7 @@ public class ScreenWatcher
 
   // called by FieldManager after building a new screen
   // ---------------------------------------------------------------------------------//
-  void check ()
+  public void check ()
   // ---------------------------------------------------------------------------------//
   {
     tsoCommandField = null;

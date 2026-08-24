@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bytezone.dm3270.display.TSOCommandListener;
+import com.bytezone.dm3270.watch.TSOCommandListener;
 import com.bytezone.dm3270.utilities.Site;
 
 public class TransferManager implements TSOCommandListener

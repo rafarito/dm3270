@@ -19,6 +19,7 @@ import com.bytezone.dm3270.datasets.DatasetStore;
 import com.bytezone.dm3270.datasets.Member;
 import com.bytezone.dm3270.datasets.StoreListener;
 import com.bytezone.dm3270.orders.BufferAddress;
+import com.bytezone.dm3270.watch.ScreenWatcher;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
