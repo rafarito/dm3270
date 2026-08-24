@@ -147,7 +147,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     historyManager = new HistoryManager (screenDimensions, contextManager, fieldManager);
     transfersStage = new TransfersStage (this);
 
-    consoleLogStage = new ConsoleLogStage (this);
+    consoleLogStage = new ConsoleLogStage ();
     systemMessage = new SystemMessage (this, transfersStage, screenDimensions, this);
 
     transferManager = new TransferManager (this::getPrefix, serverSite);

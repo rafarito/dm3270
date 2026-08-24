@@ -2,7 +2,6 @@ package com.bytezone.dm3270.console;
 
 import java.util.prefs.Preferences;
 
-import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.utilities.WindowSaver;
 
 import javafx.scene.Scene;
@@ -27,7 +26,7 @@ public class ConsoleLogStage extends Stage
   private final Tab consoleTab = new Tab ("Console");
   private final ConsoleMessageTab consoleMessageTab = new ConsoleMessageTab ();
 
-  public ConsoleLogStage (Screen screen)
+  public ConsoleLogStage ()
   {
     setTitle ("Console Logs");
 

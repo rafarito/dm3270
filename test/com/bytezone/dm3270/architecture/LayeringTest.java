@@ -232,8 +232,13 @@ class LayeringTest
    *
    * Sobra application <-> streams, de MainframeServer e SpyServer, que usam Mainframe e
    * Console. E o unico caminho de volta para o composition root que ainda existe.
+   *
+   * E caiu a 19. O ConsoleLogStage recebia uma Screen no construtor e nao fazia nada com
+   * ela - nem guardava. Era a UNICA aresta de console para display, entao apagar o parametro
+   * desfez o ciclo inteiro. E o corte mais barato que esta refatoracao encontrou, e so
+   * apareceu porque a medicao foi feita aresta por aresta em vez de por tamanho de classe.
    */
-  private static final int MAX_MUTUAL_CYCLES = 20;
+  private static final int MAX_MUTUAL_CYCLES = 19;
 
   // ---------------------------------------------------------------------------------//
   @ArchTest
