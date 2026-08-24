@@ -53,6 +53,10 @@ class LayeringTest
   // protocolo fala com a tela. Saiu de dentro de display, que ficou sendo so a view.
   private static final String[] SCREEN_MODEL = { "com.bytezone.dm3270.screen.." };
 
+  // O dominio dos datasets: o que a tela observa e o que o banco grava. Saiu de dentro de
+  // database na onda 3, e database passou a depender dele.
+  private static final String[] DATASET_DOMAIN = { "com.bytezone.dm3270.datasets.." };
+
   // A pilha que transforma bytes do socket em estrutura. E o que precisa rodar headless.
   private static final String[] PROTOCOL_PACKAGES =
       { "com.bytezone.dm3270.buffers..", "com.bytezone.dm3270.commands..",
@@ -122,32 +126,64 @@ class LayeringTest
           .because ("o modelo nao conhece o widget que o desenha");
 
   /*
-   * Comecou em 46 violacoes, de duas causas bem diferentes.
+   * A quarta regra a valer integralmente. Comecou em 46 violacoes, de duas causas bem
+   * diferentes, e as duas cairam.
    *
    * A primeira era encanamento: o FieldManager - cuja responsabilidade e agrupar posicoes de
    * tela em campos - abria o arquivo do banco, subia uma thread e enfileirava um OPEN dentro
    * do proprio construtor, e o ScreenWatcher montava requests e os empurrava na mesma fila.
-   * Isso acabou: as duas recebem um DatasetStore pronto, e quem decide se existe banco e o
-   * Console, que e o composition root. A thread, a fila, os quatro tipos de request e o enum
-   * de comandos nao aparecem mais em display.
+   * Isso acabou na fase 2: as duas recebem um DatasetStore pronto, e quem decide se existe
+   * banco e o Console, que e o composition root.
    *
-   * A segunda e modelagem, e ainda esta aqui: as 35 violacoes restantes sao todas mencoes a
-   * Dataset e Member. Os dois sao DTOs de acesso direto a campo - o DatabaseThread le
-   * dataset.tracks, member.vv e mais duas dezenas de campos para montar o SQL, sem
-   * getters. Move-los para um pacote de dominio hoje obrigaria a tornar 28 campos publicos,
-   * o que seria trocar uma violacao de camada por uma pior de encapsulamento.
+   * A segunda era modelagem, e sobrou em 35: mencoes a Dataset e Member, os dois DTOs de
+   * acesso direto a campo. O DatabaseThread lia dataset.tracks, member.vv e mais duas dezenas
+   * de campos para montar o SQL. A leitura de entao era que move-los exigiria tornar 28
+   * campos publicos - trocar uma violacao de camada por uma pior de encapsulamento.
    *
-   * A regra fica congelada em 35 e chega a zero na onda 3, quando o DatabaseThread virar
-   * repositorios com o mapeamento la dentro - e o §8.1 do diagnostico unificar
-   * Dataset/Member/TableDataset num tipo de dominio so.
+   * Nao era o caso. O que os prendia ao pacote database nao era o dominio: era o
+   * DatabaseThread. Dar acessores de leitura aos dois tipos, mover o binding do
+   * PreparedStatement para DatasetMapper e MemberMapper e fechar TODOS os campos como private
+   * deixou a mudanca de pacote trivial - e o encapsulamento ficou melhor, nao pior. Dataset,
+   * Member, DatasetStore e StoreListener foram para com.bytezone.dm3270.datasets, e o pacote
+   * database passou a depender do dominio em vez do contrario.
+   *
+   * O ganho e real e nao de placar: display alcancava, em tempo de compilacao, um pacote com
+   * Thread, BlockingQueue e JDBC dentro. Hoje nomeia dois objetos de valor e duas interfaces.
+   *
+   * NAO ESTA CONGELADA. As duas regras seguintes protegem o dominio novo, para que ele nao
+   * vire um segundo lugar onde a persistencia mora.
    */
   // ---------------------------------------------------------------------------------//
   @ArchTest
-  static final ArchRule displayDoesNotDependOnDatabase = FreezingArchRule.freeze (      //
+  static final ArchRule displayDoesNotDependOnDatabase =                                //
       noClasses ().that ().resideInAnyPackage ("com.bytezone.dm3270.display..")         //
           .should ().dependOnClassesThat ()                                             //
           .resideInAnyPackage ("com.bytezone.dm3270.database..")                        //
-          .because ("a persistencia entra por uma porta injetada, nao construida aqui"));
+          .because ("a persistencia entra por uma porta injetada, nao construida aqui");
+
+  /*
+   * O dominio dos datasets e o que a tela observa e o que o banco grava, e nao pode conhecer
+   * nenhum dos dois. Se um dia alguem precisar de um DatabaseRequest la dentro, o certo e
+   * ampliar a porta DatasetStore - nao importar a fila.
+   *
+   * A regra nasce em zero e nunca foi congelada. java.sql.Date nao a viola: e tipo do JDK, e
+   * os quatro acessores que o devolvem existem porque createdSQL e created podem divergir, o
+   * que esta explicado em Dataset.
+   */
+  // ---------------------------------------------------------------------------------//
+  @ArchTest
+  static final ArchRule datasetsDomainDoesNotKnowPersistence =                          //
+      noClasses ().that ().resideInAnyPackage (DATASET_DOMAIN)                          //
+          .should ().dependOnClassesThat ()                                             //
+          .resideInAnyPackage ("com.bytezone.dm3270.database..")                        //
+          .because ("o dominio nao conhece quem o persiste");
+
+  // ---------------------------------------------------------------------------------//
+  @ArchTest
+  static final ArchRule datasetsDomainDoesNotKnowJavaFx =                               //
+      noClasses ().that ().resideInAnyPackage (DATASET_DOMAIN)                          //
+          .should ().dependOnClassesThat ().resideInAnyPackage ("javafx..")             //
+          .because ("o dominio dos datasets tem de rodar headless, como o modelo de tela");
 
   /*
    * A terceira regra a valer integralmente.
