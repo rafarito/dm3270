@@ -189,6 +189,12 @@
             <param>com.bytezone.dm3270.replyfield.*</param>
             <param>com.bytezone.dm3270.filetransfer.*</param>
             <param>com.bytezone.dm3270.database.*</param>
+            <!--
+              O dominio dos datasets, que saiu de dentro de database na onda 3. Sem esta
+              linha os mutantes de Dataset e Member sumiriam do relatorio em vez de
+              continuarem a ser mortos, e a cobertura pareceria ter melhorado.
+            -->
+            <param>com.bytezone.dm3270.datasets.*</param>
             <param>com.bytezone.dm3270.session.SessionReader</param>
             <param>com.bytezone.dm3270.streams.TelnetState</param>
             <param>com.bytezone.dm3270.streams.TerminalServer</param>
