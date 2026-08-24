@@ -9,6 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -1082,6 +1088,195 @@ class DatabaseTest
 
       assertEquals (Result.FAILURE,
                     execute (new DatabaseRequest (null, Command.FIND)).result);
+    }
+
+    // -------------------------------------------------------------------------------//
+    // O mapeamento coluna a coluna
+    // -------------------------------------------------------------------------------//
+
+    /*
+     * Comparar so o objeto que volta de um FIND nao prova o mapeamento. Se duas colunas do
+     * mesmo tipo trocassem de lugar na gravacao E na leitura, as duas trocas se
+     * compensariam, o round-trip fecharia certinho e o banco estaria errado. Os dois testes
+     * abaixo abrem o arquivo SQLite e leem as colunas PELO NOME, o que fixa a ordem dos
+     * quinze parametros de INSERT_DATASET e dos dez de INSERT_MEMBER.
+     *
+     * Existem porque a onda 3 tira o DatabaseThread de cima dos campos package-private de
+     * Dataset e Member e move o binding para um mapper. Um indice trocado nessa mudanca
+     * passaria despercebido pela suite que havia antes: findsDataset conferia tres campos
+     * dos quinze, e findsMember conferia so o nome.
+     */
+    // -------------------------------------------------------------------------------//
+    private Connection openDatabaseFile () throws SQLException
+    // -------------------------------------------------------------------------------//
+    {
+      String path = Paths
+          .get (System.getProperty ("user.home"), "dm3270", "databases", "teste.db")
+          .toString ();
+
+      return DriverManager.getConnection ("jdbc:sqlite:" + path);
+    }
+
+    @Test
+    @DisplayName ("cada uma das quinze colunas de DATASETS recebe o seu proprio valor")
+    @Timeout (30)
+    void datasetColumnsAreBoundInOrder () throws InterruptedException, SQLException
+    {
+      open ();
+      execute (new DatasetRequest (null, Command.ADD, sampleDataset ("MEU.DATASET")));
+
+      try (Connection connection = openDatabaseFile ();
+          Statement statement = connection.createStatement ();
+          ResultSet rs = statement
+              .executeQuery ("select * from DATASETS where NAME='MEU.DATASET'"))
+      {
+        assertTrue (rs.next (), "o dataset nao chegou ao arquivo do banco");
+
+        assertEquals ("MEU.DATASET", rs.getString ("NAME"));
+        assertEquals ("FUSR01", rs.getString ("VOLUME"));
+        assertEquals ("3390", rs.getString ("DEVICE"));
+        assertEquals ("CATALOG.USER.UCAT", rs.getString ("CATALOG"));
+
+        // os quatro inteiros de espaco sao distintos de proposito: qualquer troca entre
+        // eles muda o valor lido, e nenhuma passa despercebida
+        assertEquals (15, rs.getInt ("TRACKS"));
+        assertEquals (1, rs.getInt ("CYLINDERS"));
+        assertEquals (75, rs.getInt ("PERCENT"));
+        assertEquals (2, rs.getInt ("EXTENTS"));
+
+        assertEquals ("PO", rs.getString ("DSORG"));
+        assertEquals ("FB", rs.getString ("RECFM"));
+        assertEquals (80, rs.getInt ("LRECL"));
+        assertEquals (27920, rs.getInt ("BLKSIZE"));
+
+        // 2024/01/15 (created) < 2025/06/01 (referred) < 2030/12/31 (expires). A ordem
+        // separa as tres colunas de data sem depender de como o driver converte a data
+        // para o fuso local, que e o unico detalhe que muda de maquina para maquina
+        assertNotNull (rs.getDate ("CREATED"));
+        assertTrue (rs.getDate ("CREATED").before (rs.getDate ("REFERRED")),
+                    "CREATED deveria ser a mais antiga das tres");
+        assertTrue (rs.getDate ("REFERRED").before (rs.getDate ("EXPIRES")),
+                    "EXPIRES deveria ser a mais recente das tres");
+      }
+    }
+
+    @Test
+    @DisplayName ("cada uma das dez colunas de MEMBERS recebe o seu proprio valor")
+    @Timeout (30)
+    void memberColumnsAreBoundInOrder () throws InterruptedException, SQLException
+    {
+      open ();
+      Dataset dataset = sampleDataset ("SYS1.PROCLIB");
+      execute (new DatasetRequest (null, Command.ADD, dataset));
+
+      Member member = new Member (dataset, "IEFBR14");
+      member.setSize (120, 100, 20, 1, 5);
+      member.setID ("USER01");
+      member.setDates ("2024/01/15", "2025/06/01 14:30:00");
+      execute (new MemberRequest (null, Command.ADD, member));
+
+      try (Connection connection = openDatabaseFile ();
+          Statement statement = connection.createStatement ();
+          ResultSet rs = statement.executeQuery (
+              "select * from MEMBERS where DATASET='SYS1.PROCLIB' and NAME='IEFBR14'"))
+      {
+        assertTrue (rs.next (), "o membro nao chegou ao arquivo do banco");
+
+        assertEquals ("SYS1.PROCLIB", rs.getString ("DATASET"));
+        assertEquals ("IEFBR14", rs.getString ("NAME"));
+        assertEquals ("USER01", rs.getString ("ID"));
+
+        // 120, 100, 20, 1 e 5 sao distintos de proposito, pelo mesmo motivo
+        assertEquals (120, rs.getInt ("SIZE"));
+        assertEquals (100, rs.getInt ("INIT"));
+        assertEquals (20, rs.getInt ("MOD"));
+        assertEquals (1, rs.getInt ("VV"));
+        assertEquals (5, rs.getInt ("MM"));
+
+        assertNotNull (rs.getDate ("CREATED"));
+        assertTrue (rs.getDate ("CREATED").before (rs.getDate ("CHANGED")),
+                    "CREATED deveria ser anterior a CHANGED");
+      }
+    }
+
+    @Test
+    @DisplayName ("o dataset volta do FIND com as quinze colunas intactas")
+    @Timeout (30)
+    void datasetRoundTripsEveryColumn () throws InterruptedException
+    {
+      open ();
+      Dataset original = sampleDataset ("MEU.DATASET");
+      execute (new DatasetRequest (null, Command.ADD, original));
+
+      DatasetRequest found = (DatasetRequest) execute (
+          new DatasetRequest (null, Command.FIND, "MEU.DATASET"));
+
+      // toString imprime as quinze colunas de uma vez, entao comparar as duas
+      // representacoes cobre a ida e a volta inteiras
+      assertEquals (original.toString (), found.dataset.toString ());
+    }
+
+    @Test
+    @DisplayName ("um dataset sem datas volta sem datas, e nao com o dia de hoje")
+    @Timeout (30)
+    void datasetWithoutDatesRoundTrips () throws InterruptedException
+    {
+      open ();
+      Dataset original = new Dataset ("SEM.DATAS");
+      original.setLocation ("FUSR02", "3380", "CATALOG.OUTRO");
+      original.setSpace (3, 0, 1, 10);
+      original.setDisposition ("PS", "VB", 133, 6233);
+      execute (new DatasetRequest (null, Command.ADD, original));
+
+      DatasetRequest found = (DatasetRequest) execute (
+          new DatasetRequest (null, Command.FIND, "SEM.DATAS"));
+
+      assertEquals (original.toString (), found.dataset.toString ());
+    }
+
+    @Test
+    @DisplayName ("gravar um membro marca como particionado o dataset que ja existia")
+    @Timeout (30)
+    void insertingMemberMarksExistingDatasetPartitioned ()
+        throws InterruptedException, SQLException
+    {
+      open ();
+      Dataset dataset = new Dataset ("SEM.DSORG");
+      dataset.setSpace (1, 0, 1, 5);
+      execute (new DatasetRequest (null, Command.ADD, dataset));
+
+      execute (new MemberRequest (null, Command.ADD, new Member (dataset, "UM")));
+
+      try (Connection connection = openDatabaseFile ();
+          Statement statement = connection.createStatement ();
+          ResultSet rs = statement
+              .executeQuery ("select DSORG from DATASETS where NAME='SEM.DSORG'"))
+      {
+        assertTrue (rs.next ());
+        assertEquals ("PO", rs.getString ("DSORG"));
+      }
+    }
+
+    @Test
+    @DisplayName ("gravar um membro cria como particionado o dataset que faltava")
+    @Timeout (30)
+    void insertingMemberCreatesMissingDatasetPartitioned ()
+        throws InterruptedException, SQLException
+    {
+      open ();
+
+      Member member = new Member (new Dataset ("NUNCA.VISTO"), "UM");
+      assertEquals (Result.SUCCESS,
+                    execute (new MemberRequest (null, Command.ADD, member)).result);
+
+      try (Connection connection = openDatabaseFile ();
+          Statement statement = connection.createStatement ();
+          ResultSet rs = statement
+              .executeQuery ("select DSORG from DATASETS where NAME='NUNCA.VISTO'"))
+      {
+        assertTrue (rs.next (), "o dataset deveria ter sido criado junto com o membro");
+        assertEquals ("PO", rs.getString ("DSORG"));
+      }
     }
   }
 
