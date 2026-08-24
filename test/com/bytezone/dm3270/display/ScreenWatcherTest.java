@@ -14,6 +14,10 @@ import org.junit.jupiter.api.Test;
 
 import com.bytezone.dm3270.assistant.TableDataset;
 import com.bytezone.dm3270.commands.Command;
+import com.bytezone.dm3270.datasets.Dataset;
+import com.bytezone.dm3270.datasets.DatasetStore;
+import com.bytezone.dm3270.datasets.Member;
+import com.bytezone.dm3270.datasets.StoreListener;
 import com.bytezone.dm3270.orders.BufferAddress;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
@@ -59,6 +63,7 @@ class ScreenWatcherTest
 
   private HeadlessScreenTarget screen;
   private ScreenWatcher watcher;
+  private RecordingStore store;
   private final List<Integer> stream = new ArrayList<> ();
 
   // ---------------------------------------------------------------------------------//
@@ -66,8 +71,9 @@ class ScreenWatcherTest
   void setUp ()
   // ---------------------------------------------------------------------------------//
   {
+    store = new RecordingStore ();
     screen = new HeadlessScreenTarget (new ScreenDimensions (ROWS, COLUMNS),
-        new ScreenDimensions (43, COLUMNS));
+        new ScreenDimensions (43, COLUMNS), store);
     watcher = screen.getScreenWatcher ();
     stream.clear ();
     stream.add ((int) ERASE_WRITE);
@@ -628,6 +634,579 @@ class ScreenWatcherTest
 
       assertTrue (watcher.getDatasets ().isEmpty (),
           "check () limpa screenDatasets no inicio de cada tela");
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  // Telas que nao sao lista de dataset
+  // ---------------------------------------------------------------------------------//
+
+  /*
+   * A linha de comando do ISPF, na linha pedida. O campo de entrada fica com 66 posicoes
+   * porque o proximo atributo esta na linha seguinte, coluna zero - e 66 e um dos dois
+   * comprimentos que hasPromptField aceita.
+   */
+  // ---------------------------------------------------------------------------------//
+  private void commandLine (int row)
+  // ---------------------------------------------------------------------------------//
+  {
+    field (row, 0, PROTECTED, COMMAND_PROMPT);
+    field (row, 13, UNPROTECTED, "");
+  }
+
+  /*
+   * A barra de menus da linha 0, que e o que checkMemberList usa para escolher entre os dois
+   * caminhos: pdsMenus tem cinco entradas e memberMenus tem quatro.
+   *
+   * getMenus le so a linha 0, so campos protegidos, visiveis e com mais de uma posicao, e
+   * descarta os de texto vazio. O campo em branco do fim entra na contagem de campos da tela
+   * - que e o que decide os indices que checkMemberList1 e checkMemberList2 esperam - sem
+   * entrar na lista de menus.
+   */
+  // ---------------------------------------------------------------------------------//
+  private void menuBar (String... names)
+  // ---------------------------------------------------------------------------------//
+  {
+    int col = 0;
+    for (String name : names)
+    {
+      field (0, col, PROTECTED, name);
+      col += name.length () + 4;
+    }
+    field (0, col, PROTECTED, "");
+  }
+
+  /*
+   * Preenche uma linha com a quantidade pedida de campos vazios, distribuidos por igual.
+   * Serve para levar a contagem de campos ate o indice exato que o codigo sob teste espera -
+   * checkPrefixScreen le screenFields.get (10), get (23), get (24), get (72) e get (73).
+   */
+  // ---------------------------------------------------------------------------------//
+  private void fillRow (int row, int count)
+  // ---------------------------------------------------------------------------------//
+  {
+    int pitch = COLUMNS / count;
+    for (int i = 0; i < count; i++)
+      field (row, i * pitch, PROTECTED, "");
+  }
+
+  /*
+   * A linha 4, de titulos. checkMemberList1 escolhe o formato dos detalhes so pela
+   * QUANTIDADE de campos aqui (7, 10 ou 13); checkMemberList2 tambem le o texto do sexto.
+   *
+   * Os campos vazios ficam com uma posicao cada, e o sexto recebe a largura exata do texto -
+   * escrever mais do que cabe ate o proximo Start Field sobrescreveria o campo seguinte.
+   */
+  // ---------------------------------------------------------------------------------//
+  private void headingsRow (int count, String sixth)
+  // ---------------------------------------------------------------------------------//
+  {
+    int col = 0;
+    for (int i = 0; i < count; i++)
+    {
+      String text = i == 5 ? sixth : "";
+      field (4, col, PROTECTED, text);
+      col += text.length () + 2;
+    }
+  }
+
+  /*
+   * Uma linha de membro: quatro campos, que e o que os dois checkMemberList exigem. O nome
+   * fica com oito posicoes, exatamente o tamanho de "**End** " - o marcador de fim de lista,
+   * que o codigo compara com equals e nao com trim.
+   */
+  // ---------------------------------------------------------------------------------//
+  private void memberRow (int row, String name, String details)
+  // ---------------------------------------------------------------------------------//
+  {
+    field (row, 0, UNPROTECTED, "");
+    field (row, 9, PROTECTED, name);
+    field (row, 18, PROTECTED, "");
+    field (row, 25, PROTECTED, details);
+  }
+
+  /*
+   * O cabecalho de uma lista de membros do tipo 1 - a que checkMemberList1 reconhece.
+   *
+   * Os indices sao o contrato: a barra de menus mais o campo em branco dao seis campos, a
+   * linha de comando da mais dois, e o proximo campo - o atributo na linha 2, coluna 0 - e o
+   * de indice 8, que o codigo exige na posicao 161. O modo fica nele, e o nome do dataset no
+   * de indice 9, que tem de comecar em 179.
+   */
+  // ---------------------------------------------------------------------------------//
+  private void pdsHeader (String mode, String datasetName)
+  // ---------------------------------------------------------------------------------//
+  {
+    menuBar ("Menu", "Functions", "Confirm", "Utilities", "Help");
+    commandLine (1);
+    field (2, 0, PROTECTED, mode);                    // campo 8, posicao 161
+    field (2, 18, PROTECTED, datasetName);            // campo 9, posicao 179
+    field (3, 0, PROTECTED, "");
+  }
+
+  /*
+   * O mesmo para o tipo 2. Sao quatro menus em vez de cinco, entao o campo do modo cai para o
+   * indice 7 - e o nome do dataset, para o 8, na posicao 170 em vez de 179.
+   */
+  // ---------------------------------------------------------------------------------//
+  private void memberHeader (String mode, String datasetName)
+  // ---------------------------------------------------------------------------------//
+  {
+    menuBar ("Menu", "Functions", "Utilities", "Help");
+    commandLine (1);
+    field (2, 0, PROTECTED, mode);                    // campo 7, posicao 161
+    field (2, 9, PROTECTED, datasetName);             // campo 8, posicao 170
+    field (3, 0, PROTECTED, "");
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private TableDataset onlyMember ()
+  // ---------------------------------------------------------------------------------//
+  {
+    List<TableDataset> members = watcher.getMembers ();
+    assertEquals (1, members.size (), "esperava um membro, veio " + members.size ());
+    return members.get (0);
+  }
+
+  /*
+   * Os detalhes de um membro, montados por bloco para que os deslocamentos fiquem visiveis no
+   * proprio teste. Cada bloco e preenchido com espacos ate a largura pedida, e a soma tem de
+   * dar as 54 posicoes do campo de detalhes.
+   */
+  // ---------------------------------------------------------------------------------//
+  private String details (String... blocks)
+  // ---------------------------------------------------------------------------------//
+  {
+    StringBuilder text = new StringBuilder ();
+    for (String block : blocks)
+      text.append (block);
+    return text.toString ();
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private String pad (String value, int width)
+  // ---------------------------------------------------------------------------------//
+  {
+    StringBuilder text = new StringBuilder (value);
+    while (text.length () < width)
+      text.append (' ');
+    return text.toString ();
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private String padLeft (String value, int width)
+  // ---------------------------------------------------------------------------------//
+  {
+    StringBuilder text = new StringBuilder ();
+    while (text.length () < width - value.length ())
+      text.append (' ');
+    return text.append (value).toString ();
+  }
+
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("lista de membros - pdsMenus, cinco menus")
+  class MemberListOne
+  // ---------------------------------------------------------------------------------//
+  {
+    // 12 + 13 + 13 + 9 + 7 = 54, que e a largura do campo de detalhes
+    private String libraryDetails ()
+    {
+      return details (padLeft ("42", 12), pad ("2024/01/15", 13),
+          pad ("2025/06/01", 13), pad ("14:30:00", 9), pad ("USER01", 7));
+    }
+
+    @Test
+    @DisplayName ("o modo LIBRARY le as datas em 12/25/38 e o id em 47")
+    void libraryModeReadsDatesAndId ()
+    {
+      pdsHeader ("LIBRARY", "SYS1.PROCLIB");
+      headingsRow (7, "");
+      memberRow (5, "IEFBR14", libraryDetails ());
+      endOfList (6);
+      send ();
+
+      assertFalse (watcher.getMembers ().isEmpty (), "nao reconheceu a lista de membros");
+      assertEquals ("SYS1.PROCLIB(IEFBR14)", onlyMember ().getDatasetName ());
+      assertEquals ("2024/01/15", onlyMember ().getCreated ());
+      assertEquals ("2025/06/01", onlyMember ().getReferredDate ());
+      assertEquals ("14:30:00", onlyMember ().getReferredTime ());
+      assertEquals ("USER01", onlyMember ().getCatalog ());
+    }
+
+    /*
+     * Uma peculiaridade que a decomposicao tem de preservar: screenType1 le o MESMO trecho
+     * duas vezes, uma para setExtents e outra para o tamanho do Member. As duas colunas
+     * acabam com o mesmo numero.
+     */
+    @Test
+    @DisplayName ("o tamanho e os extents saem do mesmo trecho, e ficam iguais")
+    void sizeAndExtentsShareTheSameSlice ()
+    {
+      pdsHeader ("LIBRARY", "SYS1.PROCLIB");
+      headingsRow (7, "");
+      memberRow (5, "IEFBR14", libraryDetails ());
+      endOfList (6);
+      send ();
+
+      assertEquals (42, onlyMember ().getExtents ());
+      assertEquals (1, store.members.size ());
+      assertEquals (42, store.members.get (0).getSize ());
+    }
+
+    @Test
+    @DisplayName ("os modos de edicao usam 9/21/33 e o id em 42")
+    void editModeUsesTheOtherOffsets ()
+    {
+      pdsHeader ("EDIT", "SYS1.PROCLIB");
+      headingsRow (7, "");
+      // 9 + 12 + 12 + 9 + 12 = 54
+      memberRow (5, "IEFBR14", details (padLeft ("7", 9), pad ("2024/01/15", 12),
+          pad ("2025/06/01", 12), pad ("14:30:00", 9), pad ("USER01", 12)));
+      endOfList (6);
+      send ();
+
+      assertEquals ("2024/01/15", onlyMember ().getCreated ());
+      assertEquals ("2025/06/01", onlyMember ().getReferredDate ());
+      assertEquals ("14:30:00", onlyMember ().getReferredTime ());
+      assertEquals ("USER01", onlyMember ().getCatalog ());
+      assertEquals (7, onlyMember ().getExtents ());
+    }
+
+    @Test
+    @DisplayName ("treze titulos trocam o formato dos detalhes por VV.MM e id")
+    void thirteenHeadingsSwitchToStatistics ()
+    {
+      pdsHeader ("LIBRARY", "SYS1.PROCLIB");
+      headingsRow (13, "");
+      // 12 + 9 + 10 + 12 + 11 = 54
+      memberRow (5, "IEFBR14", details (padLeft ("10", 12), padLeft ("7", 9),
+          padLeft ("3", 10), pad ("01.05", 12), pad ("USER02", 11)));
+      endOfList (6);
+      send ();
+
+      assertEquals ("USER02", onlyMember ().getCatalog ());
+      assertEquals (10, onlyMember ().getExtents ());
+
+      assertEquals (1, store.members.size ());
+      assertEquals (10, store.members.get (0).getSize ());
+      assertEquals (7, store.members.get (0).getInit ());
+      assertEquals (3, store.members.get (0).getMod ());
+      assertEquals (1, store.members.get (0).getVv ());
+      assertEquals (5, store.members.get (0).getMm ());
+      assertEquals ("USER02", store.members.get (0).getId ());
+    }
+
+    @Test
+    @DisplayName ("um modo desconhecido nao produz lista de membros")
+    void unknownModeIsRejected ()
+    {
+      pdsHeader ("QUALQUER", "SYS1.PROCLIB");
+      headingsRow (7, "");
+      memberRow (5, "IEFBR14", libraryDetails ());
+      endOfList (6);
+      send ();
+
+      assertTrue (watcher.getMembers ().isEmpty ());
+      assertTrue (watcher.getMembers ().isEmpty ());
+    }
+
+    @Test
+    @DisplayName ("o marcador de fim interrompe a leitura, e ele proprio nao entra")
+    void endMarkerStopsTheList ()
+    {
+      pdsHeader ("LIBRARY", "SYS1.PROCLIB");
+      headingsRow (7, "");
+      memberRow (5, "IEFBR14", libraryDetails ());
+      memberRow (6, "**End**", libraryDetails ());
+      memberRow (7, "DEPOIS", libraryDetails ());
+      endOfList (8);
+      send ();
+
+      assertEquals (1, watcher.getMembers ().size ());
+      assertEquals ("SYS1.PROCLIB(IEFBR14)", onlyMember ().getDatasetName ());
+    }
+
+    @Test
+    @DisplayName ("um nome de membro invalido tambem interrompe a leitura")
+    void invalidMemberNameStopsTheList ()
+    {
+      pdsHeader ("LIBRARY", "SYS1.PROCLIB");
+      headingsRow (7, "");
+      memberRow (5, "IEFBR14", libraryDetails ());
+      memberRow (6, "nao-vale", libraryDetails ());
+      memberRow (7, "DEPOIS", libraryDetails ());
+      endOfList (8);
+      send ();
+
+      assertEquals (1, watcher.getMembers ().size ());
+    }
+
+    @Test
+    @DisplayName ("o dataset corrente passa a ser o PDS da lista")
+    void recordsTheCurrentPds ()
+    {
+      pdsHeader ("LIBRARY", "SYS1.PROCLIB");
+      headingsRow (7, "");
+      memberRow (5, "IEFBR14", libraryDetails ());
+      endOfList (6);
+      send ();
+
+      assertEquals ("SYS1.PROCLIB", watcher.getCurrentPDS ());
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("lista de membros - memberMenus, quatro menus")
+  class MemberListTwo
+  // ---------------------------------------------------------------------------------//
+  {
+    @Test
+    @DisplayName ("dez titulos com Created no sexto dao o formato de datas")
+    void createdHeadingSelectsDates ()
+    {
+      memberHeader ("EDIT", "SYS1.PROCLIB");
+      headingsRow (10, "Created");
+      memberRow (5, "IEFBR14", details (padLeft ("42", 12), pad ("2024/01/15", 13),
+          pad ("2025/06/01", 13), pad ("14:30:00", 9), pad ("USER01", 7)));
+      endOfList (6);
+      send ();
+
+      assertFalse (watcher.getMembers ().isEmpty (), "nao reconheceu a lista de membros");
+      assertEquals ("SYS1.PROCLIB(IEFBR14)", onlyMember ().getDatasetName ());
+      assertEquals ("2024/01/15", onlyMember ().getCreated ());
+      assertEquals ("USER01", onlyMember ().getCatalog ());
+    }
+
+    @Test
+    @DisplayName ("treze titulos com Init no sexto dao o formato de estatisticas")
+    void initHeadingSelectsStatistics ()
+    {
+      memberHeader ("BROWSE", "SYS1.PROCLIB");
+      headingsRow (13, "Init");
+      memberRow (5, "IEFBR14", details (padLeft ("10", 12), padLeft ("7", 9),
+          padLeft ("3", 10), pad ("01.05", 12), pad ("USER02", 11)));
+      endOfList (6);
+      send ();
+
+      assertEquals (1, store.members.size ());
+      assertEquals (10, store.members.get (0).getSize ());
+      assertEquals (1, store.members.get (0).getVv ());
+      assertEquals (5, store.members.get (0).getMm ());
+    }
+
+    @Test
+    @DisplayName ("um modo fora de EDIT, BROWSE e VIEW nao produz lista")
+    void unknownModeIsRejected ()
+    {
+      memberHeader ("LIBRARY", "SYS1.PROCLIB");
+      headingsRow (10, "Created");
+      memberRow (5, "IEFBR14", pad ("", 54));
+      endOfList (6);
+      send ();
+
+      assertTrue (watcher.getMembers ().isEmpty ());
+    }
+
+    @Test
+    @DisplayName ("um sexto titulo inesperado nao produz lista, mesmo com dez titulos")
+    void unexpectedHeadingIsRejected ()
+    {
+      memberHeader ("EDIT", "SYS1.PROCLIB");
+      headingsRow (10, "Outro");
+      memberRow (5, "IEFBR14", pad ("", 54));
+      endOfList (6);
+      send ();
+
+      assertTrue (watcher.getMembers ().isEmpty ());
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("tela inicial do ISPF - userid e prefixo")
+  class PrefixScreen
+  // ---------------------------------------------------------------------------------//
+  {
+    /*
+     * checkPrefixScreen le por INDICE e por POSICAO ABSOLUTA: o titulo tem de ser o campo 10,
+     * " User ID . :" o campo 23 na posicao 457, o userid o campo 24 na 470, " TSO prefix:" o
+     * campo 72 na 1017 e o prefixo o campo 73 na 1030 - e a tela tem de ter 74 campos ou
+     * mais. A contagem de campos de cada linha abaixo existe so para acertar esses indices.
+     */
+    private void primaryOptionMenu (String heading, String userid, String prefix)
+    {
+      fillRow (0, 10);                                  // campos 0 a 9
+      field (1, 0, PROTECTED, heading);                 // campo 10
+      field (1, 25, PROTECTED, "");                     // campo 11
+      commandLine (2);                                  // campos 12 e 13
+      fillRow (3, 4);                                   // campos 14 a 17
+      fillRow (4, 4);                                   // campos 18 a 21
+      field (5, 0, PROTECTED, "");                      // campo 22
+      field (5, 56, PROTECTED, " User ID . :");         // campo 23, posicao 457
+      field (5, 69, PROTECTED, userid);                 // campo 24, posicao 470
+      fillRow (6, 8);                                   // campos 25 a 32
+      fillRow (7, 8);                                   // campos 33 a 40
+      fillRow (8, 8);                                   // campos 41 a 48
+      fillRow (9, 8);                                   // campos 49 a 56
+      fillRow (10, 7);                                  // campos 57 a 63
+      fillRow (11, 7);                                  // campos 64 a 70
+      field (12, 0, PROTECTED, "");                     // campo 71
+      field (12, 56, PROTECTED, " TSO prefix:");        // campo 72, posicao 1017
+      field (12, 69, PROTECTED, prefix);                // campo 73, posicao 1030
+      endOfList (13);
+    }
+
+    @Test
+    @DisplayName ("o menu principal do ISPF entrega userid e prefixo")
+    void ispfPrimaryOptionMenu ()
+    {
+      primaryOptionMenu ("ISPF Primary Option Menu", "DMOLONY", "DMOLONYB");
+      send ();
+
+      assertEquals ("DMOLONY", watcher.getUserid ());
+      assertEquals ("DMOLONYB", watcher.getPrefix ());
+    }
+
+    @Test
+    @DisplayName ("o menu do z/OS tambem serve")
+    void zosPrimaryOptionMenu ()
+    {
+      primaryOptionMenu ("z/OS Primary Option Menu", "USER01", "USER01A");
+      send ();
+
+      assertEquals ("USER01", watcher.getUserid ());
+      assertEquals ("USER01A", watcher.getPrefix ());
+    }
+
+    @Test
+    @DisplayName ("qualquer outro titulo na mesma posicao e ignorado")
+    void otherHeadingIsIgnored ()
+    {
+      primaryOptionMenu ("Qualquer Outra Coisa Ali", "DMOLONY", "DMOLONYB");
+      send ();
+
+      assertTrue (watcher.getPrefix ().isEmpty (), watcher.getPrefix ());
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("dataset unico - a tela de EDIT, VIEW ou BROWSE")
+  class SingleDataset
+  // ---------------------------------------------------------------------------------//
+  {
+    /*
+     * checkSingleDataset procura, nas tres primeiras linhas, um campo na coluna 1 com nove ou
+     * dez posicoes cujo texto seja EDIT, VIEW ou BROWSE, e confere o campo DOIS a frente -
+     * sem trim - contra "Columns" ou "Line". O nome vem do campo do meio.
+     */
+    private void editScreen (String mode, String name, String third)
+    {
+      field (0, 0, PROTECTED, mode);          // dez posicoes: proximo atributo na coluna 11
+      field (0, 11, PROTECTED, name);
+      field (0, 41, PROTECTED, third);        // largura exata do texto, sem preenchimento
+      field (0, 41 + third.length () + 1, PROTECTED, "");
+      commandLine (1);
+      endOfList (2);
+    }
+
+    @Test
+    @DisplayName ("a tela de EDIT registra o dataset como recente")
+    void editRecordsTheDataset ()
+    {
+      editScreen ("EDIT", "MY.DATA.SET", "Columns");
+      send ();
+
+      assertEquals ("MY.DATA.SET", watcher.getSingleDataset ());
+      assertEquals (List.of ("MY.DATA.SET"), watcher.getRecentDatasets ());
+    }
+
+    @Test
+    @DisplayName ("o membro entre parenteses e preservado no nome")
+    void keepsTheMemberName ()
+    {
+      editScreen ("EDIT", "SYS1.PROCLIB(IEFBR14)", "Columns");
+      send ();
+
+      assertEquals ("SYS1.PROCLIB(IEFBR14)", watcher.getSingleDataset ());
+    }
+
+    @Test
+    @DisplayName ("o nome termina no primeiro espaco - o resto e numero de versao")
+    void stopsAtTheFirstSpace ()
+    {
+      editScreen ("VIEW", "MY.DATA.SET - 01.00", "Columns");
+      send ();
+
+      assertEquals ("MY.DATA.SET", watcher.getSingleDataset ());
+    }
+
+    @Test
+    @DisplayName ("BROWSE com Line no lugar de Columns tambem conta")
+    void browseWithLineAlsoCounts ()
+    {
+      editScreen ("BROWSE", "MY.DATA.SET", "Line");
+      send ();
+
+      assertEquals ("MY.DATA.SET", watcher.getSingleDataset ());
+    }
+
+    @Test
+    @DisplayName ("um terceiro campo diferente nao produz dataset")
+    void otherThirdFieldIsIgnored ()
+    {
+      editScreen ("EDIT", "MY.DATA.SET", "Outro");
+      send ();
+
+      assertTrue (watcher.getSingleDataset ().isEmpty (), watcher.getSingleDataset ());
+    }
+
+    @Test
+    @DisplayName ("um nome que nao parece dataset nao produz dataset")
+    void invalidNameIsIgnored ()
+    {
+      editScreen ("EDIT", "nao.vale.nada", "Columns");
+      send ();
+
+      assertTrue (watcher.getSingleDataset ().isEmpty (), watcher.getSingleDataset ());
+    }
+  }
+
+  /*
+   * O DatasetStore que o ScreenWatcher enxerga nestes testes. Ate agora esse caminho terminava
+   * no DatasetStore.NONE e era invisivel: dava para conferir o que ia para a tabela do
+   * assistant, mas nao o que ia para a persistencia. Sao os dois lados que a decomposicao do
+   * ScreenWatcher tem de preservar.
+   */
+  // ---------------------------------------------------------------------------------//
+  private static class RecordingStore implements DatasetStore
+  // ---------------------------------------------------------------------------------//
+  {
+    private final List<Dataset> datasets = new ArrayList<> ();
+    private final List<Member> members = new ArrayList<> ();
+
+    @Override
+    public void open (StoreListener listener)
+    {
+    }
+
+    @Override
+    public void close (StoreListener listener)
+    {
+    }
+
+    @Override
+    public void update (Dataset dataset)
+    {
+      datasets.add (dataset);
+    }
+
+    @Override
+    public void update (Member member)
+    {
+      members.add (member);
     }
   }
 }

@@ -106,6 +106,20 @@ public final class HeadlessScreenTarget implements ScreenTarget, CursorHost, Fie
       ScreenDimensions alternateDimensions)
   // ---------------------------------------------------------------------------------//
   {
+    this (defaultDimensions, alternateDimensions, DatasetStore.NONE);
+  }
+
+  /*
+   * Com um DatasetStore proprio. O ScreenWatcher grava nele tudo o que reconhece numa lista
+   * de dataset ou de membros, e ate agora esse caminho terminava no NONE, invisivel para o
+   * teste. Passar um dublê que registra e o que permite conferir os valores que chegam a
+   * persistencia - que e exatamente o que a decomposicao do ScreenWatcher tem de preservar.
+   */
+  // ---------------------------------------------------------------------------------//
+  public HeadlessScreenTarget (ScreenDimensions defaultDimensions,
+      ScreenDimensions alternateDimensions, DatasetStore datasetStore)
+  // ---------------------------------------------------------------------------------//
+  {
     this.defaultDimensions = defaultDimensions;
     this.alternateDimensions = alternateDimensions;
 
@@ -114,9 +128,10 @@ public final class HeadlessScreenTarget implements ScreenTarget, CursorHost, Fie
 
     cursor = new Cursor (this, defaultDimensions);
 
-    // Sem banco: DatasetStore.NONE e o que a aplicacao usa quando nao ha site.
+    // Sem banco, DatasetStore.NONE e o que a aplicacao usa quando nao ha site; o teste
+    // que quiser ver o que foi gravado passa um dublê no lugar.
     fieldManager = new FieldManager (this, contextManager, defaultDimensions,
-        DatasetStore.NONE);
+        datasetStore);
 
     systemMessage = new SystemMessage (this, new RecordingBatchJobListener (),
         defaultDimensions, new RecordingSystemMessageView ());
