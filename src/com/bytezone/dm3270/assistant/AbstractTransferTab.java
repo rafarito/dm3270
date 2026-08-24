@@ -2,7 +2,7 @@ package com.bytezone.dm3270.assistant;
 
 import com.bytezone.dm3270.screen.KeyboardStatusChangedEvent;
 import com.bytezone.dm3270.screen.KeyboardStatusListener;
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.screen.KeyboardState;
 import com.bytezone.dm3270.watch.ScreenChangeListener;
 import com.bytezone.dm3270.watch.ScreenWatcher;
 
@@ -11,11 +11,11 @@ import javafx.scene.control.Tab;
 public abstract class AbstractTransferTab extends Tab
     implements ScreenChangeListener, KeyboardStatusListener
 {
-  protected final Screen screen;
+  protected final KeyboardState screen;
   protected ScreenWatcher screenWatcher;
   protected TSOCommand tsoCommand;
 
-  public AbstractTransferTab (String name, Screen screen, TSOCommand tsoCommand)
+  public AbstractTransferTab (String name, KeyboardState screen, TSOCommand tsoCommand)
   {
     super (name);
 

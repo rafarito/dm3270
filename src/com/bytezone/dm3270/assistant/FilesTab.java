@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.prefs.Preferences;
 
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.screen.KeyboardState;
 import com.bytezone.reporter.application.FileNode;
 import com.bytezone.reporter.application.NodeSelectionListener;
 import com.bytezone.reporter.application.ReporterNode;
@@ -17,7 +17,7 @@ public class FilesTab extends AbstractTransferTab implements NodeSelectionListen
   private final ReporterNode reporterNode;
   private FileNode currentFileNode;
 
-  public FilesTab (Screen screen, TSOCommand tsoCommand, Preferences prefs)
+  public FilesTab (KeyboardState screen, TSOCommand tsoCommand, Preferences prefs)
   {
     super ("Local Files", screen, tsoCommand);
 

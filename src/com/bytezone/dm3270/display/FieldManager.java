@@ -16,6 +16,7 @@ import com.bytezone.dm3270.screen.ScreenContext;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.screen.ScreenPosition;
 import com.bytezone.dm3270.watch.ScreenChangeListener;
+import com.bytezone.dm3270.watch.ScreenChangeSource;
 import com.bytezone.dm3270.watch.ScreenFields;
 import com.bytezone.dm3270.watch.ScreenWatcher;
 import com.bytezone.dm3270.utilities.Site;
@@ -23,7 +24,7 @@ import com.bytezone.dm3270.utilities.Site;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FieldManager implements ScreenFields
+public class FieldManager implements ScreenFields, ScreenChangeSource
 {
   private static final Logger logger = LoggerFactory.getLogger (FieldManager.class);
 
@@ -290,6 +291,7 @@ public class FieldManager implements ScreenFields
     screenChangeListeners.forEach (listener -> listener.screenChanged (screenWatcher));
   }
 
+  @Override
   public void addScreenChangeListener (ScreenChangeListener listener)
   {
     if (!screenChangeListeners.contains (listener))

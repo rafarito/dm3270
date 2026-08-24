@@ -7,7 +7,8 @@ import java.util.prefs.Preferences;
 import com.bytezone.dm3270.screen.AidSender;
 import com.bytezone.dm3270.screen.KeyboardStatusChangedEvent;
 import com.bytezone.dm3270.screen.KeyboardStatusListener;
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.screen.KeyboardState;
+import com.bytezone.dm3270.watch.ScreenChangeSource;
 import com.bytezone.dm3270.watch.ScreenChangeListener;
 import com.bytezone.dm3270.watch.ScreenWatcher;
 import com.bytezone.dm3270.watch.TSOCommandListener;
@@ -56,7 +57,7 @@ public class TransfersStage extends Stage implements ScreenChangeListener,
   private final List<ScreenChangeListener> screenChangeListeners;
   private final List<KeyboardStatusListener> keyboardStatusListeners;
 
-  public TransfersStage (Screen screen)
+  public TransfersStage (KeyboardState screen, ScreenChangeSource screenChanges)
   {
     setTitle ("File Transfers");
 
@@ -64,7 +65,7 @@ public class TransfersStage extends Stage implements ScreenChangeListener,
     btnHide.setOnAction (e -> closeWindow ());
 
     tsoCommand = new TSOCommand ();
-    screen.getFieldManager ().addScreenChangeListener (tsoCommand);
+    screenChanges.addScreenChangeListener (tsoCommand);
 
     datasetTab = new DatasetTab (screen, tsoCommand);
     jobTab = new BatchJobTab (screen, tsoCommand);

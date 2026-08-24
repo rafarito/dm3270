@@ -45,7 +45,7 @@ import com.bytezone.dm3270.filetransfer.TransferManager;
  * vem depois - quando cada responsabilidade tiver um dono, os grupos abaixo viram tipos.
  */
 // -----------------------------------------------------------------------------------//
-public interface ScreenTarget extends DisplayScreen
+public interface ScreenTarget extends DisplayScreen, KeyboardState
 // -----------------------------------------------------------------------------------//
 {
   // ---------------------------------------------------------------------------------//
@@ -55,8 +55,6 @@ public interface ScreenTarget extends DisplayScreen
   void lockKeyboard (String keyName);
 
   void restoreKeyboard ();
-
-  boolean isKeyboardLocked ();
 
   void resetInsertMode ();
 

@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.screen.KeyboardState;
 
 public class BatchJobTab extends AbstractTransferTab implements BatchJobListener
 {
@@ -16,7 +16,7 @@ public class BatchJobTab extends AbstractTransferTab implements BatchJobListener
 
   private BatchJob selectedBatchJob;
 
-  public BatchJobTab (Screen screen, TSOCommand tsoCommand)
+  public BatchJobTab (KeyboardState screen, TSOCommand tsoCommand)
   {
     super ("Batch Jobs", screen, tsoCommand);
 

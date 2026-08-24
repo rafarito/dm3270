@@ -149,7 +149,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     fontManager = FontManager.getInstance (this, prefs);
     fieldManager = new FieldManager (this, contextManager, screenDimensions, datasetStore);
     historyManager = new HistoryManager (screenDimensions, contextManager, fieldManager);
-    transfersStage = new TransfersStage (this);
+    transfersStage = new TransfersStage (this, fieldManager);
 
     consoleLogStage = new ConsoleLogStage ();
     systemMessage = new SystemMessage (this, transfersStage, screenDimensions, this);

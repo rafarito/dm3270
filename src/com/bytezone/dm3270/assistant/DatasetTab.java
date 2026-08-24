@@ -7,7 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.bytezone.dm3270.datasets.DatasetSummary;
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.screen.KeyboardState;
 import com.bytezone.dm3270.watch.ScreenWatcher;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -27,7 +27,7 @@ public class DatasetTab extends AbstractTransferTab
   // uma linha por nome, reaproveitada entre telas - ver a nota em TableDatasets
   private final TableDatasets tableDatasets = new TableDatasets ();
 
-  public DatasetTab (Screen screen, TSOCommand tsoCommand)
+  public DatasetTab (KeyboardState screen, TSOCommand tsoCommand)
   {
     super ("Datasets", screen, tsoCommand);
 

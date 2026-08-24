@@ -309,8 +309,23 @@ class LayeringTest
    * ScreenWatcher antes de a regra de banco chegar a zero teria feito displayDoesNotDependOnDatabase
    * ler zero sem que uma aresta fosse cortada. A ordem foi a inversa, e por isso as duas
    * medidas valem.
+   *
+   * E caiu a 14, que fecha a onda 3. Sobrava assistant <-> display por duas coisas so: as abas
+   * guardavam a classe Screen inteira para chamar isKeyboardLocked (), e o TransfersStage fazia
+   * screen.getFieldManager ().addScreenChangeListener (tsoCommand) - dois saltos para alcancar
+   * uma inscricao. Viraram screen.KeyboardState, um metodo, e watch.ScreenChangeSource, um
+   * metodo. O campo Screen do AbstractTransferTab, que era atribuido e nunca lido em quatro das
+   * cinco abas, saiu junto.
+   *
+   * OS 14 QUE SOBRAM sao de duas naturezas. Inerentes ao 3270, e nao se pretende mexer:
+   * commands <-> screen (um ReadCommand pede a tela que produza um AIDCommand, e AIDCommand e
+   * comando de protocolo), attributes <-> screen, attributes <-> orders, orders <-> screen,
+   * commands <-> structuredfields. Acidentais que ficam para as ondas seguintes:
+   * filetransfer <-> screen e commands <-> filetransfer, que dependem de tirar
+   * getTransferManager () do ScreenTarget; os cinco de streams, que dependem do composition
+   * root; e os dois de reporter, que sao outro subsistema.
    */
-  private static final int MAX_MUTUAL_CYCLES = 15;
+  private static final int MAX_MUTUAL_CYCLES = 14;
 
   // ---------------------------------------------------------------------------------//
   @ArchTest

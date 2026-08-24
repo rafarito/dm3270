@@ -1,7 +1,7 @@
 package com.bytezone.dm3270.assistant;
 
 import com.bytezone.dm3270.screen.KeyboardStatusListener;
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.screen.KeyboardState;
 import com.bytezone.dm3270.watch.ScreenChangeListener;
 import com.bytezone.dm3270.watch.TSOCommandListener;
 
@@ -15,7 +15,7 @@ public class CommandsTab extends AbstractTransferTab
   ObservableList<String> commands = FXCollections.observableArrayList ();
   ListView<String> commandList = new ListView<> (commands);
 
-  public CommandsTab (Screen screen, TSOCommand tsoCommand)
+  public CommandsTab (KeyboardState screen, TSOCommand tsoCommand)
   {
     super ("Commands", screen, tsoCommand);
 
