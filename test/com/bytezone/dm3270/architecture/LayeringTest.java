@@ -243,8 +243,15 @@ class LayeringTest
    * plugins.PluginHost esta declarada no lado que consome - e isso que inverte a dependencia
    * - e a traducao Field -> PluginField saiu do FieldManager para plugins.PluginFields, onde
    * mora quem define o formato. plugins deixou de nomear display.
+   *
+   * E caiu a 17. O TelnetListener usa a tela de dois jeitos: como ScreenTarget, para entregar
+   * cada comando montado ao process (), e uma vez so como widget, em close (), para escrever
+   * o resumo da sessao quando o socket cai. Por causa dessa unica chamada o pacote streams
+   * inteiro nomeava display. streams.SessionDisplay estende ScreenTarget e acrescenta
+   * displayText (); a TerminalFunction, a outra coisa que o construtor pedia ao widget, passou
+   * a vir de quem constroi. SpyServer so repassava a tela e seguiu junto.
    */
-  private static final int MAX_MUTUAL_CYCLES = 18;
+  private static final int MAX_MUTUAL_CYCLES = 17;
 
   // ---------------------------------------------------------------------------------//
   @ArchTest

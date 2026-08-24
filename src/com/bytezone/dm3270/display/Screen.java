@@ -46,6 +46,7 @@ import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.screen.ScreenOption;
 import com.bytezone.dm3270.screen.ScreenPosition;
 import com.bytezone.dm3270.screen.ScreenTarget;
+import com.bytezone.dm3270.streams.SessionDisplay;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.streams.TelnetStateListener;
 import com.bytezone.dm3270.structuredfields.SetReplyModeSF;
@@ -68,7 +69,7 @@ import javafx.util.Duration;
 
 // -----------------------------------------------------------------------------------//
 public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHost,
-    SystemMessageView, TransferListener, TelnetStateListener, PluginHost
+    SystemMessageView, TransferListener, TelnetStateListener, PluginHost, SessionDisplay
 // -----------------------------------------------------------------------------------//
 {
   private static final Logger logger = LoggerFactory.getLogger (Screen.class);

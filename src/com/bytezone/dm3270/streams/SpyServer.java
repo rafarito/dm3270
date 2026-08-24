@@ -10,7 +10,6 @@ import java.net.UnknownHostException;
 
 import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.application.Console;
-import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.session.Session;
 import com.bytezone.dm3270.streams.TelnetSocket.Source;
 import com.bytezone.dm3270.utilities.Site;
@@ -37,7 +36,7 @@ public class SpyServer implements Runnable
   private TelnetSocket clientTelnetSocket;
   private TelnetSocket serverTelnetSocket;
   private final Session session;
-  private Screen screen;
+  private SessionDisplay screen;
 
   // ---------------------------------------------------------------------------------//
   public SpyServer (Site server, int clientPort, Session session, TelnetState telnetState)
@@ -131,7 +130,7 @@ public class SpyServer implements Runnable
   }
 
   // ---------------------------------------------------------------------------------//
-  public void setScreen (Screen screen)
+  public void setScreen (SessionDisplay screen)
   // ---------------------------------------------------------------------------------//
   {
     this.screen = screen;

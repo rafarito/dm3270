@@ -7,7 +7,6 @@ import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.buffers.Buffer;
 import com.bytezone.dm3270.buffers.ReplyBuffer;
 import com.bytezone.dm3270.commands.Command;
-import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.extended.BindCommand;
 import com.bytezone.dm3270.extended.CommandHeader;
 import com.bytezone.dm3270.extended.CommandHeader.DataType;
@@ -42,7 +41,7 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
 
   private final TelnetState telnetState;
   private final TerminalFunction function;
-  private final Screen screen;
+  private final SessionDisplay screen;
 
   private CommandHeader currentCommandHeader;
   private LocalDateTime currentDateTime;
@@ -54,8 +53,8 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
   // Use this when recording the session in SPY mode, or replaying the session
   // in REPLAY mode.
   // ---------------------------------------------------------------------------------//
-  public TelnetListener (Source source, Session session, TerminalFunction function, Screen screen,
-      TelnetState telnetState)
+  public TelnetListener (Source source, Session session, TerminalFunction function,
+      SessionDisplay screen, TelnetState telnetState)
   // ---------------------------------------------------------------------------------//
   {
     this.screen = screen;
@@ -68,12 +67,13 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
 
   // Use this when not recording the session and running in TERMINAL mode.
   // ---------------------------------------------------------------------------------//
-  public TelnetListener (Screen screen, TelnetState telnetState)
+  public TelnetListener (SessionDisplay screen, TerminalFunction function,
+      TelnetState telnetState)
   // ---------------------------------------------------------------------------------//
   {
     this.screen = screen;
     this.telnetState = telnetState;
-    this.function = screen.getFunction ();        // should be TERMINAL
+    this.function = function;
 
     this.source = Source.SERVER;                  // listening to a server
     this.session = null;
