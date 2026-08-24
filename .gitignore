@@ -7,6 +7,5 @@ build.xml
 !README.md
 !TESTING.md
 !BACKLOG-DEFEITOS.md
-!RELATORIO-REFATORACAO.md
 plugins/*
 logs/
