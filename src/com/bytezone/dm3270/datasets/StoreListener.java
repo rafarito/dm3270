@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.database;
+package com.bytezone.dm3270.datasets;
 
 /*
  * O aviso de que uma operacao no armazenamento terminou.

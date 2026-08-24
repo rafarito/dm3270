@@ -1,5 +1,10 @@
 package com.bytezone.dm3270.database;
 
+import com.bytezone.dm3270.datasets.Dataset;
+import com.bytezone.dm3270.datasets.DatasetStore;
+import com.bytezone.dm3270.datasets.Member;
+import com.bytezone.dm3270.datasets.StoreListener;
+
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 

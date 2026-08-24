@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.database;
+package com.bytezone.dm3270.datasets;
 
 /*
  * Onde os datasets e membros observados na tela vao parar.

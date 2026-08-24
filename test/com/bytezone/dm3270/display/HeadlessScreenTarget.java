@@ -22,7 +22,7 @@ import com.bytezone.dm3270.screen.Pen;
 import com.bytezone.dm3270.screen.ScreenCanvas;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.screen.ScreenOption;
-import com.bytezone.dm3270.database.DatasetStore;
+import com.bytezone.dm3270.datasets.DatasetStore;
 import com.bytezone.dm3270.screen.ScreenPosition;
 import com.bytezone.dm3270.screen.ScreenTarget;
 import com.bytezone.dm3270.streams.TelnetState;

@@ -1,5 +1,8 @@
 package com.bytezone.dm3270.database;
 
+import com.bytezone.dm3270.datasets.Dataset;
+import com.bytezone.dm3270.datasets.Member;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

@@ -25,7 +25,7 @@ import com.bytezone.dm3270.commands.SystemMessage;
 import com.bytezone.dm3270.commands.SystemMessageView;
 import com.bytezone.dm3270.commands.WriteControlCharacter;
 import com.bytezone.dm3270.console.ConsoleLog;
-import com.bytezone.dm3270.database.DatasetStore;
+import com.bytezone.dm3270.datasets.DatasetStore;
 import com.bytezone.dm3270.console.ConsoleLogStage;
 import com.bytezone.dm3270.filetransfer.Transfer;
 import com.bytezone.dm3270.filetransfer.Transfer.TransferType;

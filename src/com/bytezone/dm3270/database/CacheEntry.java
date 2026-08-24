@@ -1,5 +1,8 @@
 package com.bytezone.dm3270.database;
 
+import com.bytezone.dm3270.datasets.Dataset;
+import com.bytezone.dm3270.datasets.Member;
+
 import java.util.Map;
 import java.util.TreeMap;
 

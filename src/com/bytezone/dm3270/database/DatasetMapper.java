@@ -1,5 +1,7 @@
 package com.bytezone.dm3270.database;
 
+import com.bytezone.dm3270.datasets.Dataset;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;

@@ -10,9 +10,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.bytezone.dm3270.assistant.TableDataset;
-import com.bytezone.dm3270.database.Dataset;
-import com.bytezone.dm3270.database.DatasetStore;
-import com.bytezone.dm3270.database.Member;
+import com.bytezone.dm3270.datasets.Dataset;
+import com.bytezone.dm3270.datasets.DatasetStore;
+import com.bytezone.dm3270.datasets.Member;
 import com.bytezone.dm3270.screen.Field;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 

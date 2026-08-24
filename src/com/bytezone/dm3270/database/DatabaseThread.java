@@ -2,6 +2,9 @@ package com.bytezone.dm3270.database;
 
 import static com.bytezone.dm3270.database.DatabaseRequest.Command.LIST;
 
+import com.bytezone.dm3270.datasets.Dataset;
+import com.bytezone.dm3270.datasets.Member;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

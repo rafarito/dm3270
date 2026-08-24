@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.database;
+package com.bytezone.dm3270.datasets;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

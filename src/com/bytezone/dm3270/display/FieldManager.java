@@ -8,7 +8,7 @@ import java.util.Set;
 
 import com.bytezone.dm3270.attributes.Attribute;
 import com.bytezone.dm3270.attributes.StartFieldAttribute;
-import com.bytezone.dm3270.database.DatasetStore;
+import com.bytezone.dm3270.datasets.DatasetStore;
 import com.bytezone.dm3270.screen.ContextManager;
 import com.bytezone.dm3270.screen.Field;
 import com.bytezone.dm3270.screen.FieldHost;

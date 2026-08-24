@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.prefs.Preferences;
 
-import com.bytezone.dm3270.database.DatasetStore;
+import com.bytezone.dm3270.datasets.DatasetStore;
 import com.bytezone.dm3270.database.QueuedDatasetStore;
 import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.display.Screen;
