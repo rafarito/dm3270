@@ -43,6 +43,16 @@ public class ScreenWatcher
       Pattern.compile (segment + "(\\." + segment + "){0,21}");
   private static final Pattern memberNamePattern = Pattern.compile (segment);
 
+  /*
+   * Os cinco formatos de lista de dataset do DSLIST. Cada um carrega os proprios
+   * deslocamentos de coluna e nao guarda estado nenhum, entao uma instancia de cada basta.
+   */
+  private static final DatasetListLayout tracksLayout = new TracksLayout ();
+  private static final DatasetListLayout dsorgLayout = new DsorgLayout ();
+  private static final DatasetListLayout volumeLayout = new VolumeLayout ();
+  private static final DatasetListLayout catalogLayout = new CatalogLayout ();
+  private static final DatasetListLayout underscoreLayout = new UnderscoreLayout ();
+
   private static final String ispfScreen = "ISPF Primary Option Menu";
   private static final String zosScreen = "z/OS Primary Option Menu";
   private static final String ispfShell = "ISPF Command Shell";
@@ -377,25 +387,23 @@ public class ScreenWatcher
     if (!rowFields.get (0).getText ().startsWith ("Command - Enter"))
       return false;
 
-    int screenType = 0;
-    int linesPerDataset = 1;
-    int nextLine = 7;
+    DatasetListLayout layout = null;
 
     switch (rowFields.size ())
     {
       case 3:
         String heading = rowFields.get (1).getText ().trim ();
         if (heading.startsWith ("Tracks"))
-          screenType = 1;
+          layout = tracksLayout;
         else if (heading.startsWith ("Dsorg"))
-          screenType = 2;
+          layout = dsorgLayout;
         break;
 
       case 4:
         String message = rowFields.get (1).getText ().trim ();
         heading = rowFields.get (2).getText ().trim ();
         if ("Volume".equals (heading) && "Message".equals (message))
-          screenType = 3;
+          layout = volumeLayout;
         break;
 
       case 6:
@@ -403,22 +411,16 @@ public class ScreenWatcher
         heading = rowFields.get (2).getText ().trim ();
         if ("Volume".equals (heading) && "Message".equals (message))
         {
-          List<Field> rowFields2 = fieldManager.getRowFields (nextLine);
+          // Os dois layouts de varias linhas tem a mesma linha de titulos, entao o que os
+          // separa esta na linha 7: a palavra "Catalog" ou uma linha de tracos.
+          List<Field> rowFields2 = fieldManager.getRowFields (7);
           if (rowFields2.size () == 1)
           {
             String line = rowFields2.get (0).getText ().trim ();
             if (line.equals ("Catalog"))
-            {
-              screenType = 4;
-              linesPerDataset = 3;
-              nextLine = 9;
-            }
+              layout = catalogLayout;
             else if (line.startsWith ("--"))
-            {
-              screenType = 5;
-              linesPerDataset = 2;
-              nextLine = 8;
-            }
+              layout = underscoreLayout;
             else
               logger.warn ("Expected 'Catalog' or underscores: {}", line);
           }
@@ -429,12 +431,17 @@ public class ScreenWatcher
         logger.warn ("Unexpected number of fields: {}", rowFields.size ());
     }
 
-    if (screenType == 0)
+    if (layout == null)
     {
       logger.warn ("Screen not recognised");
       dumpFields (rowFields);
       return false;
     }
+
+    // A geometria da lista vem do layout: quantas linhas cada dataset ocupa, e onde ela
+    // comeca.
+    int linesPerDataset = layout.linesPerDataset ();
+    int nextLine = layout.firstDataRow ();
 
     while (nextLine < screenDimensions.rows)
     {
@@ -454,7 +461,7 @@ public class ScreenWatcher
       }
 
       if (datasetNamePattern.matcher (datasetName).matches ())
-        addDataset (datasetName, screenType, rowFields);
+        addDataset (datasetName, layout, rowFields);
       else
       {
         // check for excluded datasets
@@ -472,8 +479,17 @@ public class ScreenWatcher
     return true;
   }
 
+  /*
+   * Acumula um dataset visto na tela e entrega a leitura ao layout.
+   *
+   * O summary e o mesmo objeto entre telas quando o nome se repete - a tabela do assistant
+   * depende disso, porque e a mutacao dele que faz a linha mostrar dados que so aparecem numa
+   * tela posterior. O delta e novo a cada leitura, e vai para a persistencia SEMPRE, mesmo
+   * quando o layout nao le nada: nesse caso grava so o nome.
+   */
   // ---------------------------------------------------------------------------------//
-  private void addDataset (String datasetName, int screenType, List<Field> rowFields)
+  private void addDataset (String datasetName, DatasetListLayout layout,
+      List<Field> rowFields)
   // ---------------------------------------------------------------------------------//
   {
     DatasetSummary dataset;
@@ -488,139 +504,9 @@ public class ScreenWatcher
     screenDatasets.add (dataset);
     Dataset ds = new Dataset (dataset.getDatasetName ());
 
-    switch (screenType)
-    {
-      case 1:
-        if (rowFields.size () == 2)
-        {
-          setSpace (dataset, rowFields.get (1).getText (), 6, 11, 15);
-          ds.setSpace (dataset.getTracks (), dataset.getCylinders (),
-              dataset.getExtents (), dataset.getPercentUsed ());
-          ds.setDevice (dataset.getDevice ());
-        }
-        break;
-
-      case 2:
-        if (rowFields.size () == 2)
-        {
-          setDisposition (dataset, rowFields.get (1).getText (), 5, 11, 18);
-          ds.setDisposition (dataset.getDsorg (), dataset.getRecfm (),
-              dataset.getLrecl (), dataset.getBlksize ());
-        }
-        break;
-
-      case 3:
-        if (rowFields.size () == 3)
-        {
-          dataset.setVolume (rowFields.get (2).getText ().trim ());
-          ds.setVolume (dataset.getVolume ());
-        }
-        break;
-
-      case 4:
-        if (rowFields.size () == 7)
-        {
-          dataset.setVolume (rowFields.get (2).getText ().trim ());
-          setSpace (dataset, rowFields.get (3).getText (), 6, 10, 14);
-          setDisposition (dataset, rowFields.get (4).getText (), 5, 10, 16);
-          setDates (dataset, rowFields.get (5).getText (), ds);
-
-          String catalog = rowFields.get (6).getText ().trim ();
-          if (datasetNamePattern.matcher (catalog).matches ())
-          {
-            dataset.setCatalog (catalog);
-            ds.setCatalog (catalog);
-          }
-
-          ds.setSpace (dataset.getTracks (), dataset.getCylinders (),
-              dataset.getExtents (), dataset.getPercentUsed ());
-          ds.setDisposition (dataset.getDsorg (), dataset.getRecfm (),
-              dataset.getLrecl (), dataset.getBlksize ());
-          ds.setVolume (dataset.getVolume ());
-          ds.setDevice (dataset.getDevice ());
-        }
-        break;
-
-      case 5:
-        if (rowFields.size () >= 3)
-        {
-          dataset.setVolume (rowFields.get (2).getText ().trim ());
-          if (rowFields.size () >= 6)
-          {
-            setSpace (dataset, rowFields.get (3).getText (), 6, 10, 14);
-            setDisposition (dataset, rowFields.get (4).getText (), 5, 10, 16);
-            setDates (dataset, rowFields.get (5).getText (), ds);
-
-            ds.setSpace (dataset.getTracks (), dataset.getCylinders (),
-                dataset.getExtents (), dataset.getPercentUsed ());
-            ds.setDisposition (dataset.getDsorg (), dataset.getRecfm (),
-                dataset.getLrecl (), dataset.getBlksize ());
-          }
-        }
-        break;
-    }
+    layout.read (dataset, rowFields, ds);
 
     datasetStore.update (ds);
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private void setSpace (DatasetSummary dataset, String details, int t1, int t2, int t3)
-  // ---------------------------------------------------------------------------------//
-  {
-    if (details.trim ().isEmpty ())
-      return;
-
-    if (details.length () >= t1)
-      dataset.setTracks (getInteger ("tracks", details.substring (0, t1).trim ()));
-    if (details.length () >= t2)
-      dataset.setPercentUsed (getInteger ("pct", details.substring (t1, t2).trim ()));
-    if (details.length () >= t3)
-      dataset.setExtents (getInteger ("ext", details.substring (t2, t3).trim ()));
-    if (details.length () > t3)
-      dataset.setDevice (details.substring (t3).trim ());
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private void setDisposition (DatasetSummary dataset, String details, int t1, int t2,
-      int t3)
-  // ---------------------------------------------------------------------------------//
-  {
-    if (details.trim ().isEmpty ())
-      return;
-
-    if (details.length () >= t1)
-      dataset.setDsorg (details.substring (0, t1).trim ());
-    if (details.length () >= t2)
-      dataset.setRecfm (details.substring (t1, t2).trim ());
-    if (details.length () >= t3)
-      dataset.setLrecl (getInteger ("lrecl", details.substring (t2, t3).trim ()));
-    if (details.length () > t3)
-      dataset.setBlksize (getInteger ("blksize", details.substring (t3).trim ()));
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private void setDates (DatasetSummary dataset, String details, Dataset ds)
-  // ---------------------------------------------------------------------------------//
-  {
-    if (details.trim ().isEmpty ())
-      return;
-
-    String created = details.substring (0, 11).trim ();
-    String expires = details.substring (11, 22).trim ();
-    String referred = details.substring (22).trim ();
-
-    dataset.setCreated (created);
-    dataset.setExpires (expires);
-    dataset.setReferredDate (referred);
-
-    //    System.out.printf ("Created: [%s]%n", details.substring (0, 11).trim ());
-    //    System.out.println (dataset.getCreated ());
-    //    System.out.printf ("Expires: [%s]%n", details.substring (11, 22).trim ());
-    //    System.out.println (dataset.getExpires ());
-    //    System.out.printf ("Referred: [%s]%n", details.substring (22).trim ());
-    //    System.out.println (dataset.getReferredDate ());
-    //    System.out.println (dataset.getReferredTime ());
-    ds.setDates (created, expires, referred);
   }
 
   // ---------------------------------------------------------------------------------//
@@ -812,9 +698,10 @@ public class ScreenWatcher
     member.setReferredDate (details.substring (tabs[1], tabs[2]).trim ());
     member.setReferredTime (details.substring (tabs[2], tabs[3]).trim ());
     member.setCatalog (details.substring (tabs[3]).trim ());
-    member.setExtents (getInteger ("Ext:", details.substring (0, tabs[0]).trim ()));
+    member.setExtents (
+        DatasetDetails.getInteger ("Ext:", details.substring (0, tabs[0]).trim ()));
 
-    int size = getInteger ("Size", details.substring (0, tabs[0]).trim ());
+    int size = DatasetDetails.getInteger ("Size", details.substring (0, tabs[0]).trim ());
     String created = details.substring (tabs[0], tabs[1]);
     String changed = details.substring (tabs[1], tabs[3]);
     String id = details.substring (tabs[3]).trim ();
@@ -837,14 +724,15 @@ public class ScreenWatcher
     String id = details.substring (tabs[3]).trim ();
     //    System.out.printf ("[%s]%n", vvmm);
 
-    int size = getInteger ("Size", details.substring (0, tabs[0]).trim ());
-    int init = getInteger ("Init", details.substring (tabs[0], tabs[1]).trim ());
-    int mod = getInteger ("Mod", details.substring (tabs[1], tabs[2]).trim ());
+    int size = DatasetDetails.getInteger ("Size", details.substring (0, tabs[0]).trim ());
+    int init =
+        DatasetDetails.getInteger ("Init", details.substring (tabs[0], tabs[1]).trim ());
+    int mod = DatasetDetails.getInteger ("Mod", details.substring (tabs[1], tabs[2]).trim ());
 
     if (!vvmm.isEmpty ())
     {
-      int vv = getInteger ("VV", vvmm.substring (0, 2));
-      int mm = getInteger ("MM", vvmm.substring (3));
+      int vv = DatasetDetails.getInteger ("VV", vvmm.substring (0, 2));
+      int mm = DatasetDetails.getInteger ("MM", vvmm.substring (3));
       m.setSize (size, init, mod, vv, mm);
     }
 
@@ -854,24 +742,6 @@ public class ScreenWatcher
     m.setID (id);
 
     datasetStore.update (m);
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private int getInteger (String id, String value)
-  // ---------------------------------------------------------------------------------//
-  {
-    if (value == null || value.isEmpty () || value.equals ("?"))
-      return 0;
-
-    try
-    {
-      return Integer.parseInt (value);
-    }
-    catch (NumberFormatException e)
-    {
-      logger.error ("ParseInt error with {}: [{}]", id, value, e);
-      return 0;
-    }
   }
 
   // ---------------------------------------------------------------------------------//
@@ -922,6 +792,18 @@ public class ScreenWatcher
       }
       fldNo++;
     }
+  }
+
+  /*
+   * Um nome de dataset valido: segmentos de ate oito caracteres separados por ponto. Usado
+   * aqui e pelo CatalogLayout, que confere a coluna de catalogo antes de aceita-la - a mesma
+   * coluna tambem carrega mensagens.
+   */
+  // ---------------------------------------------------------------------------------//
+  static boolean isDatasetName (String text)
+  // ---------------------------------------------------------------------------------//
+  {
+    return datasetNamePattern.matcher (text).matches ();
   }
 
   // ---------------------------------------------------------------------------------//
