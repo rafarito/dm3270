@@ -556,22 +556,19 @@ public class ScreenWatcher
       return false;
 
     String mode = field.getText ().trim ();
-    int[] tabs1 = null;
-    int[] tabs2 = null;
+    MemberColumns columns;
 
     switch (mode)
     {
       case "LIBRARY":                             // 3.1
-        tabs1 = new int[] { 12, 25, 38, 47 };
-        tabs2 = new int[] { 12, 21, 31, 43 };
+        columns = MemberColumns.LIBRARY;
         break;
 
       case "EDIT":                                // 3.4:e
       case "BROWSE":                              // 3.4:b
       case "VIEW":                                // 3.4:v
       case "DSLIST":                              // 3.4:m
-        tabs1 = new int[] { 9, 21, 33, 42 };
-        tabs2 = new int[] { 9, 17, 25, 36 };
+        columns = MemberColumns.DATASET_LIST;
         break;
       default:
         logger.warn ("Unexpected mode1: [{}]", mode);
@@ -587,6 +584,13 @@ public class ScreenWatcher
     Dataset ds = new Dataset (datasetName);
 
     List<Field> headings = fieldManager.getRowFields (4);
+
+    // Aqui a QUANTIDADE de titulos escolhe o formato, sem olhar o texto de nenhum deles.
+    MemberDetailFormat format = null;
+    if (headings.size () == 7 || headings.size () == 10)
+      format = columns.dates ();
+    else if (headings.size () == 13)
+      format = columns.statistics ();
 
     for (int row = 5; row < screenDimensions.rows; row++)
     {
@@ -608,12 +612,16 @@ public class ScreenWatcher
       DatasetSummary member = addMember (datasetName, memberName);
       Member m = new Member (ds, memberName);
 
-      if (headings.size () == 7 || headings.size () == 10)
-        screenType1 (member, details, tabs1, m);
-      else if (headings.size () == 13)
-        screenType2 (member, details, tabs2, m);
-      else
+      // O aviso fica DENTRO do laco, uma vez por membro, como sempre esteve: uma tela com
+      // titulos de mais ou de menos produz uma linha de log por linha de membro, e os
+      // membros entram na lista da tela assim mesmo, so que sem detalhe nenhum.
+      if (format == null)
         logger.warn ("Headings size: {}", headings.size ());
+      else
+      {
+        format.read (member, details, m);
+        datasetStore.update (m);
+      }
     }
 
     return true;
@@ -637,9 +645,6 @@ public class ScreenWatcher
       return false;
     }
 
-    int[] tabs1 = { 12, 25, 38, 47 };
-    int[] tabs2 = { 12, 21, 31, 43 };
-
     field = screenFields.get (8);
     if (field.getFirstLocation () != 170)
       return false;
@@ -649,17 +654,22 @@ public class ScreenWatcher
 
     List<Field> headings = fieldManager.getRowFields (4);
 
-    int screenType = 0;
+    /*
+     * Nesta lista a quantidade de titulos nao basta: o texto do sexto tambem e conferido. E as
+     * colunas sao sempre as de LIBRARY, qualquer que seja o modo anunciado - inclusive EDIT,
+     * que na outra lista usa as do 3.4. Sao telas diferentes com o mesmo nome de modo.
+     */
+    MemberDetailFormat format = null;
     if (headings.size () == 10
         && fieldManager.textMatchesTrim (headings.get (5), "Created"))
-      screenType = 1;
+      format = MemberColumns.LIBRARY.dates ();
     else if (headings.size () == 13
         && fieldManager.textMatchesTrim (headings.get (5), "Init"))
-      screenType = 2;
+      format = MemberColumns.LIBRARY.statistics ();
     else
       dumpFields (headings);
 
-    if (screenType == 0)
+    if (format == null)
       return false;
 
     for (int row = 5; row < screenDimensions.rows; row++)
@@ -680,12 +690,8 @@ public class ScreenWatcher
       DatasetSummary member = addMember (datasetName, memberName);
       Member m = new Member (ds, memberName);
 
-      if (screenType == 1)
-        screenType1 (member, details, tabs1, m);
-      else if (screenType == 2)
-        screenType2 (member, details, tabs2, m);
-      else
-        dumpFields (rowFields);
+      format.read (member, details, m);
+      datasetStore.update (m);
     }
 
     return true;
@@ -709,60 +715,6 @@ public class ScreenWatcher
     screenMembers.add (member);
 
     return member;
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private void screenType1 (DatasetSummary member, String details, int[] tabs, Member m)
-  // ---------------------------------------------------------------------------------//
-  {
-    member.setCreated (details.substring (tabs[0], tabs[1]).trim ());
-    member.setReferredDate (details.substring (tabs[1], tabs[2]).trim ());
-    member.setReferredTime (details.substring (tabs[2], tabs[3]).trim ());
-    member.setCatalog (details.substring (tabs[3]).trim ());
-    member.setExtents (
-        DatasetDetails.getInteger ("Ext:", details.substring (0, tabs[0]).trim ()));
-
-    int size = DatasetDetails.getInteger ("Size", details.substring (0, tabs[0]).trim ());
-    String created = details.substring (tabs[0], tabs[1]);
-    String changed = details.substring (tabs[1], tabs[3]);
-    String id = details.substring (tabs[3]).trim ();
-
-    m.setDates (created, changed);
-    m.setID (id);
-    m.setSize (size);
-
-    datasetStore.update (m);
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private void screenType2 (DatasetSummary member, String details, int[] tabs, Member m)
-  // ---------------------------------------------------------------------------------//
-  {
-    //    String size = details.substring (0, tabs[0]);
-    //    String init = details.substring (tabs[0], tabs[1]);
-    //    String mod = details.substring (tabs[1], tabs[2]);
-    String vvmm = details.substring (tabs[2], tabs[3]).trim ();
-    String id = details.substring (tabs[3]).trim ();
-    //    System.out.printf ("[%s]%n", vvmm);
-
-    int size = DatasetDetails.getInteger ("Size", details.substring (0, tabs[0]).trim ());
-    int init =
-        DatasetDetails.getInteger ("Init", details.substring (tabs[0], tabs[1]).trim ());
-    int mod = DatasetDetails.getInteger ("Mod", details.substring (tabs[1], tabs[2]).trim ());
-
-    if (!vvmm.isEmpty ())
-    {
-      int vv = DatasetDetails.getInteger ("VV", vvmm.substring (0, 2));
-      int mm = DatasetDetails.getInteger ("MM", vvmm.substring (3));
-      m.setSize (size, init, mod, vv, mm);
-    }
-
-    member.setCatalog (id);       // (mis)use the catalog column
-    member.setExtents (size);             // (mis)use the extents column
-
-    m.setID (id);
-
-    datasetStore.update (m);
   }
 
   // ---------------------------------------------------------------------------------//
