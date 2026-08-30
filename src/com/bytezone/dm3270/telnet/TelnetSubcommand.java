@@ -1,10 +1,12 @@
 package com.bytezone.dm3270.telnet;
 
 import com.bytezone.dm3270.buffers.AbstractTelnetCommand;
+import com.bytezone.dm3270.buffers.NamedBuffer;
 import com.bytezone.dm3270.streams.TelnetState;
 
 // -----------------------------------------------------------------------------------//
 public abstract class TelnetSubcommand extends AbstractTelnetCommand
+    implements NamedBuffer
 // -----------------------------------------------------------------------------------//
 {
   // subcommands

@@ -1,6 +1,7 @@
 package com.bytezone.dm3270.telnet;
 
 import com.bytezone.dm3270.buffers.AbstractTelnetCommand;
+import com.bytezone.dm3270.buffers.NamedBuffer;
 import com.bytezone.dm3270.screen.ScreenTarget;
 import com.bytezone.dm3270.streams.TelnetState;
 
@@ -8,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // -----------------------------------------------------------------------------------//
-public class TelnetCommand extends AbstractTelnetCommand
+public class TelnetCommand extends AbstractTelnetCommand implements NamedBuffer
 // -----------------------------------------------------------------------------------//
 {
   private static final Logger logger = LoggerFactory.getLogger (TelnetCommand.class);

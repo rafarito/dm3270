@@ -4,9 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bytezone.dm3270.buffers.AbstractTN3270Command;
+import com.bytezone.dm3270.buffers.NamedBuffer;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
-public abstract class Command extends AbstractTN3270Command
+public abstract class Command extends AbstractTN3270Command implements NamedBuffer
 {
   private static final Logger logger = LoggerFactory.getLogger (Command.class);
 

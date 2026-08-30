@@ -3,13 +3,11 @@ package com.bytezone.dm3270.session;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import com.bytezone.dm3270.buffers.NamedBuffer;
 import com.bytezone.dm3270.buffers.ReplyBuffer;
 import com.bytezone.dm3270.commands.Command;
-import com.bytezone.dm3270.extended.AbstractExtendedCommand;
 import com.bytezone.dm3270.extended.TN3270ExtendedCommand;
 import com.bytezone.dm3270.streams.TelnetSocket.Source;
-import com.bytezone.dm3270.telnet.TelnetCommand;
-import com.bytezone.dm3270.telnet.TelnetSubcommand;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -71,17 +69,9 @@ public class SessionRecord
         break;
     }
 
-    // create Interface (Identifiable?) with getName()
-    if (message instanceof TelnetCommand)
-      setCommandName (((TelnetCommand) message).getName ());
-    else if (message instanceof TelnetSubcommand)
-      setCommandName (((TelnetSubcommand) message).getName ());
-    else if (message instanceof Command)
-      setCommandName (((Command) message).getName ());
-    else if (message instanceof TN3270ExtendedCommand)
-      setCommandName (((TN3270ExtendedCommand) message).getName ());
-    else if (message instanceof AbstractExtendedCommand)
-      setCommandName (((AbstractExtendedCommand) message).getName ());
+    // O CommandHeader nao e um NamedBuffer e continua sem nome, como antes.
+    if (message instanceof NamedBuffer named)
+      setCommandName (named.getName ());
 
     setBufferSize (message.size ());
     if (dateTime != null)
