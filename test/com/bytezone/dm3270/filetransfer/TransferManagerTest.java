@@ -29,7 +29,7 @@ class TransferManagerTest
 {
   // O gerenciador recebe a fonte do prefixo do usuario, e nao a tela inteira.
   private static final java.util.function.Supplier<String> NO_PREFIX = () -> "";
-  private static final com.bytezone.dm3270.utilities.Site NO_SITE = null;
+  private static final com.bytezone.dm3270.utilities.SiteForm NO_SITE = null;
 
   private String originalHome;
   private TransferManager manager;

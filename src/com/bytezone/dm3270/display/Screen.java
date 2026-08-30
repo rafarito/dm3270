@@ -52,7 +52,7 @@ import com.bytezone.dm3270.streams.SessionDisplay;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.streams.TelnetStateListener;
 import com.bytezone.dm3270.structuredfields.SetReplyModeSF;
-import com.bytezone.dm3270.utilities.Site;
+import com.bytezone.dm3270.utilities.SiteForm;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,7 +128,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   // ---------------------------------------------------------------------------------//
   public Screen (ScreenDimensions defaultScreenDimensions,
       ScreenDimensions alternateScreenDimensions, Preferences prefs, TerminalFunction function,
-      PluginsStage pluginsStage, Site serverSite, TelnetState telnetState,
+      PluginsStage pluginsStage, SiteForm serverSite, TelnetState telnetState,
       DatasetStore datasetStore)
   // ---------------------------------------------------------------------------------//
   {

@@ -20,37 +20,41 @@ import org.junit.jupiter.params.provider.ValueSource;
 import com.bytezone.dm3270.testing.JavaFxToolkit;
 
 /*
- * Caracterizacao do Site.
+ * Caracterizacao do SiteForm - a classe que era o Site.
  *
- * Site e a entidade de configuracao de conexao - host, porta, modelo de terminal, SSL - e
- * hoje e composta inteiramente de widgets JavaFX. A refatoracao vai separa-la em tres: um
- * valor de dominio imutavel, um validador explicito e um formulario que fica com os
- * widgets.
+ * O SiteForm e a configuracao de conexao - host, porta, modelo de terminal, SSL - composta
+ * inteiramente de widgets JavaFX. O nome mudou neste commit para liberar o nome Site, que
+ * passa a ser a interface pura que os consumidores nomeiam; os widgets ficam aqui.
  *
- * Estes testes congelam o comportamento atual ANTES dessa separacao, incluindo o que e
- * claramente defeituoso. A regra da refatoracao e preservar comportamento, entao o
- * formulario resultante precisa continuar fazendo exatamente isto:
+ * Estes testes congelam o comportamento atual, incluindo o que e claramente defeituoso. A
+ * regra da refatoracao e preservar comportamento, entao o formulario precisa continuar
+ * fazendo exatamente isto:
  *
  *   - getPort e getModel nao apenas leem: eles CORRIGEM o widget em caso de valor
  *     invalido, gravando "23" e "2" de volta no campo. Ler duas vezes produz efeitos
  *     diferentes na primeira e na segunda chamada.
- *   - toString chama getPort, entao imprimir um Site com porta invalida altera o Site.
+ *   - toString chama getPort, entao imprimir um SiteForm com porta invalida altera o
+ *     objeto. O texto continua comecando por "Site [", que e saida observavel.
  *   - o construtor deixa porta e modelo em branco quando recebe os valores default e o
  *     nome esta vazio.
+ *   - os widgets sao live, e quem guarda um SiteForm le o valor no momento do uso. E a
+ *     propriedade coberta pelo @Nested do fim, e a razao de o Site ter virado interface
+ *     em vez do record que o plano previa.
  *
  * Nada disso e corrigido aqui. Os defeitos ficam registrados para decisao separada.
  */
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
-@DisplayName ("Site - configuracao de conexao feita de widgets")
-class SiteTest
+@DisplayName ("SiteForm - a configuracao de conexao, feita de widgets")
+class SiteFormTest
 // -----------------------------------------------------------------------------------//
 {
   // ---------------------------------------------------------------------------------//
-  private static Site site (String name, int port, int model)
+  private static SiteForm site (String name, int port, int model)
   // ---------------------------------------------------------------------------------//
   {
-    return new Site (name, "host.example.com", port, false, model, false, false, false, "");
+    return new SiteForm (name, "host.example.com", port, false, model, false, false,
+        false, "");
   }
 
   // ---------------------------------------------------------------------------------//
@@ -63,7 +67,7 @@ class SiteTest
     @DisplayName ("guarda os valores informados")
     void keepsGivenValues ()
     {
-      Site site = new Site ("prod", "mvs.example.com", 992, true, 4, true, true, true,
+      SiteForm site = new SiteForm ("prod", "mvs.example.com", 992, true, 4, true, true, true,
           "/tmp/dm3270");
 
       assertEquals ("prod", site.getName ());
@@ -81,7 +85,7 @@ class SiteTest
     @DisplayName ("com nome vazio, a porta 23 fica em branco no widget")
     void blankPortForDefaultOnUnnamedSite ()
     {
-      Site site = site ("", 23, 3);
+      SiteForm site = site ("", 23, 3);
 
       assertEquals ("", site.port.getText (), "o widget fica em branco");
       assertEquals (23, site.getPort (), "mas a leitura ainda devolve 23");
@@ -91,7 +95,7 @@ class SiteTest
     @DisplayName ("com nome vazio, o modelo 2 fica em branco no widget")
     void blankModelForDefaultOnUnnamedSite ()
     {
-      Site site = site ("", 992, 2);
+      SiteForm site = site ("", 992, 2);
 
       assertEquals ("", site.model.getText (), "o widget fica em branco");
       assertEquals (2, site.getModel (), "mas a leitura ainda devolve 2");
@@ -101,7 +105,7 @@ class SiteTest
     @DisplayName ("com nome preenchido, os defaults aparecem no widget")
     void namedSiteKeepsDefaultsVisible ()
     {
-      Site site = site ("prod", 23, 2);
+      SiteForm site = site ("prod", 23, 2);
 
       assertEquals ("23", site.port.getText ());
       assertEquals ("2", site.model.getText ());
@@ -122,7 +126,7 @@ class SiteTest
     @DisplayName ("valor valido e devolvido sem tocar no widget")
     void validPortIsUntouched ()
     {
-      Site site = site ("prod", 992, 2);
+      SiteForm site = site ("prod", 992, 2);
 
       assertEquals (992, site.getPort ());
       assertEquals ("992", site.port.getText ());
@@ -133,7 +137,7 @@ class SiteTest
     @ValueSource (strings = { "0", "-1", "abc", "", "  ", "99.5" })
     void invalidPortIsRewritten (String raw)
     {
-      Site site = site ("prod", 992, 2);
+      SiteForm site = site ("prod", 992, 2);
       site.port.setText (raw);
 
       assertEquals (23, site.getPort (), "a leitura devolve o default");
@@ -144,7 +148,7 @@ class SiteTest
     @DisplayName ("ler duas vezes produz efeitos diferentes")
     void readingTwiceDiffers ()
     {
-      Site site = site ("prod", 992, 2);
+      SiteForm site = site ("prod", 992, 2);
       site.port.setText ("0");
 
       assertEquals ("0", site.port.getText (), "antes da primeira leitura");
@@ -166,7 +170,7 @@ class SiteTest
     @ValueSource (ints = { 2, 3, 4, 5 })
     void validModelsAreAccepted (int model)
     {
-      Site site = site ("prod", 992, model);
+      SiteForm site = site ("prod", 992, model);
 
       assertEquals (model, site.getModel ());
       assertEquals (String.valueOf (model), site.model.getText ());
@@ -177,7 +181,7 @@ class SiteTest
     @ValueSource (strings = { "1", "0", "-3", "6", "99", "abc", "" })
     void invalidModelIsRewritten (String raw)
     {
-      Site site = site ("prod", 992, 3);
+      SiteForm site = site ("prod", 992, 3);
       site.model.setText (raw);
 
       assertEquals (2, site.getModel ());
@@ -200,7 +204,7 @@ class SiteTest
     @DisplayName ("os campos de texto ocupam as posicoes 0, 1, 2, 4 e 8")
     void textFieldPositions ()
     {
-      Site site = site ("prod", 992, 2);
+      SiteForm site = site ("prod", 992, 2);
 
       assertSame (site.name, site.getTextField (0));
       assertSame (site.url, site.getTextField (1));
@@ -213,7 +217,7 @@ class SiteTest
     @DisplayName ("as caixas de selecao ocupam as posicoes 3, 5, 6 e 7")
     void checkBoxPositions ()
     {
-      Site site = site ("prod", 992, 2);
+      SiteForm site = site ("prod", 992, 2);
 
       assertSame (site.extended, site.getCheckBoxField (3));
       assertSame (site.plugins, site.getCheckBoxField (5));
@@ -225,7 +229,7 @@ class SiteTest
     @DisplayName ("cada posicao existe em exatamente um dos dois arrays")
     void positionsAreComplementary ()
     {
-      Site site = site ("prod", 992, 2);
+      SiteForm site = site ("prod", 992, 2);
 
       for (int i = 0; i < 9; i++)
       {
@@ -248,8 +252,8 @@ class SiteTest
     @DisplayName ("formata nome, url, porta e pasta")
     void formatsTheFields ()
     {
-      Site site = new Site ("prod", "mvs.example.com", 992, false, 2, false, false, false,
-          "/tmp/dm3270");
+      SiteForm site = new SiteForm ("prod", "mvs.example.com", 992, false, 2, false,
+          false, false, "/tmp/dm3270");
 
       assertEquals ("Site [name=prod, url=mvs.example.com, port=992, folder=/tmp/dm3270]",
           site.toString ());
@@ -259,7 +263,7 @@ class SiteTest
     @DisplayName ("imprimir um site com porta invalida altera o site")
     void printingMutatesTheSite ()
     {
-      Site site = site ("prod", 992, 2);
+      SiteForm site = site ("prod", 992, 2);
       site.port.setText ("0");
 
       assertTrue (site.toString ().contains ("port=23"));
@@ -278,7 +282,7 @@ class SiteTest
     @DisplayName ("refletem o estado do widget")
     void reflectWidgetState ()
     {
-      Site site = site ("prod", 992, 2);
+      SiteForm site = site ("prod", 992, 2);
 
       assertFalse (site.getExtended ());
       site.extended.setSelected (true);
@@ -293,7 +297,7 @@ class SiteTest
     @DisplayName ("os widgets sao publicos e mutaveis de fora")
     void widgetsAreExposed ()
     {
-      Site site = site ("prod", 992, 2);
+      SiteForm site = site ("prod", 992, 2);
 
       assertNotNull (site.name);
       site.name.setText ("outro");
@@ -305,7 +309,7 @@ class SiteTest
     @DisplayName ("posicoes fora dos arrays paralelos nao tem widget")
     void unusedPositionsAreNull ()
     {
-      Site site = site ("prod", 992, 2);
+      SiteForm site = site ("prod", 992, 2);
 
       assertNull (site.getTextField (3));
       assertNull (site.getCheckBoxField (0));
@@ -313,12 +317,12 @@ class SiteTest
   }
 
   /*
-   * A propriedade que o split do Site precisa preservar, e que nenhum teste cobria.
+   * A propriedade que o split do SiteForm precisa preservar, e que nenhum teste cobria.
    *
-   * Os widgets sao LIVE: quem recebe um Site nao recebe uma copia dos valores, recebe o
-   * proprio campo de texto. O TransferManager guarda o Site no construtor e so chama
+   * Os widgets sao LIVE: quem recebe um SiteForm nao recebe uma copia dos valores, recebe o
+   * proprio campo de texto. O TransferManager guarda o SiteForm no construtor e so chama
    * getFolder () quando um comando IND$FILE aparece; o TransferMenu chama
-   * FileSaver.getHomePath (site) no instante em que o usuario aciona o menu. Se o Site
+   * FileSaver.getHomePath (site) no instante em que o usuario aciona o menu. Se o SiteForm
    * virasse um valor imutavel tirado no getSelectedSite (), as duas leituras passariam a
    * devolver o valor de um instante anterior.
    *
@@ -339,7 +343,7 @@ class SiteTest
     @DisplayName ("quem guardou o Site enxerga a edicao posterior da pasta")
     void consumerSeesLaterFolderEdit ()
     {
-      Site site = site ("prod", 992, 2);
+      SiteForm site = site ("prod", 992, 2);
       Path before = FileSaver.getHomePath (site);
 
       site.folder.setText ("outra-pasta");
@@ -353,7 +357,7 @@ class SiteTest
     @DisplayName ("quem guardou o Site enxerga a edicao posterior da porta")
     void consumerSeesLaterPortEdit ()
     {
-      Site site = site ("prod", 992, 2);
+      SiteForm site = site ("prod", 992, 2);
       assertEquals (992, site.getPort ());
 
       site.port.setText ("1023");
@@ -365,7 +369,7 @@ class SiteTest
     @DisplayName ("a correcao de getPort fica visivel para quem ler o widget depois")
     void portCorrectionReachesTheLaterWidgetRead ()
     {
-      Site site = site ("prod", 992, 2);
+      SiteForm site = site ("prod", 992, 2);
       site.port.setText ("abc");
 
       site.getPort ();
@@ -378,7 +382,7 @@ class SiteTest
     @DisplayName ("a correcao de getModel fica visivel para quem ler o widget depois")
     void modelCorrectionReachesTheLaterWidgetRead ()
     {
-      Site site = site ("prod", 992, 3);
+      SiteForm site = site ("prod", 992, 3);
       site.model.setText ("9");
 
       site.getModel ();

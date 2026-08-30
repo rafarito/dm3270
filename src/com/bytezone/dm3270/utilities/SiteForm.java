@@ -7,10 +7,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // -----------------------------------------------------------------------------------//
-public class Site
+public class SiteForm
 // -----------------------------------------------------------------------------------//
 {
-  private static final Logger logger = LoggerFactory.getLogger (Site.class);
+  // O nome do logger e saida observavel: o logback imprime %logger{36}, e esta classe
+  // se chamava Site quando os avisos de porta e modelo foram escritos. O nome antigo
+  // fica, senao toda linha que eles produzem muda de texto - §5.13 do relatorio.
+  private static final Logger logger =
+      LoggerFactory.getLogger ("com.bytezone.dm3270.utilities.Site");
 
   // make these StringProperty and use a table
   public final TextField name = new TextField ();
@@ -29,7 +33,7 @@ public class Site
       { null, null, null, extended, null, plugins, ssl, trustAll, null };
 
   // ---------------------------------------------------------------------------------//
-  public Site (String name, String url, int port, boolean extended, int model,
+  public SiteForm (String name, String url, int port, boolean extended, int model,
       boolean plugins, boolean ssl, boolean trustAll, String folder)
   // ---------------------------------------------------------------------------------//
   {

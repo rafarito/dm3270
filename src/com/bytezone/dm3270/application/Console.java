@@ -16,7 +16,7 @@ import com.bytezone.dm3270.plugins.PluginsStage;
 import com.bytezone.dm3270.session.Session;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
-import com.bytezone.dm3270.utilities.Site;
+import com.bytezone.dm3270.utilities.SiteForm;
 import com.bytezone.dm3270.utilities.WindowSaver;
 
 import javafx.application.Application;
@@ -32,8 +32,8 @@ public class Console extends Application
 {
   private static final Logger logger = LoggerFactory.getLogger (Console.class);
   private static final int MAINFRAME_EMULATOR_PORT = 5555;
-  private static final Site DEFAULT_MAINFRAME =
-      new Site ("mainframe", "localhost", MAINFRAME_EMULATOR_PORT, true, 2, false, false, false, "");
+  private static final SiteForm DEFAULT_MAINFRAME = new SiteForm ("mainframe",
+      "localhost", MAINFRAME_EMULATOR_PORT, true, 2, false, false, false, "");
 
   private Stage primaryStage;
   private Rectangle2D primaryScreenBounds;
@@ -96,9 +96,9 @@ public class Console extends Application
     optionStage.hide ();
     String errorMessage = "";
 
-    Optional<Site> optionalServerSite =
+    Optional<SiteForm> optionalServerSite =
         optionStage.serverSitesListStage.getSelectedSite ();
-    Optional<Site> optionalClientSite =
+    Optional<SiteForm> optionalClientSite =
         optionStage.clientSitesListStage.getSelectedSite ();
 
     String optionText =
@@ -116,11 +116,11 @@ public class Console extends Application
             Session session = new Session (telnetState, path);   // can throw Exception
             alternateScreenDimensions = session.getScreenDimensions ();
 
-            Optional<Site> serverSite = optionStage.serverSitesListStage
+            Optional<SiteForm> serverSite = optionStage.serverSitesListStage
                 .getSelectedSite (session.getServerName ());
             if (serverSite.isPresent ())
             {
-              Site site = serverSite.get ();
+              SiteForm site = serverSite.get ();
               setConsolePane (createScreen (TerminalFunction.REPLAY, site), site);
             }
             else
@@ -144,7 +144,7 @@ public class Console extends Application
       case "Terminal":
         if (optionalServerSite.isPresent ())
         {
-          Site serverSite = optionalServerSite.get ();
+          SiteForm serverSite = optionalServerSite.get ();
           setModel (serverSite);
           setConsolePane (createScreen (TerminalFunction.TERMINAL, serverSite), serverSite);
           consolePane.connect ();
@@ -161,8 +161,8 @@ public class Console extends Application
           errorMessage = "No client selected";
         else
         {
-          Site serverSite = optionalServerSite.get ();
-          Site clientSite = optionalClientSite.get ();
+          SiteForm serverSite = optionalServerSite.get ();
+          SiteForm clientSite = optionalClientSite.get ();
           setSpyPane (createScreen (TerminalFunction.SPY, null), serverSite, clientSite);
         }
 
@@ -173,7 +173,7 @@ public class Console extends Application
           errorMessage = "No client selected";
         else
         {
-          Site clientSite = optionalClientSite.get ();
+          SiteForm clientSite = optionalClientSite.get ();
           setSpyPane (createScreen (TerminalFunction.TEST, null), DEFAULT_MAINFRAME, clientSite);
           mainframeStage = new MainframeStage (telnetState, MAINFRAME_EMULATOR_PORT);
           mainframeStage.show ();
@@ -187,7 +187,7 @@ public class Console extends Application
       optionStage.show ();
   }
 
-  private void setModel (Site serverSite)
+  private void setModel (SiteForm serverSite)
   {
     int model = serverSite.getModel ();
     logger.debug ("model: {}", model);
@@ -213,14 +213,14 @@ public class Console extends Application
     }
   }
 
-  //  private Optional<Site> findSite (String serverName)
+  //  private Optional<SiteForm> findSite (String serverName)
   //  {
-  //    Optional<Site> optionalServerSite =
+  //    Optional<SiteForm> optionalServerSite =
   //        optionStage.serverSitesListStage.getSelectedSite (serverName);
   //    return optionalServerSite;
   //  }
 
-  private void setConsolePane (Screen screen, Site serverSite)
+  private void setConsolePane (Screen screen, SiteForm serverSite)
   {
     consolePane = new ConsolePane (screen, serverSite, pluginsStage);
     Scene scene = new Scene (consolePane);
@@ -259,7 +259,7 @@ public class Console extends Application
     primaryStage.show ();
   }
 
-  private void setSpyPane (Screen screen, Site server, Site client)
+  private void setSpyPane (Screen screen, SiteForm server, SiteForm client)
   {
     spyPane = new SpyPane (screen, server, client, telnetState);
 
@@ -335,7 +335,7 @@ public class Console extends Application
                optionStage.clientComboBox.getSelectionModel ().getSelectedItem ());
   }
 
-  private Screen createScreen (TerminalFunction function, Site site)
+  private Screen createScreen (TerminalFunction function, SiteForm site)
   {
     // O ciclo de vida da persistencia e do composition root. Sem site nao ha banco - era o
     // que o  dentro do FieldManager decidia, tres camadas abaixo.

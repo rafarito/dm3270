@@ -6,7 +6,7 @@ import java.util.Optional;
 import java.util.prefs.Preferences;
 
 import com.bytezone.dm3270.utilities.PreferencesStage;
-import com.bytezone.dm3270.utilities.Site;
+import com.bytezone.dm3270.utilities.SiteForm;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -23,7 +23,7 @@ import javafx.scene.layout.VBox;
 
 public class SiteListStage extends PreferencesStage
 {
-  private final List<Site> sites = new ArrayList<> ();
+  private final List<SiteForm> sites = new ArrayList<> ();
   private final ComboBox<String> comboBox = new ComboBox<> ();
   private final Button editListButton = new Button ("Edit...");
 
@@ -48,7 +48,7 @@ public class SiteListStage extends PreferencesStage
     VBox vbox = getHeadings ();
 
     // input fields
-    for (Site site : sites)
+    for (SiteForm site : sites)
     {
       HBox hbox = new HBox ();
       hbox.setSpacing (5);
@@ -126,12 +126,12 @@ public class SiteListStage extends PreferencesStage
       if (model < 2 || model > 5)
         model = 2;
 
-      Site site = null;
+      SiteForm site = null;
       if (name.isEmpty () || url.isEmpty ())
-        site = new Site ("", "", 23, false, 2, false, false, false, "");
+        site = new SiteForm ("", "", 23, false, 2, false, false, false, "");
       else
       {
-        site = new Site (name, url, port, extended, model, plugins, ssl, trustAll, folder);
+        site = new SiteForm (name, url, port, extended, model, plugins, ssl, trustAll, folder);
         siteNames.add (name);
       }
       sites.add (site);
@@ -147,7 +147,7 @@ public class SiteListStage extends PreferencesStage
 
     for (int i = 0; i < sites.size (); i++)
     {
-      Site site = sites.get (i);
+      SiteForm site = sites.get (i);
       String keyName = String.format ("%s%02d", key, i);
       String name = site.name.getText ();
       String folder = site.folder.getText ();
@@ -186,27 +186,27 @@ public class SiteListStage extends PreferencesStage
     }
   }
 
-  Optional<Site> getSelectedSite ()
+  Optional<SiteForm> getSelectedSite ()
   {
     String key = getSelectedName ();
     if (key == null || key.isEmpty ())
       return Optional.empty ();
-    for (Site site : sites)
+    for (SiteForm site : sites)
       if (key.equals (site.getName ()))
         return Optional.of (site);
     return Optional.empty ();
   }
 
-  Optional<Site> getSelectedSite (String siteName)
+  Optional<SiteForm> getSelectedSite (String siteName)
   {
-    for (Site site : sites)
+    for (SiteForm site : sites)
       if (siteName.equals (site.getName ()))
         return Optional.of (site);
 
     return Optional.empty ();
   }
 
-  List<Site> getSites ()
+  List<SiteForm> getSites ()
   {
     return sites;
   }

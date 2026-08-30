@@ -22,7 +22,7 @@ public class FileSaver
   }
 
   // ---------------------------------------------------------------------------------//
-  public static Path getHomePath (Site site)
+  public static Path getHomePath (SiteForm site)
   // ---------------------------------------------------------------------------------//
   {
     if (site == null)

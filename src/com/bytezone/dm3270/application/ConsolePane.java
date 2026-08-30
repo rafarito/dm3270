@@ -25,7 +25,7 @@ import com.bytezone.dm3270.streams.TelnetListener;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.streams.TerminalServer;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
-import com.bytezone.dm3270.utilities.Site;
+import com.bytezone.dm3270.utilities.SiteForm;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -65,7 +65,7 @@ public class ConsolePane extends BorderPane
   private TelnetListener telnetListener;
   private final TelnetState telnetState;
   private int commandHeaderCount;
-  private final Site server;
+  private final SiteForm server;
 
   private TerminalServer terminalServer;
   private Thread terminalServerThread;
@@ -83,7 +83,7 @@ public class ConsolePane extends BorderPane
 
   private final FontManager fontManager;
 
-  public ConsolePane (Screen screen, Site server, PluginsStage pluginsStage)
+  public ConsolePane (Screen screen, SiteForm server, PluginsStage pluginsStage)
   {
     this.screen = screen;
     this.telnetState = screen.getTelnetState ();

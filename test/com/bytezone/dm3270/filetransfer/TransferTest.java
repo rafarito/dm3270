@@ -43,7 +43,7 @@ class TransferTest
     return text.getBytes (java.nio.charset.StandardCharsets.US_ASCII);
   }
 
-  // Um Transfer de download, sem Site (que exige JavaFX) e sem TLQ.
+  // Um Transfer de download, sem SiteForm (que exige JavaFX) e sem TLQ.
   private static Transfer download (String command)
   {
     return new Transfer (new IndFileCommand (command), null, "");
@@ -467,7 +467,7 @@ class TransferTest
     @DisplayName ("um Site nulo nao produz caminho")
     void nullSiteGivesNoPath ()
     {
-      assertNull (FileSaver.getHomePath ((com.bytezone.dm3270.utilities.Site) null));
+      assertNull (FileSaver.getHomePath ((com.bytezone.dm3270.utilities.SiteForm) null));
     }
 
     @ParameterizedTest (name = "{0} -> {1} segmentos")

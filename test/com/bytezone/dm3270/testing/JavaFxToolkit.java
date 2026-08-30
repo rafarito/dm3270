@@ -12,8 +12,8 @@ import javafx.application.Platform;
 /*
  * Liga o toolkit JavaFX uma vez por JVM.
  *
- * Boa parte do dm3270 - Site, ScreenPosition, Pen, Screen - so pode ser instanciada com o
- * toolkit ativo. Sem esta extensao nao existe teste nenhum para essas classes, que sao
+ * Boa parte do dm3270 - SiteForm, ScreenPosition, Pen, Screen - so pode ser instanciada
+ * com o toolkit ativo. Sem esta extensao nao existe teste nenhum para essas classes, que sao
  * justamente as que a refatoracao precisa desmontar.
  *
  * Use com @ExtendWith (JavaFxToolkit.class).
@@ -70,7 +70,7 @@ public final class JavaFxToolkit implements BeforeAllCallback
    *
    * So e necessario para o que exige mesmo a thread da UI. Construir controles e ler ou
    * escrever suas propriedades funciona fora dela - e e o que o proprio codigo de producao
-   * faz, por exemplo em Site.getPort, chamado a partir do codigo de rede.
+   * faz, por exemplo em SiteForm.getPort, chamado a partir do codigo de rede.
    */
   // ---------------------------------------------------------------------------------//
   public static <T> T onFxThread (FxSupplier<T> supplier)
