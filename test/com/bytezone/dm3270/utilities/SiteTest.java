@@ -2,10 +2,13 @@ package com.bytezone.dm3270.utilities;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.nio.file.Path;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -306,6 +309,81 @@ class SiteTest
 
       assertNull (site.getTextField (3));
       assertNull (site.getCheckBoxField (0));
+    }
+  }
+
+  /*
+   * A propriedade que o split do Site precisa preservar, e que nenhum teste cobria.
+   *
+   * Os widgets sao LIVE: quem recebe um Site nao recebe uma copia dos valores, recebe o
+   * proprio campo de texto. O TransferManager guarda o Site no construtor e so chama
+   * getFolder () quando um comando IND$FILE aparece; o TransferMenu chama
+   * FileSaver.getHomePath (site) no instante em que o usuario aciona o menu. Se o Site
+   * virasse um valor imutavel tirado no getSelectedSite (), as duas leituras passariam a
+   * devolver o valor de um instante anterior.
+   *
+   * O mesmo vale para a correcao silenciosa, e ai a consequencia e persistente: getPort ()
+   * reescreve o widget, e SiteListStage.savePrefs le site.port.getText () depois, gravando
+   * nas Preferences o valor JA corrigido. Um valor congelado antes da correcao mudaria o
+   * que fica gravado no disco.
+   *
+   * Estes quatro testes congelam a cadeia inteira. Sao a rede que autoriza o split.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("os consumidores leem o widget no momento do uso, nao no da entrega")
+  class LateReading
+  // ---------------------------------------------------------------------------------//
+  {
+    @Test
+    @DisplayName ("quem guardou o Site enxerga a edicao posterior da pasta")
+    void consumerSeesLaterFolderEdit ()
+    {
+      Site site = site ("prod", 992, 2);
+      Path before = FileSaver.getHomePath (site);
+
+      site.folder.setText ("outra-pasta");
+      Path after = FileSaver.getHomePath (site);
+
+      assertNotEquals (before, after, "a leitura acontece na chamada, nao na entrega");
+      assertTrue (after.endsWith ("outra-pasta"));
+    }
+
+    @Test
+    @DisplayName ("quem guardou o Site enxerga a edicao posterior da porta")
+    void consumerSeesLaterPortEdit ()
+    {
+      Site site = site ("prod", 992, 2);
+      assertEquals (992, site.getPort ());
+
+      site.port.setText ("1023");
+
+      assertEquals (1023, site.getPort (), "o valor novo, e nao o do momento da entrega");
+    }
+
+    @Test
+    @DisplayName ("a correcao de getPort fica visivel para quem ler o widget depois")
+    void portCorrectionReachesTheLaterWidgetRead ()
+    {
+      Site site = site ("prod", 992, 2);
+      site.port.setText ("abc");
+
+      site.getPort ();
+
+      // e exatamente este texto que SiteListStage.savePrefs grava nas Preferences
+      assertEquals ("23", site.port.getText ());
+    }
+
+    @Test
+    @DisplayName ("a correcao de getModel fica visivel para quem ler o widget depois")
+    void modelCorrectionReachesTheLaterWidgetRead ()
+    {
+      Site site = site ("prod", 992, 3);
+      site.model.setText ("9");
+
+      site.getModel ();
+
+      assertEquals ("2", site.model.getText ());
     }
   }
 }
