@@ -19,7 +19,6 @@ import com.bytezone.dm3270.watch.ScreenChangeListener;
 import com.bytezone.dm3270.watch.ScreenChangeSource;
 import com.bytezone.dm3270.watch.ScreenFields;
 import com.bytezone.dm3270.watch.ScreenWatcher;
-import com.bytezone.dm3270.utilities.Site;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
