@@ -24,7 +24,7 @@ public class NatloadReport extends DefaultReportMaker
   // ---------------------------------------------------------------------------------//
   {
     List<Page> pages = reportScore.getPages ();
-    List<Record> records = reportScore.recordMaker.getRecords ();
+    List<Record> records = reportScore.getRecordMaker ().getRecords ();
 
     pages.clear ();
 
@@ -74,7 +74,7 @@ public class NatloadReport extends DefaultReportMaker
   public String getFormattedRecord (ReportScore reportScore, Record record)
   // ---------------------------------------------------------------------------------//
   {
-    TextMaker textMaker = reportScore.textMaker;
+    TextMaker textMaker = reportScore.getTextMaker ();
 
     if (record.buffer[record.offset] == (byte) 0xFF
         || record.buffer[record.offset + 1] == (byte) 0xFF)

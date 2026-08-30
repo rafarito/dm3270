@@ -23,7 +23,7 @@ public class TextReport extends DefaultReportMaker
   // ---------------------------------------------------------------------------------//
   {
     List<Page> pages = reportScore.getPages ();
-    List<Record> records = reportScore.recordMaker.getRecords ();
+    List<Record> records = reportScore.getRecordMaker ().getRecords ();
 
     pages.clear ();
 
@@ -36,7 +36,7 @@ public class TextReport extends DefaultReportMaker
   public String getFormattedRecord (ReportScore reportScore, Record record)
   // ---------------------------------------------------------------------------------//
   {
-    return reportScore.textMaker.getText (record);
+    return reportScore.getTextMaker ().getText (record);
   }
 
   // ---------------------------------------------------------------------------------//
@@ -45,7 +45,7 @@ public class TextReport extends DefaultReportMaker
       int length)
   // ---------------------------------------------------------------------------------//
   {
-    return reportScore.textMaker.getText (record).substring (offset, offset + length);
+    return reportScore.getTextMaker ().getText (record).substring (offset, offset + length);
   }
 
   // ---------------------------------------------------------------------------------//

@@ -239,6 +239,6 @@ public class ReportData
     if (selectedReportScore == null)
       return false;
 
-    return selectedReportScore.textMaker.toString ().equals ("ASCII");      // fix this
+    return selectedReportScore.getTextMaker ().toString ().equals ("ASCII");      // fix this
   }
 }

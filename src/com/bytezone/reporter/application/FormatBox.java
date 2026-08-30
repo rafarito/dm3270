@@ -102,9 +102,9 @@ class FormatBox
     // Enable the buttons that have perfect scores
     for (ReportScore reportScore : currentReportData.getPerfectScores ())
     {
-      enableButton (recordMakerButtons, reportScore.recordMaker);
-      enableButton (textMakerButtons, reportScore.textMaker);
-      enableButton (reportMakerButtons, reportScore.reportMaker);
+      enableButton (recordMakerButtons, reportScore.getRecordMaker ());
+      enableButton (textMakerButtons, reportScore.getTextMaker ());
+      enableButton (reportMakerButtons, reportScore.getReportMaker ());
     }
 
     selectButtons (currentReportData.getSelectedReportScore ());
@@ -149,9 +149,9 @@ class FormatBox
   {
     if (reportScore != null)
     {
-      selectButton (recordMakerButtons, reportScore.recordMaker);
-      selectButton (textMakerButtons, reportScore.textMaker);
-      selectButton (reportMakerButtons, reportScore.reportMaker);
+      selectButton (recordMakerButtons, reportScore.getRecordMaker ());
+      selectButton (textMakerButtons, reportScore.getTextMaker ());
+      selectButton (reportMakerButtons, reportScore.getReportMaker ());
     }
     else
       logger.warn ("Imperfect ReportScore selected");

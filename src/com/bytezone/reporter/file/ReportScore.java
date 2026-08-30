@@ -26,9 +26,9 @@ public class ReportScore implements Comparable<ReportScore>
 
   private static Font font;
 
-  public final RecordMaker recordMaker;
-  public final TextMaker textMaker;
-  public final ReportMaker reportMaker;
+  private final RecordMaker recordMaker;
+  private final TextMaker textMaker;
+  private final ReportMaker reportMaker;
 
   private final double score;
   private final int sampleSize;
@@ -67,6 +67,27 @@ public class ReportScore implements Comparable<ReportScore>
     textArea.setFont (font);
     textArea.setEditable (false);
     textArea.setMinHeight (50);
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public RecordMaker getRecordMaker ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return recordMaker;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public TextMaker getTextMaker ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return textMaker;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public ReportMaker getReportMaker ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return reportMaker;
   }
 
   // ---------------------------------------------------------------------------------//

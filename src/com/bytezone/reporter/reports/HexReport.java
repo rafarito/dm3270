@@ -27,7 +27,7 @@ public class HexReport extends DefaultReportMaker
   // ---------------------------------------------------------------------------------//
   {
     List<Page> pages = reportScore.getPages ();
-    List<Record> records = reportScore.recordMaker.getRecords ();
+    List<Record> records = reportScore.getRecordMaker ().getRecords ();
 
     pages.clear ();
 
@@ -83,7 +83,7 @@ public class HexReport extends DefaultReportMaker
   //    }
   //
   //    List<Page> pages = reportScore.getPages ();
-  //    List<Record> records = reportScore.recordMaker.getRecords ();
+  //    List<Record> records = reportScore.getRecordMaker ().getRecords ();
   //
   //    pages.clear ();
   //
@@ -128,7 +128,7 @@ public class HexReport extends DefaultReportMaker
       int length)
   // ---------------------------------------------------------------------------------//
   {
-    TextMaker textMaker = reportScore.textMaker;
+    TextMaker textMaker = reportScore.getTextMaker ();
     StringBuilder text = new StringBuilder ();
     int max = record.offset + offset + length;
 
@@ -156,7 +156,7 @@ public class HexReport extends DefaultReportMaker
   // ---------------------------------------------------------------------------------//
   {
     return getFormattedRecord (reportScore, record, 0, record.length);
-    //    TextMaker textMaker = reportScore.textMaker;
+    //    TextMaker textMaker = reportScore.getTextMaker ();
     //
     //    if (record.length == 0)
     //      return String.format ("%06X", record.offset);

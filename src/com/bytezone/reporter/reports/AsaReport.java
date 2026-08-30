@@ -32,7 +32,7 @@ public class AsaReport extends DefaultReportMaker
   // ---------------------------------------------------------------------------------//
   {
     List<Page> pages = reportScore.getPages ();
-    List<Record> records = reportScore.recordMaker.getRecords ();
+    List<Record> records = reportScore.getRecordMaker ().getRecords ();
 
     assert pages.size () == 0;
     pages.clear ();
@@ -44,7 +44,7 @@ public class AsaReport extends DefaultReportMaker
     {
       Record record = records.get (recordNumber);
 
-      char c = reportScore.textMaker.getChar (record.buffer[record.offset] & 0xFF);
+      char c = reportScore.getTextMaker ().getChar (record.buffer[record.offset] & 0xFF);
       int lines = 0;
       if (c == ' ' || c == 'V')
         lines = 1;
@@ -87,7 +87,7 @@ public class AsaReport extends DefaultReportMaker
   public String getFormattedRecord (ReportScore reportScore, Record record)
   // ---------------------------------------------------------------------------------//
   {
-    TextMaker textMaker = reportScore.textMaker;
+    TextMaker textMaker = reportScore.getTextMaker ();
 
     char c = textMaker.getChar (record.buffer[record.offset] & 0xFF);
     String prefix = c == '0' ? "\n" : c == '-' ? "\n\n" : "";

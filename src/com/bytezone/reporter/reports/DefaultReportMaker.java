@@ -80,7 +80,7 @@ public abstract class DefaultReportMaker implements ReportMaker
   // ---------------------------------------------------------------------------------//
   {
     //    List<Page> pages = currentReportScore.getPages ();
-    //    List<Record> records = currentReportScore.recordMaker.getRecords ();
+    //    List<Record> records = currentReportScore.getRecordMaker ().getRecords ();
 
     //    if (pageIndex >= pages.size ())
     //    {
