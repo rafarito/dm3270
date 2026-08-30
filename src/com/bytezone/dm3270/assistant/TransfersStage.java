@@ -16,7 +16,6 @@ import com.bytezone.dm3270.filetransfer.Transfer;
 import com.bytezone.dm3270.filetransfer.TransferListener;
 import com.bytezone.dm3270.filetransfer.TransferManager;
 import com.bytezone.dm3270.filetransfer.TransferManager.TransferStatus;
-import com.bytezone.dm3270.utilities.Site;
 import com.bytezone.dm3270.utilities.WindowSaver;
 import com.bytezone.reporter.application.ReporterNode;
 
@@ -43,7 +42,6 @@ public class TransfersStage extends Stage implements ScreenChangeListener,
   private final Preferences prefs = Preferences.userNodeForPackage (this.getClass ());
   private final WindowSaver windowSaver;
   private final MenuBar menuBar;
-  protected Site currentSite;
 
   private final TSOCommand tsoCommand;
   private final Button btnHide = new Button ("Hide Window");
