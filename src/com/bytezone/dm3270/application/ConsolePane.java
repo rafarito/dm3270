@@ -104,7 +104,7 @@ public class ConsolePane extends BorderPane
 
     // allow null for replay testing
     if (server == null || server.getPlugins ())
-      menuBar.getMenus ().add (pluginsStage.getMenu (server));
+      menuBar.getMenus ().add (pluginsStage.getMenu ());
 
     setTop (menuBar);
     setCenter (canvasContainer);

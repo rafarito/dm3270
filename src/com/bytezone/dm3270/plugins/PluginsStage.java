@@ -27,7 +27,6 @@ import com.bytezone.dm3270.screen.Cursor;
 import com.bytezone.dm3270.screen.Field;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.utilities.PreferencesStage;
-import com.bytezone.dm3270.utilities.Site;
 
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -184,10 +183,10 @@ public class PluginsStage extends PreferencesStage
   }
 
   // ---------------------------------------------------------------------------------//
-  public Menu getMenu (Site site)
+  public Menu getMenu ()
   // ---------------------------------------------------------------------------------//
   {
-    setMenu (site);
+    setMenu ();
     return menu;
   }
 
@@ -206,7 +205,7 @@ public class PluginsStage extends PreferencesStage
   }
 
   // ---------------------------------------------------------------------------------//
-  private void setMenu (Site site)
+  private void setMenu ()
   // ---------------------------------------------------------------------------------//
   {
     menu = new Menu ("Plugins");
