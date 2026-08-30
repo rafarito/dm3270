@@ -387,56 +387,9 @@ public class ScreenWatcher
     if (!rowFields.get (0).getText ().startsWith ("Command - Enter"))
       return false;
 
-    DatasetListLayout layout = null;
-
-    switch (rowFields.size ())
-    {
-      case 3:
-        String heading = rowFields.get (1).getText ().trim ();
-        if (heading.startsWith ("Tracks"))
-          layout = tracksLayout;
-        else if (heading.startsWith ("Dsorg"))
-          layout = dsorgLayout;
-        break;
-
-      case 4:
-        String message = rowFields.get (1).getText ().trim ();
-        heading = rowFields.get (2).getText ().trim ();
-        if ("Volume".equals (heading) && "Message".equals (message))
-          layout = volumeLayout;
-        break;
-
-      case 6:
-        message = rowFields.get (1).getText ().trim ();
-        heading = rowFields.get (2).getText ().trim ();
-        if ("Volume".equals (heading) && "Message".equals (message))
-        {
-          // Os dois layouts de varias linhas tem a mesma linha de titulos, entao o que os
-          // separa esta na linha 7: a palavra "Catalog" ou uma linha de tracos.
-          List<Field> rowFields2 = fieldManager.getRowFields (7);
-          if (rowFields2.size () == 1)
-          {
-            String line = rowFields2.get (0).getText ().trim ();
-            if (line.equals ("Catalog"))
-              layout = catalogLayout;
-            else if (line.startsWith ("--"))
-              layout = underscoreLayout;
-            else
-              logger.warn ("Expected 'Catalog' or underscores: {}", line);
-          }
-        }
-        break;
-
-      default:
-        logger.warn ("Unexpected number of fields: {}", rowFields.size ());
-    }
-
+    DatasetListLayout layout = selectLayout (rowFields);
     if (layout == null)
-    {
-      logger.warn ("Screen not recognised");
-      dumpFields (rowFields);
       return false;
-    }
 
     // A geometria da lista vem do layout: quantas linhas cada dataset ocupa, e onde ela
     // comeca.
@@ -477,6 +430,74 @@ public class ScreenWatcher
     }
 
     return true;
+  }
+
+  /*
+   * Qual dos cinco formatos esta na tela, ou null se nenhum deles.
+   *
+   * A decisao e uma arvore, e nao uma lista: a quantidade de campos da linha de titulos
+   * escolhe o ramo, os titulos confirmam, e os dois formatos de varias linhas por dataset
+   * ainda se separam pelo marcador da linha 7 - a palavra "Catalog" ou uma linha de tracos.
+   *
+   * Os tres avisos dizem ONDE a arvore parou, e sao a razao de ela continuar sendo um switch
+   * aqui em vez de um matches () declarado por layout: uma lista plana de predicados perde a
+   * informacao de quao longe o reconhecimento chegou, e reconstrui-la para os avisos exigiria
+   * repetir a arvore ao lado dela - mais duplicacao do que a que este trabalho desfez, e nao
+   * menos. O que era duplicado de verdade eram os deslocamentos de coluna, e esses ja sairam.
+   */
+  // ---------------------------------------------------------------------------------//
+  private DatasetListLayout selectLayout (List<Field> headingRow)
+  // ---------------------------------------------------------------------------------//
+  {
+    DatasetListLayout layout = null;
+
+    switch (headingRow.size ())
+    {
+      case 3:
+        String heading = headingRow.get (1).getText ().trim ();
+        if (heading.startsWith ("Tracks"))
+          layout = tracksLayout;
+        else if (heading.startsWith ("Dsorg"))
+          layout = dsorgLayout;
+        break;
+
+      case 4:
+        String message = headingRow.get (1).getText ().trim ();
+        heading = headingRow.get (2).getText ().trim ();
+        if ("Volume".equals (heading) && "Message".equals (message))
+          layout = volumeLayout;
+        break;
+
+      case 6:
+        message = headingRow.get (1).getText ().trim ();
+        heading = headingRow.get (2).getText ().trim ();
+        if ("Volume".equals (heading) && "Message".equals (message))
+        {
+          List<Field> markerRow = fieldManager.getRowFields (7);
+          if (markerRow.size () == 1)
+          {
+            String line = markerRow.get (0).getText ().trim ();
+            if (line.equals ("Catalog"))
+              layout = catalogLayout;
+            else if (line.startsWith ("--"))
+              layout = underscoreLayout;
+            else
+              logger.warn ("Expected 'Catalog' or underscores: {}", line);
+          }
+        }
+        break;
+
+      default:
+        logger.warn ("Unexpected number of fields: {}", headingRow.size ());
+    }
+
+    if (layout == null)
+    {
+      logger.warn ("Screen not recognised");
+      dumpFields (headingRow);
+    }
+
+    return layout;
   }
 
   /*
