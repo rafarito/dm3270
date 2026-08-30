@@ -179,6 +179,14 @@
           <targetClasses>
             <param>com.bytezone.dm3270.utilities.Dm3270Utility</param>
             <param>com.bytezone.dm3270.utilities.FileSaver</param>
+            <!--
+              O SiteValue, a implementacao headless da porta Site. Entra junto com o
+              SiteValueTest: e uma classe nova, sem JavaFX e com teste proprio, e o pacote
+              utilities e listado classe a classe - sem esta linha os mutantes dela nao
+              apareceriam no relatorio. O SiteForm fica de fora, como o resto do que
+              depende de widget.
+            -->
+            <param>com.bytezone.dm3270.utilities.SiteValue</param>
             <param>com.bytezone.dm3270.orders.*</param>
             <param>com.bytezone.dm3270.attributes.*</param>
             <param>com.bytezone.dm3270.commands.*</param>

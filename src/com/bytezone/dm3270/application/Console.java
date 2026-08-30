@@ -17,7 +17,7 @@ import com.bytezone.dm3270.session.Session;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 import com.bytezone.dm3270.utilities.Site;
-import com.bytezone.dm3270.utilities.SiteForm;
+import com.bytezone.dm3270.utilities.SiteValue;
 import com.bytezone.dm3270.utilities.WindowSaver;
 
 import javafx.application.Application;
@@ -33,7 +33,7 @@ public class Console extends Application
 {
   private static final Logger logger = LoggerFactory.getLogger (Console.class);
   private static final int MAINFRAME_EMULATOR_PORT = 5555;
-  private static final Site DEFAULT_MAINFRAME = new SiteForm ("mainframe",
+  private static final Site DEFAULT_MAINFRAME = new SiteValue ("mainframe",
       "localhost", MAINFRAME_EMULATOR_PORT, true, 2, false, false, false, "");
 
   private Stage primaryStage;
