@@ -257,6 +257,14 @@
             <param>com.bytezone.reporter.reports.*</param>
             <param>com.bytezone.reporter.file.MainframeFile</param>
             <param>com.bytezone.reporter.file.RecordTester</param>
+            <!--
+              O ReportScore entra agora que tem o ReportScoreTest: paginacao preguicosa, o
+              texto de cada pagina, os quatro ramos de getSubrecord, o encadeamento de
+              addPage e a ordenacao. Entra ACRESCENTANDO denominador - antes ele nao era
+              medido -, entao a porcentagem global pode nao subir, e isso e honesto. O
+              precedente e o ScreenWatcher na onda 3, que so entrou depois de ter teste.
+            -->
+            <param>com.bytezone.reporter.file.ReportScore</param>
             <param>com.bytezone.reporter.file.ReportData</param>
             <param>com.bytezone.reporter.file.ReportTester</param>
             <param>com.bytezone.reporter.file.TextTester</param>
