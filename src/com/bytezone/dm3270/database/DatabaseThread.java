@@ -53,6 +53,7 @@ public class DatabaseThread extends Thread
   private BlockingQueue<DatabaseRequest> queue;
   private boolean cancelled;
   private final String databaseName;
+  private final SchemaInitializer schema;
 
   private final Map<String, CacheEntry> cache = new TreeMap<> ();
 
@@ -78,6 +79,8 @@ public class DatabaseThread extends Thread
       cancelled = true;
       logger.error ("Error initializing database connection", e);
     }
+
+    schema = new SchemaInitializer (connection);
   }
 
   // ---------------------------------------------------------------------------------//
@@ -129,17 +132,17 @@ public class DatabaseThread extends Thread
     switch (request.command)
     {
       case OPEN:
-        if (create (request))                       // create if not already there
+        if (schema.create ())                       // create if not already there
           request.result = Result.SUCCESS;
         break;
 
       case DROP:
-        if (drop (request))
+        if (dropTables ())
           request.result = Result.SUCCESS;
         break;
 
       case CREATE:
-        if (drop (request) && create (request))
+        if (dropTables () && schema.create ())
           request.result = Result.SUCCESS;
         break;
 
@@ -266,113 +269,19 @@ public class DatabaseThread extends Thread
     }
   }
 
+  /*
+   * Derrubar as tabelas limpa o cache junto, e so quando o drop deu certo - como antes. O
+   * cache indexa o que o banco tinha; apagar um sem o outro deixaria os dois em desacordo.
+   */
   // ---------------------------------------------------------------------------------//
-  private boolean drop (DatabaseRequest request)
-  // ---------------------------------------------------------------------------------//
-  {
-    try
-    {
-      Statement stmt = connection.createStatement ();
-      stmt.executeUpdate ("drop table if exists DATASETS");
-      stmt.close ();
-
-      stmt = connection.createStatement ();
-      stmt.executeUpdate ("drop table if exists MEMBERS");
-      stmt.close ();
-
-      cache.clear ();
-
-      return true;
-    }
-    catch (SQLException e)
-    {
-      logger.error ("Error dropping tables", e);
-      return false;
-    }
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private boolean create (DatabaseRequest request)
+  private boolean dropTables ()
   // ---------------------------------------------------------------------------------//
   {
-    try
-    {
-      Statement stmt = connection.createStatement ();
-
-      String sql = "create table if not exists DATASETS ("     //
-          + "NAME           TEXT NOT NULL,"      //
-
-          // mainframe details
-          + "VOLUME         TEXT         ,"      // FUSRxx
-          + "DEVICE         TEXT         ,"      // 3390
-          + "CATALOG        TEXT         ,"      // CATALOG.USER.UCAT
-
-          + "CREATED        DATE         ,"      //
-          + "EXPIRES        DATE         ,"      //
-          + "REFERRED       DATE         ,"      //
-
-          + "TRACKS         INT          ,"      //
-          + "CYLINDERS      INT          ,"      //
-          + "PERCENT        INT          ,"      //
-          + "EXTENTS        INT          ,"      //
-
-          + "DSORG          TEXT         ,"      // PO, PS
-          + "RECFM          TEXT         ,"      // FB, VB
-          + "LRECL          INT          ,"      //
-          + "BLKSIZE        INT          ,"      //
-
-          // PC details
-          + "FILENAME       TEXT         ,"      // local filename (?)
-          + "DOWNLOADED     DATE         ,"      // downloaded date/time
-          + "CREATED2       DATE         ,"      // created date when downloaded
-          + "REFERRED2      DATE         ,"      // referred date when downloaded
-          + "ENCODING       TEXT         ,"      // ascii/ebcdic
-          + "STRUCTURE      TEXT         ,"      // cr/reclen/ravel/rdw etc
-
-          + "PRIMARY KEY (NAME)"                 //
-          + ") WITHOUT ROWID";
-
-      stmt.executeUpdate (sql);
-      stmt.close ();
-
-      stmt = connection.createStatement ();
-
-      sql = "create table if not exists MEMBERS ("      //
-          + "DATASET        TEXT NOT NULL,"      //
-          + "NAME           TEXT NOT NULL,"      //
-
-          // mainframe details
-          + "SIZE           INT          ,"      //
-          + "INIT           INT          ,"      //
-          + "MOD            INT          ,"      //
-          + "VV             INT          ,"      //
-          + "MM             INT          ,"      //
-          + "ID             TEXT         ,"      //
-          + "CREATED        DATE         ,"      //
-          + "CHANGED        DATE         ,"      //
-
-          // PC details
-          + "FILENAME       TEXT         ,"      // local filename (?)
-          + "DOWNLOADED     DATE         ,"      // downloaded date/time
-          + "CREATED2       DATE         ,"      // created date when downloaded
-          + "CHANGED2       DATE         ,"      // changed date when downloaded
-          + "ENCODING       TEXT         ,"      // ascii/ebcdic
-          + "STRUCTURE      TEXT         ,"      // cr/reclen/ravel/rdw etc
-
-          + "FOREIGN KEY (DATASET) REFERENCES DATASETS (NAME),"
-          + "PRIMARY KEY (DATASET, NAME)"                   //
-          + ") WITHOUT ROWID";
-
-      stmt.executeUpdate (sql);
-      stmt.close ();
-
-      return true;
-    }
-    catch (Exception e)
-    {
-      logger.error ("Error creating database tables", e);
+    if (!schema.drop ())
       return false;
-    }
+
+    cache.clear ();
+    return true;
   }
 
   // ---------------------------------------------------------------------------------//
