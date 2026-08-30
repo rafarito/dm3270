@@ -263,6 +263,105 @@ deliberada, e nao um efeito colateral da decomposicao em Strategy.
 
 ---
 
+## 10. O cache do `DatabaseThread` é escrito e nunca lido
+
+**Arquivo:** [database/DatabaseThread.java](src/com/bytezone/dm3270/database/DatabaseThread.java)
+— o campo `cache`, e [database/CacheEntry.java](src/com/bytezone/dm3270/database/CacheEntry.java)
+
+```java
+private final Map<String, CacheEntry> cache = new TreeMap<> ();
+```
+
+São **treze escritas e nenhuma leitura**. Todo `cache.get` existe apenas para decidir entre
+`put`, `replace` e `putMember` — nenhuma requisição é respondida a partir do cache.
+`findDataset` e `findMember` vão ao banco todas as vezes, mesmo quando a entrada está lá; o
+valor devolvido por `CacheEntry.addMember` é descartado no único lugar que o chama.
+
+O efeito é uma estrutura que cresce sem limite durante a sessão — uma entrada por dataset visto,
+com um mapa de membros dentro — e que nunca é consultada. Não há erro de resultado: há custo de
+memória e de leitura de código, e um `CacheEntry` inteiro cuja razão de existir não se sustenta.
+
+Vale dizer o que **não** é: não é um cache quebrado que devolve dado velho. É um cache que
+ninguém pergunta. Se a intenção original era evitar ida ao banco, o que falta é o `findDataset`
+consultá-lo antes do `select` — e aí passaria a haver invalidação a pensar, o que é outra
+conversa.
+
+**Nota:** a remoção pertence à onda de limpeza, não a esta. Ela arrasta o `CacheEntry` e os sete
+testes que o cobrem em isolamento. O que a decomposição do `DatabaseThread` fez foi juntar as
+treze escritas num colaborador só, para que a decisão seja de uma linha em vez de uma
+investigação.
+
+---
+
+## 11. `createMemberList` monta SQL inválido com curinga no meio do nome
+
+**Arquivo:** [database/DatabaseThread.java](src/com/bytezone/dm3270/database/DatabaseThread.java)
+— `createMemberList`
+
+```java
+String query = "select * from MEMBERS where DATASET='" + request.datasetName + "'";
+int pos = request.memberName.indexOf ('*');
+
+if (pos > 0)
+{
+  ...
+  query += "where NAME>='" + from + "' and NAME<='" + to + "'";   // <- segundo where
+}
+```
+
+O segundo `where` deveria ser `and`. Com `memberName` = `"IEF*"` a query sai como
+`select * from MEMBERS where DATASET='X' where NAME>='IEF' and NAME<='IEFZ'`, o SQLite recusa,
+a `SQLException` é apanhada, o log registra `"Error creating member list"` e a requisição
+devolve `FAILURE`.
+
+O curinga sozinho (`"*"`) fica na posição zero, o ramo não roda e a query sai válida — que é
+por que o defeito nunca apareceu.
+
+Não é alcançável pela aplicação: o `QueuedDatasetStore` só emite `OPEN`, `CLOSE` e os dois
+`UPDATE`, e nunca `LIST` de membro. É um defeito latente, à espera de quem for usar a filtragem
+por prefixo de membro.
+
+**Nota:** `DatabaseTest.aWildcardInsideTheMemberNameBuildsInvalidSql` congela o comportamento
+atual, com um controle positivo ao lado. Corrigir é trocar uma palavra, e o teste existe para
+que isso seja uma decisão e não um efeito colateral de alguém mover o método.
+
+---
+
+## 12. Um subcomando telnet desconhecido derruba a sessão
+
+**Arquivo:** [streams/TelnetListener.java](src/com/bytezone/dm3270/streams/TelnetListener.java)
+— `processTelnetSubcommand`
+
+```java
+TelnetSubcommand subcommand = null;
+
+if (data[2] == TelnetSubcommand.TERMINAL_TYPE)
+  subcommand = new TerminalTypeSubcommand (...);
+else if (data[2] == TelnetSubcommand.TN3270E)
+  subcommand = new TN3270ExtendedSubcommand (...);
+else
+  logger.warn ("Unknown command type : {}", String.format ("%02X", data[2]));
+
+addDataRecord (subcommand, SessionRecordType.TELNET);      // <- pode ser null
+```
+
+O `else` registra o aviso e **segue em frente com `subcommand` nulo**. Os dois caminhos de
+`addDataRecord` estouram:
+
+- em SPY ou REPLAY, onde `session != null`, o construtor do `SessionRecord` chama
+  `message.size ()` sem checar — `NullPointerException`;
+- em TERMINAL, `processMessage` chama `message.process (screen)` — `NullPointerException`
+  também.
+
+Ou seja: o aviso sugere que o subcomando desconhecido foi ignorado, e na linha seguinte a
+sessão cai. Um host que negocie qualquer subopção telnet fora das duas conhecidas derruba a
+conexão em vez de seguir sem ela.
+
+A correção é um `return` depois do `logger.warn`, ou um `if (subcommand != null)` antes do
+`addDataRecord` — mas isso muda comportamento observável, então fica aqui.
+
+---
+
 ## Onde estão os defeitos que a refatoração *vai* resolver
 
 Estes não estão nesta lista porque não são mudança de comportamento:
