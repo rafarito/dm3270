@@ -218,6 +218,51 @@ lugares que podem divergir, e divergiram.
 
 ---
 
+## 9. O layout de tracos da lista de dataset nao persiste o volume
+
+**Arquivo:** [watch/ScreenWatcher.java](src/com/bytezone/dm3270/watch/ScreenWatcher.java) —
+`addDataset`, `case 5`
+
+O `addDataset` mantem dois objetos em paralelo: o `DatasetSummary`, que alimenta a tabela do
+assistant, e o `Dataset`, que vai para o `DatasetStore`. Cada ramo do `switch` preenche os
+dois. Menos um.
+
+```java
+case 3:                                     // Message e Volume
+  dataset.setVolume (rowFields.get (2).getText ().trim ());
+  ds.setVolume (dataset.getVolume ());      // <- persiste
+
+case 4:                                     // Catalog, tres linhas
+  dataset.setVolume (rowFields.get (2).getText ().trim ());
+  ...
+  ds.setVolume (dataset.getVolume ());      // <- persiste
+
+case 5:                                     // tracos, duas linhas
+  dataset.setVolume (rowFields.get (2).getText ().trim ());
+  if (rowFields.size () >= 6)
+  {
+    ...
+    ds.setSpace (...);
+    ds.setDisposition (...);                // <- e so
+  }
+```
+
+No `screenType 5` o `ds.setVolume` **nao existe**. O volume e lido da tela, aparece na tabela
+do assistant e nunca chega ao banco — enquanto espaco, disposicao e datas do mesmo dataset,
+lidos da mesma tela, chegam. O `ds.setDevice` tambem falta, mas ali o `case 2` tambem nao o
+chama, entao nao ha assimetria.
+
+O efeito e silencioso: quem consultar o banco depois ve o dataset com a coluna de volume
+vazia, sem nenhum sinal de que a tela tinha o dado. E so acontece nesse layout, o que torna o
+sintoma dependente de qual formato de DSLIST o host produz.
+
+**Nota:** `ScreenWatcherTest.storesSpaceAndDispositionButNotTheVolume` e
+`threeFieldsFillOnlyTheVolume` congelam o comportamento atual, com o porque escrito no proprio
+teste. Corrigir e acrescentar uma linha; o que o teste garante e que a correcao seja
+deliberada, e nao um efeito colateral da decomposicao em Strategy.
+
+---
+
 ## Onde estão os defeitos que a refatoração *vai* resolver
 
 Estes não estão nesta lista porque não são mudança de comportamento:
