@@ -6,6 +6,7 @@ import java.util.List;
 import com.bytezone.reporter.record.Record;
 import com.bytezone.reporter.record.RecordMaker;
 import com.bytezone.reporter.reports.Page;
+import com.bytezone.reporter.reports.ReportContext;
 import com.bytezone.reporter.reports.ReportMaker;
 import com.bytezone.reporter.text.TextMaker;
 
@@ -19,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // -----------------------------------------------------------------------------------//
-public class ReportScore implements Comparable<ReportScore>
+public class ReportScore implements Comparable<ReportScore>, ReportContext
 // -----------------------------------------------------------------------------------//
 {
   private static final Logger logger = LoggerFactory.getLogger (ReportScore.class);
@@ -70,6 +71,7 @@ public class ReportScore implements Comparable<ReportScore>
   }
 
   // ---------------------------------------------------------------------------------//
+  @Override
   public RecordMaker getRecordMaker ()
   // ---------------------------------------------------------------------------------//
   {
@@ -77,6 +79,7 @@ public class ReportScore implements Comparable<ReportScore>
   }
 
   // ---------------------------------------------------------------------------------//
+  @Override
   public TextMaker getTextMaker ()
   // ---------------------------------------------------------------------------------//
   {
@@ -107,6 +110,7 @@ public class ReportScore implements Comparable<ReportScore>
   }
 
   // ---------------------------------------------------------------------------------//
+  @Override
   public List<Page> getPages ()
   // ---------------------------------------------------------------------------------//
   {
@@ -212,6 +216,7 @@ public class ReportScore implements Comparable<ReportScore>
   }
 
   // ---------------------------------------------------------------------------------//
+  @Override
   public Page addPage (int firstRecord, int lastRecord)
   // ---------------------------------------------------------------------------------//
   {

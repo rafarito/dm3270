@@ -317,15 +317,33 @@ class LayeringTest
    * metodo. O campo Screen do AbstractTransferTab, que era atribuido e nunca lido em quatro das
    * cinco abas, saiu junto.
    *
-   * OS 14 QUE SOBRAM sao de duas naturezas. Inerentes ao 3270, e nao se pretende mexer:
+   * E caiu a 13, no passo 4. reporter.file <-> reporter.reports era sustentado pelo
+   * ReportScore: os SEIS arquivos de reports que importavam reporter.file importavam so ele, e
+   * usavam dele quatro membros - getPages (), addPage () e os dois makers. Guardavam uma
+   * classe de 226 linhas, com uma Pagination e um TextArea dentro, para chamar quatro
+   * coisas. Como o ReportScore precisa de ReportMaker e de Page para existir, os dois
+   * pacotes se nomeavam nos dois sentidos.
+   *
+   * A porta reports.ReportContext esta declarada do lado que consome, com exatamente os quatro
+   * membros que a medicao encontrou, e o ReportScore a implementa. E o mesmo corte do
+   * ConsoleLogStage e do PluginsStage na onda 3, e a medicao que o achou foi a mesma: olhar o
+   * que o consumidor REALMENTE usa antes de mover qualquer coisa.
+   *
+   * OS 13 QUE SOBRAM sao de duas naturezas. Inerentes ao 3270, e nao se pretende mexer:
    * commands <-> screen (um ReadCommand pede a tela que produza um AIDCommand, e AIDCommand e
    * comando de protocolo), attributes <-> screen, attributes <-> orders, orders <-> screen,
    * commands <-> structuredfields. Acidentais que ficam para as ondas seguintes:
    * filetransfer <-> screen e commands <-> filetransfer, que dependem de tirar
-   * getTransferManager () do ScreenTarget; os cinco de streams, que dependem do composition
-   * root; e os dois de reporter, que sao outro subsistema.
+   * getTransferManager () do ScreenTarget; e os cinco de streams, que dependem do composition
+   * root.
+   *
+   * SOBRA UM DE reporter, e ele NAO e alvo: record <-> text. Vem de tres metodos de TextMaker
+   * que recebem Record - getText, test e countAlphanumericBytes - e que so desempacotam
+   * buffer, offset e length. Remove-los quebraria o ciclo, mas text continuaria acoplado ao
+   * layout de Record, por convencao espalhada em oito chamadores em vez de por tipo. Seria
+   * trocar desenho por placar, e a decisao de deixar como esta foi tomada com o usuario.
    */
-  private static final int MAX_MUTUAL_CYCLES = 14;
+  private static final int MAX_MUTUAL_CYCLES = 13;
 
   // ---------------------------------------------------------------------------------//
   @ArchTest

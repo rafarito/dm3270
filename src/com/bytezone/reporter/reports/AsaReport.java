@@ -2,7 +2,6 @@ package com.bytezone.reporter.reports;
 
 import java.util.List;
 
-import com.bytezone.reporter.file.ReportScore;
 import com.bytezone.reporter.record.Record;
 import com.bytezone.reporter.text.TextMaker;
 
@@ -28,11 +27,11 @@ public class AsaReport extends DefaultReportMaker
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public void createPages (ReportScore reportScore)
+  public void createPages (ReportContext context)
   // ---------------------------------------------------------------------------------//
   {
-    List<Page> pages = reportScore.getPages ();
-    List<Record> records = reportScore.getRecordMaker ().getRecords ();
+    List<Page> pages = context.getPages ();
+    List<Record> records = context.getRecordMaker ().getRecords ();
 
     assert pages.size () == 0;
     pages.clear ();
@@ -44,7 +43,7 @@ public class AsaReport extends DefaultReportMaker
     {
       Record record = records.get (recordNumber);
 
-      char c = reportScore.getTextMaker ().getChar (record.buffer[record.offset] & 0xFF);
+      char c = context.getTextMaker ().getChar (record.buffer[record.offset] & 0xFF);
       int lines = 0;
       if (c == ' ' || c == 'V')
         lines = 1;
@@ -55,7 +54,7 @@ public class AsaReport extends DefaultReportMaker
 
       if (c == '1' && lineCount > 0)
       {
-        reportScore.addPage (firstRecord, recordNumber - 1);
+        context.addPage (firstRecord, recordNumber - 1);
         lineCount = 0;
         firstRecord = recordNumber;
       }
@@ -64,13 +63,13 @@ public class AsaReport extends DefaultReportMaker
         int linesLeft = pageSize - lineCount;
         if (allowSplitRecords && linesLeft > 0)
         {
-          Page page = reportScore.addPage (firstRecord, recordNumber);
+          Page page = context.addPage (firstRecord, recordNumber);
           page.setLastRecordOffset (linesLeft);
           lineCount = lines - linesLeft;
         }
         else
         {
-          reportScore.addPage (firstRecord, recordNumber - 1);
+          context.addPage (firstRecord, recordNumber - 1);
           lineCount = lines;
         }
         firstRecord = recordNumber;
@@ -79,15 +78,15 @@ public class AsaReport extends DefaultReportMaker
         lineCount += lines;
     }
 
-    reportScore.addPage (firstRecord, records.size () - 1);
+    context.addPage (firstRecord, records.size () - 1);
   }
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public String getFormattedRecord (ReportScore reportScore, Record record)
+  public String getFormattedRecord (ReportContext context, Record record)
   // ---------------------------------------------------------------------------------//
   {
-    TextMaker textMaker = reportScore.getTextMaker ();
+    TextMaker textMaker = context.getTextMaker ();
 
     char c = textMaker.getChar (record.buffer[record.offset] & 0xFF);
     String prefix = c == '0' ? "\n" : c == '-' ? "\n\n" : "";

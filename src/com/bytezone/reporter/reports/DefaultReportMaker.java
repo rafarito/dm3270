@@ -6,7 +6,6 @@ import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 
-import com.bytezone.reporter.file.ReportScore;
 import com.bytezone.reporter.record.Record;
 import com.bytezone.reporter.text.TextMaker;
 
@@ -50,7 +49,7 @@ public abstract class DefaultReportMaker implements ReportMaker
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public String getFormattedRecord (ReportScore reportScore, Record record)
+  public String getFormattedRecord (ReportContext context, Record record)
   // ---------------------------------------------------------------------------------//
   {
     return "Not possible";
@@ -58,7 +57,7 @@ public abstract class DefaultReportMaker implements ReportMaker
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public String getFormattedRecord (ReportScore reportScore, Record record, int offset,
+  public String getFormattedRecord (ReportContext context, Record record, int offset,
       int length)
   // ---------------------------------------------------------------------------------//
   {

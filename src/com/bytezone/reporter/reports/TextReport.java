@@ -2,7 +2,6 @@ package com.bytezone.reporter.reports;
 
 import java.util.List;
 
-import com.bytezone.reporter.file.ReportScore;
 import com.bytezone.reporter.record.Record;
 import com.bytezone.reporter.text.TextMaker;
 
@@ -19,11 +18,11 @@ public class TextReport extends DefaultReportMaker
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public void createPages (ReportScore reportScore)
+  public void createPages (ReportContext context)
   // ---------------------------------------------------------------------------------//
   {
-    List<Page> pages = reportScore.getPages ();
-    List<Record> records = reportScore.getRecordMaker ().getRecords ();
+    List<Page> pages = context.getPages ();
+    List<Record> records = context.getRecordMaker ().getRecords ();
 
     pages.clear ();
 
@@ -33,19 +32,19 @@ public class TextReport extends DefaultReportMaker
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public String getFormattedRecord (ReportScore reportScore, Record record)
+  public String getFormattedRecord (ReportContext context, Record record)
   // ---------------------------------------------------------------------------------//
   {
-    return reportScore.getTextMaker ().getText (record);
+    return context.getTextMaker ().getText (record);
   }
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public String getFormattedRecord (ReportScore reportScore, Record record, int offset,
+  public String getFormattedRecord (ReportContext context, Record record, int offset,
       int length)
   // ---------------------------------------------------------------------------------//
   {
-    return reportScore.getTextMaker ().getText (record).substring (offset, offset + length);
+    return context.getTextMaker ().getText (record).substring (offset, offset + length);
   }
 
   // ---------------------------------------------------------------------------------//

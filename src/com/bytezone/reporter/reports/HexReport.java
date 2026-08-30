@@ -2,7 +2,6 @@ package com.bytezone.reporter.reports;
 
 import java.util.List;
 
-import com.bytezone.reporter.file.ReportScore;
 import com.bytezone.reporter.record.Record;
 import com.bytezone.reporter.text.TextMaker;
 
@@ -23,11 +22,11 @@ public class HexReport extends DefaultReportMaker
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public void createPages (ReportScore reportScore)
+  public void createPages (ReportContext context)
   // ---------------------------------------------------------------------------------//
   {
-    List<Page> pages = reportScore.getPages ();
-    List<Record> records = reportScore.getRecordMaker ().getRecords ();
+    List<Page> pages = context.getPages ();
+    List<Record> records = context.getRecordMaker ().getRecords ();
 
     pages.clear ();
 
@@ -57,10 +56,10 @@ public class HexReport extends DefaultReportMaker
       if (lineNo >= pageSize)
       {
         if (ptr == 0)
-          reportScore.addPage (firstRecord, recordNumber - 1);
+          context.addPage (firstRecord, recordNumber - 1);
         else
         {
-          Page page = reportScore.addPage (firstRecord, recordNumber);
+          Page page = context.addPage (firstRecord, recordNumber);
           page.setLastRecordOffset (ptr);
         }
 
@@ -70,20 +69,20 @@ public class HexReport extends DefaultReportMaker
     }
 
     if (lineNo > 0)
-      reportScore.addPage (firstRecord, recordNumber - 1);
+      context.addPage (firstRecord, recordNumber - 1);
   }
 
   //  @Override
-  //  public void createPages (ReportScore reportScore)
+  //  public void createPages (ReportContext context)
   //  {
   //    if (trial)
   //    {
-  //      createPages2 (reportScore);
+  //      createPages2 (context);
   //      return;
   //    }
   //
-  //    List<Page> pages = reportScore.getPages ();
-  //    List<Record> records = reportScore.getRecordMaker ().getRecords ();
+  //    List<Page> pages = context.getPages ();
+  //    List<Record> records = context.getRecordMaker ().getRecords ();
   //
   //    pages.clear ();
   //
@@ -101,13 +100,13 @@ public class HexReport extends DefaultReportMaker
   //        int linesLeft = pageSize - lineCount;
   //        if (allowSplitRecords && linesLeft > 0)
   //        {
-  //          Page page = reportScore.addPage (firstRecord, recordNumber);
+  //          Page page = context.addPage (firstRecord, recordNumber);
   //          page.setLastRecordOffset (linesLeft * 74);
   //          lineCount = lines - linesLeft;
   //        }
   //        else
   //        {
-  //          reportScore.addPage (firstRecord, recordNumber - 1);
+  //          context.addPage (firstRecord, recordNumber - 1);
   //          lineCount = lines;
   //        }
   //        firstRecord = recordNumber;
@@ -119,16 +118,16 @@ public class HexReport extends DefaultReportMaker
   //        lineCount++;
   //    }
   //
-  //    reportScore.addPage (firstRecord, records.size () - 1);
+  //    context.addPage (firstRecord, records.size () - 1);
   //  }
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public String getFormattedRecord (ReportScore reportScore, Record record, int offset,
+  public String getFormattedRecord (ReportContext context, Record record, int offset,
       int length)
   // ---------------------------------------------------------------------------------//
   {
-    TextMaker textMaker = reportScore.getTextMaker ();
+    TextMaker textMaker = context.getTextMaker ();
     StringBuilder text = new StringBuilder ();
     int max = record.offset + offset + length;
 
@@ -152,11 +151,11 @@ public class HexReport extends DefaultReportMaker
 
   // ---------------------------------------------------------------------------------//
   @Override
-  public String getFormattedRecord (ReportScore reportScore, Record record)
+  public String getFormattedRecord (ReportContext context, Record record)
   // ---------------------------------------------------------------------------------//
   {
-    return getFormattedRecord (reportScore, record, 0, record.length);
-    //    TextMaker textMaker = reportScore.getTextMaker ();
+    return getFormattedRecord (context, record, 0, record.length);
+    //    TextMaker textMaker = context.getTextMaker ();
     //
     //    if (record.length == 0)
     //      return String.format ("%06X", record.offset);
