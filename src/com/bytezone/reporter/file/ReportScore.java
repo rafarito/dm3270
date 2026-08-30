@@ -132,15 +132,28 @@ public class ReportScore implements Comparable<ReportScore>, ReportContext
     return pagination;
   }
 
+  /*
+   * O texto de uma pagina, sem widget nenhum.
+   *
+   * Saiu de dentro do getFormattedPage, que fazia duas coisas: montar o texto a partir dos
+   * registros, das paginas e do reportMaker, e depois escreve-lo num TextArea. A primeira
+   * metade e dominio e agora e testavel sem toolkit grafico; a segunda ficou logo abaixo, e
+   * sai desta classe no proximo commit.
+   *
+   * A GUARDA DE PAGINA INVALIDA E O AVISO FICAM AQUI, e nao na parte visual, por dois
+   * motivos. O primeiro e que decidir se um numero de pagina existe e a pergunta que este
+   * lado sabe responder - e ele que tem a lista. O segundo e o §5.13: o logback imprime
+   * %logger{36}, entao mudar a classe que emite o aviso mudaria o texto de toda linha que ele
+   * produz.
+   */
   // ---------------------------------------------------------------------------------//
-  public Node getFormattedPage (int pageNumber)
+  public String getFormattedText (int pageNumber)
   // ---------------------------------------------------------------------------------//
   {
     if (pageNumber < 0 || pageNumber >= pages.size ())
     {
       logger.warn ("impossible pageNumber requested: {}", pageNumber);
-      textArea.clear ();
-      return textArea;
+      return "";
     }
 
     List<Record> records = recordMaker.getRecords ();
@@ -186,7 +199,26 @@ public class ReportScore implements Comparable<ReportScore>, ReportContext
     while (text.length () > 0 && text.charAt (text.length () - 1) == '\n')
       text.deleteCharAt (text.length () - 1);
 
-    textArea.setText (text.toString ());
+    return text.toString ();
+  }
+
+  /*
+   * O mesmo TextArea de sempre, com o texto da pagina dentro.
+   *
+   * A instancia e reaproveitada de proposito: a Pagination guarda este metodo como fabrica de
+   * pagina, e devolver um Node novo a cada chamada mudaria o que a janela faz. Ha teste com
+   * assertSame no ReportScoreTest.
+   *
+   * O ramo de pagina invalida chamava textArea.clear (), e agora chama setText (""), porque a
+   * guarda subiu para o getFormattedText. A diferenca entre os dois e que clear () tambem
+   * desmarca a selecao; o texto resultante e o mesmo, e este ramo nao e alcancavel pela
+   * interface, porque a Pagination limita a fabrica ao pageCount que ela recebeu.
+   */
+  // ---------------------------------------------------------------------------------//
+  public Node getFormattedPage (int pageNumber)
+  // ---------------------------------------------------------------------------------//
+  {
+    textArea.setText (getFormattedText (pageNumber));
     return textArea;
   }
 

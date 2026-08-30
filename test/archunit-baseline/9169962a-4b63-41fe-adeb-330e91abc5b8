@@ -292,7 +292,6 @@ Method <com.bytezone.dm3270.utilities.WindowSaver.saveWindow()> calls method <ja
 Method <com.bytezone.dm3270.utilities.WindowSaver.saveWindow()> calls method <javafx.stage.Stage.getWidth()> in (WindowSaver.java:31)
 Method <com.bytezone.dm3270.utilities.WindowSaver.saveWindow()> calls method <javafx.stage.Stage.getX()> in (WindowSaver.java:28)
 Method <com.bytezone.dm3270.utilities.WindowSaver.saveWindow()> calls method <javafx.stage.Stage.getY()> in (WindowSaver.java:29)
-Method <com.bytezone.reporter.file.ReportScore.getFormattedPage(int)> calls method <javafx.scene.control.TextArea.clear()> in (ReportScore.java:117)
 Method <com.bytezone.reporter.file.ReportScore.getFormattedPage(int)> calls method <javafx.scene.control.TextArea.setText(java.lang.String)> in (ReportScore.java:164)
 Method <com.bytezone.reporter.file.ReportScore.getFormattedPage(int)> has return type <javafx.scene.Node> in (ReportScore.java:0)
 Method <com.bytezone.reporter.file.ReportScore.getPagination()> calls constructor <javafx.scene.control.Pagination.<init>()> in (ReportScore.java:103)

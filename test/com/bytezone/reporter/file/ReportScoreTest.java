@@ -172,6 +172,40 @@ class ReportScoreTest
     }
   }
 
+  /*
+   * getFormattedText e a metade de dominio do antigo getFormattedPage. Enquanto o ReportScore
+   * ainda constroi um TextArea no proprio construtor, estes testes precisam do toolkit como
+   * todos os outros; quando os widgets sairem da classe, eles passam a rodar headless.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("o texto da pagina, sem passar pelo widget")
+  class PlainText
+  // ---------------------------------------------------------------------------------//
+  {
+    @Test
+    @DisplayName ("e exatamente o texto que o TextArea recebe")
+    void matchesWhatTheWidgetShows ()
+    {
+      ReportScore reportScore = text ("AAA\nBBB\nCCC\n");
+      reportScore.getPagination ();
+
+      assertEquals ("AAA\nBBB\nCCC", reportScore.getFormattedText (0));
+      assertEquals (shown (reportScore, 0), reportScore.getFormattedText (0));
+    }
+
+    @Test
+    @DisplayName ("pagina fora da faixa devolve string vazia, e nao lanca")
+    void outOfRangeIsEmpty ()
+    {
+      ReportScore reportScore = text ("AAA\nBBB\nCCC\n");
+      reportScore.getPagination ();
+
+      assertEquals ("", reportScore.getFormattedText (1));
+      assertEquals ("", reportScore.getFormattedText (-1));
+    }
+  }
+
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("pagina fora da faixa")
