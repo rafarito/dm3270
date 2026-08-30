@@ -18,9 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 
 import com.bytezone.dm3270.database.DatabaseRequest.Result;
@@ -55,7 +53,7 @@ public class DatabaseThread extends Thread
   private final String databaseName;
   private final SchemaInitializer schema;
 
-  private final Map<String, CacheEntry> cache = new TreeMap<> ();
+  private final DatasetCache cache = new DatasetCache ();
 
   // ---------------------------------------------------------------------------------//
   public DatabaseThread (String databaseName, BlockingQueue<DatabaseRequest> queue)
@@ -313,11 +311,7 @@ public class DatabaseThread extends Thread
       {
         Dataset dataset = DatasetMapper.read (rs);
         request.datasets.add (dataset);
-        CacheEntry cacheEntry = cache.get (dataset.getName ());
-        if (cacheEntry == null)
-          cache.put (dataset.getName (), new CacheEntry (dataset));
-        else
-          cacheEntry.replace (dataset);       // is this necessary?
+        cache.remember (dataset);             // is this necessary?
       }
 
       return true;
@@ -338,7 +332,6 @@ public class DatabaseThread extends Thread
     if (!optDataset.isPresent ())
       return false;
     Dataset dataset = optDataset.get ();
-    CacheEntry cacheEntry = cache.get (dataset.getName ());
 
     try
     {
@@ -359,7 +352,7 @@ public class DatabaseThread extends Thread
       {
         Member member = MemberMapper.read (rs, dataset);
         request.members.add (member);
-        cacheEntry.addMember (member);
+        cache.addMember (dataset, member);
       }
 
       return true;
@@ -383,9 +376,7 @@ public class DatabaseThread extends Thread
       if (rs.next ())
       {
         Dataset dataset = DatasetMapper.read (rs);
-        CacheEntry cacheEntry = cache.get (dataset.getName ());
-        if (cacheEntry == null)
-          cache.put (dataset.getName (), new CacheEntry (dataset));
+        cache.rememberIfAbsent (dataset);
         return Optional.of (dataset);
       }
     }
@@ -412,10 +403,8 @@ public class DatabaseThread extends Thread
         if (optDataset.isPresent ())
           dataset = optDataset.get ();        // replace the parameter we were given
 
-        CacheEntry cacheEntry = cache.get (dataset.getName ());
-
         Member member = MemberMapper.read (rs, dataset);
-        cacheEntry.putMember (member);
+        cache.putMember (dataset, member);
         return Optional.of (member);
       }
     }
@@ -443,10 +432,7 @@ public class DatabaseThread extends Thread
       request.dataset = dataset;
     }
     else
-    {
-      CacheEntry cacheEntry = new CacheEntry (dataset);
-      cache.put (dataset.getName (), cacheEntry);
-    }
+      cache.put (dataset);
 
     try
     {
@@ -460,8 +446,7 @@ public class DatabaseThread extends Thread
       ps3.close ();
       request.databaseUpdated = true;
 
-      CacheEntry cacheEntry = cache.get (dataset.getName ());
-      cacheEntry.dataset = dataset;
+      cache.replaceDataset (dataset);
 
       return true;
     }
@@ -489,23 +474,16 @@ public class DatabaseThread extends Thread
       member = currentMember;
       request.member = member;
 
-      Dataset dataset = optDataset.get ();
-      CacheEntry cacheEntry = cache.get (dataset.getName ());
-      cacheEntry.putMember (currentMember);
+      cache.putMember (optDataset.get (), currentMember);
     }
     else
     {
       if (optDataset.isPresent ())
-      {
-        Dataset dataset = optDataset.get ();
-        CacheEntry cacheEntry = cache.get (dataset.getName ());
-        cacheEntry.putMember (member);
-      }
+        cache.putMember (optDataset.get (), member);
       else
       {
-        CacheEntry cacheEntry = new CacheEntry (member.getDataset ());
-        cache.put (member.getDataset ().getName (), cacheEntry);
-        cacheEntry.putMember (member);
+        cache.put (member.getDataset ());
+        cache.putMember (member.getDataset (), member);
       }
     }
 
