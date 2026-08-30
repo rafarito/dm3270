@@ -7,7 +7,6 @@ import java.util.prefs.Preferences;
 
 import com.bytezone.dm3270.utilities.PreferencesStage;
 import com.bytezone.dm3270.utilities.Site;
-import com.bytezone.dm3270.utilities.SiteForm;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

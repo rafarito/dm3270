@@ -1,4 +1,6 @@
-package com.bytezone.dm3270.utilities;
+package com.bytezone.dm3270.application;
+
+import com.bytezone.dm3270.utilities.Site;
 
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
@@ -11,8 +13,11 @@ public class SiteForm implements Site
 // -----------------------------------------------------------------------------------//
 {
   // O nome do logger e saida observavel - o logback imprime %logger{36} - e esta classe
-  // se chamava Site quando os avisos de porta e modelo foram escritos. Site agora e a
-  // interface, no mesmo pacote, entao o nome resolvido continua identico (§5.13).
+  // se chamava utilities.Site quando os avisos de porta e modelo foram escritos. Ela
+  // mudou de pacote, mas a interface Site NAO: getLogger (Site.class) continua
+  // resolvendo com.bytezone.dm3270.utilities.Site, que e o nome de sempre. O nivel
+  // efetivo tambem nao muda por isso - o logback configura application em INFO, e este
+  // logger nao se chama application (§5.13).
   private static final Logger logger = LoggerFactory.getLogger (Site.class);
 
   // make these StringProperty and use a table

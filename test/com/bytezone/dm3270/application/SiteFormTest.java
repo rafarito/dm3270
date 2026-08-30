@@ -1,4 +1,4 @@
-package com.bytezone.dm3270.utilities;
+package com.bytezone.dm3270.application;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -18,13 +18,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.bytezone.dm3270.testing.JavaFxToolkit;
+import com.bytezone.dm3270.utilities.FileSaver;
 
 /*
  * Caracterizacao do SiteForm - a classe que era o Site.
  *
  * O SiteForm e a configuracao de conexao - host, porta, modelo de terminal, SSL - composta
- * inteiramente de widgets JavaFX. O nome mudou neste commit para liberar o nome Site, que
- * passa a ser a interface pura que os consumidores nomeiam; os widgets ficam aqui.
+ * inteiramente de widgets JavaFX. Ele implementa a porta utilities.Site, que e o que os
+ * consumidores nomeiam, e mora em application porque o unico codigo que precisa dos
+ * widgets e o SiteListStage, que monta o formulario na cena e o salva nas Preferences.
  *
  * Estes testes congelam o comportamento atual, incluindo o que e claramente defeituoso. A
  * regra da refatoracao e preservar comportamento, entao o formulario precisa continuar
