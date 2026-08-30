@@ -1,119 +1,72 @@
 package com.bytezone.reporter.file;
 
+import static com.bytezone.reporter.file.ReportScores.ASCII;
+import static com.bytezone.reporter.file.ReportScores.lines;
+import static com.bytezone.reporter.file.ReportScores.of;
+import static com.bytezone.reporter.file.ReportScores.text;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormatSymbols;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-import com.bytezone.dm3270.testing.JavaFxToolkit;
 import com.bytezone.reporter.record.CrlfRecordMaker;
-import com.bytezone.reporter.record.LfRecordMaker;
 import com.bytezone.reporter.record.RecordMaker;
 import com.bytezone.reporter.reports.HexReport;
 import com.bytezone.reporter.reports.Page;
 import com.bytezone.reporter.reports.ReportMaker;
 import com.bytezone.reporter.reports.TextReport;
 import com.bytezone.reporter.text.AsciiTextMaker;
-import com.bytezone.reporter.text.TextMaker;
-
-import javafx.scene.control.TextArea;
 
 /*
- * Caracterizacao do ReportScore, que nao tinha teste nenhum.
+ * Caracterizacao do ReportScore - a pontuacao de uma combinacao de makers, e as paginas em que
+ * o relatorio foi dividido.
  *
- * O ReportScore faz tres coisas ao mesmo tempo, e e por isso que ele e o alvo: guarda a
- * pontuacao de uma combinacao RecordMaker + TextMaker + ReportMaker, guarda as paginas em que
- * o relatorio foi dividido, e ainda possui os widgets JavaFX que mostram essas paginas - uma
- * Pagination, um TextArea e um bloco static que resolve a fonte.
+ * REPARE NO QUE ESTA CLASSE NAO TEM MAIS: nao ha @ExtendWith (JavaFxToolkit.class). Ate o
+ * commit que separou a view, o ReportScore construia um TextArea no proprio construtor, e
+ * nenhum destes testes podia rodar sem toolkit grafico. Hoje a montagem de pagina do
+ * subsistema - onde um registro comeca e termina, os quatro ramos de getSubrecord, o
+ * encadeamento das paginas - e exercitada headless, e essa ausencia e o teste principal.
  *
- * Estes testes congelam o comportamento atual antes de separar as tres. O que precisa
- * sobreviver, e que nao e obvio:
+ * O que sobrou de comportamento visual esta no ReportScoreViewTest.
  *
- *   - getFormattedPage devolve SEMPRE A MESMA instancia de TextArea, mutada a cada chamada. A
- *     Pagination guarda esse Node como fabrica de pagina, entao devolver uma instancia nova
- *     mudaria o comportamento da janela;
- *   - pagina fora da faixa nao lanca: loga "impossible pageNumber requested" e devolve o
- *     TextArea VAZIO. O nome do logger e saida observavel (§5.13), entao esse aviso tem de
- *     continuar saindo da mesma classe;
- *   - getPagination cria preguicosamente, e a criacao TEM EFEITO: chama
- *     reportMaker.createPages (this), que e quem popula a lista de paginas;
- *   - getSubrecord tem quatro ramos, escolhidos pelos deslocamentos que a pagina carrega, e
- *     so e alcancado quando a pagina comeca ou termina no meio de um registro.
+ * O que precisa sobreviver, e nao e obvio:
  *
- * O toString e afirmado por inteiro de proposito, incluindo o campo pagination no fim. Ele vai
- * mudar quando os widgets sairem, e o diff deste teste e que vai mostrar exatamente o que
- * mudou.
+ *   - createPages nao acontece sozinho: as paginas so existem depois que alguem pede. Antes
+ *     disso getPages () esta vazia;
+ *   - pagina fora da faixa nao lanca: loga "impossible pageNumber requested" e devolve texto
+ *     vazio. O nome do logger e saida observavel (§5.13), entao o aviso tem de continuar
+ *     saindo desta classe;
+ *   - getSubrecord tem quatro ramos, escolhidos pelos deslocamentos que a pagina carrega, e so
+ *     e alcancado quando a pagina inteira cabe num registro so.
  */
 // -----------------------------------------------------------------------------------//
-@ExtendWith (JavaFxToolkit.class)
-@DisplayName ("ReportScore - pontuacao, paginas e o widget que as mostra")
+@DisplayName ("ReportScore - a pontuacao e as paginas, sem widget nenhum")
 class ReportScoreTest
 // -----------------------------------------------------------------------------------//
 {
-  private static final TextMaker ASCII = new AsciiTextMaker ();
-
-  // ---------------------------------------------------------------------------------//
-  //  Construcao
-  // ---------------------------------------------------------------------------------//
-
-  private static RecordMaker lines (String text)
-  {
-    LfRecordMaker recordMaker = new LfRecordMaker ();
-    recordMaker.setBuffer (text.getBytes (StandardCharsets.ISO_8859_1));
-    return recordMaker;
-  }
-
-  private static ReportScore score (String text, ReportMaker reportMaker)
-  {
-    return new ReportScore (lines (text), ASCII, reportMaker, 100.0, 1);
-  }
-
-  private static ReportScore text (String text)
-  {
-    return score (text, new TextReport (false, true));
-  }
-
-  private static String shown (ReportScore reportScore, int pageNumber)
-  {
-    return ((TextArea) reportScore.getFormattedPage (pageNumber)).getText ();
-  }
-
   // ---------------------------------------------------------------------------------//
   @Nested
-  @DisplayName ("getPagination cria as paginas, e so na primeira chamada")
+  @DisplayName ("createPages divide os registros")
   class Paginating
   // ---------------------------------------------------------------------------------//
   {
     @Test
-    @DisplayName ("a criacao dispara createPages, que popula a lista")
-    void creationPopulatesThePages ()
+    @DisplayName ("antes de chamar, nao ha pagina nenhuma")
+    void nothingUntilAsked ()
     {
       ReportScore reportScore = text ("AAA\nBBB\nCCC\n");
 
-      assertTrue (reportScore.getPages ().isEmpty (), "antes, nao ha pagina nenhuma");
+      assertTrue (reportScore.getPages ().isEmpty ());
 
-      assertNotNull (reportScore.getPagination ());
+      reportScore.createPages ();
 
       assertEquals (1, reportScore.getPages ().size (), "tres registros cabem numa pagina");
-      assertEquals (1, reportScore.getPagination ().getPageCount ());
-    }
-
-    @Test
-    @DisplayName ("a segunda chamada devolve a mesma Pagination, sem repaginar")
-    void secondCallIsCached ()
-    {
-      ReportScore reportScore = text ("AAA\nBBB\nCCC\n");
-
-      assertSame (reportScore.getPagination (), reportScore.getPagination ());
     }
 
     @Test
@@ -122,22 +75,34 @@ class ReportScoreTest
     {
       StringBuilder buffer = new StringBuilder ();
       for (int i = 0; i < 70; i++)
-        buffer.append (String.format ("linha %02d%n", i).replace (System.lineSeparator (),
-            "\n"));
+        buffer.append ("linha ").append (i).append ('\n');
 
       ReportScore reportScore = text (buffer.toString ());
+      reportScore.createPages ();
 
-      assertEquals (2, reportScore.getPagination ().getPageCount ());
+      assertEquals (2, reportScore.getPages ().size ());
       assertEquals (0, reportScore.getPages ().get (0).getFirstRecordIndex ());
       assertEquals (65, reportScore.getPages ().get (0).getLastRecordIndex ());
       assertEquals (66, reportScore.getPages ().get (1).getFirstRecordIndex ());
       assertEquals (69, reportScore.getPages ().get (1).getLastRecordIndex ());
     }
+
+    @Test
+    @DisplayName ("chamar duas vezes nao duplica: createPages comeca limpando a lista")
+    void callingTwiceIsHarmless ()
+    {
+      ReportScore reportScore = text ("AAA\nBBB\nCCC\n");
+
+      reportScore.createPages ();
+      reportScore.createPages ();
+
+      assertEquals (1, reportScore.getPages ().size ());
+    }
   }
 
   // ---------------------------------------------------------------------------------//
   @Nested
-  @DisplayName ("o texto que a pagina mostra")
+  @DisplayName ("o texto de uma pagina")
   class PageText
   // ---------------------------------------------------------------------------------//
   {
@@ -146,52 +111,19 @@ class ReportScoreTest
     void joinsTheRecords ()
     {
       ReportScore reportScore = text ("AAA\nBBB\nCCC\n");
-      reportScore.getPagination ();
+      reportScore.createPages ();
 
-      assertEquals ("AAA\nBBB\nCCC", shown (reportScore, 0));
+      assertEquals ("AAA\nBBB\nCCC", reportScore.getFormattedText (0));
     }
 
     @Test
     @DisplayName ("com newlineBetweenRecords o relatorio separa os registros por linha vazia")
     void blankLineBetweenRecords ()
     {
-      ReportScore reportScore = score ("AAA\nBBB\nCCC\n", new TextReport (true, true));
-      reportScore.getPagination ();
+      ReportScore reportScore = of ("AAA\nBBB\nCCC\n", new TextReport (true, true));
+      reportScore.createPages ();
 
-      assertEquals ("AAA\n\nBBB\n\nCCC", shown (reportScore, 0));
-    }
-
-    @Test
-    @DisplayName ("devolve sempre a MESMA instancia de TextArea, mutada")
-    void reusesTheSameWidget ()
-    {
-      ReportScore reportScore = text ("AAA\nBBB\nCCC\n");
-      reportScore.getPagination ();
-
-      assertSame (reportScore.getFormattedPage (0), reportScore.getFormattedPage (0));
-    }
-  }
-
-  /*
-   * getFormattedText e a metade de dominio do antigo getFormattedPage. Enquanto o ReportScore
-   * ainda constroi um TextArea no proprio construtor, estes testes precisam do toolkit como
-   * todos os outros; quando os widgets sairem da classe, eles passam a rodar headless.
-   */
-  // ---------------------------------------------------------------------------------//
-  @Nested
-  @DisplayName ("o texto da pagina, sem passar pelo widget")
-  class PlainText
-  // ---------------------------------------------------------------------------------//
-  {
-    @Test
-    @DisplayName ("e exatamente o texto que o TextArea recebe")
-    void matchesWhatTheWidgetShows ()
-    {
-      ReportScore reportScore = text ("AAA\nBBB\nCCC\n");
-      reportScore.getPagination ();
-
-      assertEquals ("AAA\nBBB\nCCC", reportScore.getFormattedText (0));
-      assertEquals (shown (reportScore, 0), reportScore.getFormattedText (0));
+      assertEquals ("AAA\n\nBBB\n\nCCC", reportScore.getFormattedText (0));
     }
 
     @Test
@@ -199,47 +131,17 @@ class ReportScoreTest
     void outOfRangeIsEmpty ()
     {
       ReportScore reportScore = text ("AAA\nBBB\nCCC\n");
-      reportScore.getPagination ();
+      reportScore.createPages ();
 
-      assertEquals ("", reportScore.getFormattedText (1));
-      assertEquals ("", reportScore.getFormattedText (-1));
-    }
-  }
-
-  // ---------------------------------------------------------------------------------//
-  @Nested
-  @DisplayName ("pagina fora da faixa")
-  class OutOfRange
-  // ---------------------------------------------------------------------------------//
-  {
-    @Test
-    @DisplayName ("nao lanca: devolve o TextArea vazio")
-    void returnsAnEmptyWidget ()
-    {
-      ReportScore reportScore = text ("AAA\nBBB\nCCC\n");
-      reportScore.getPagination ();
-
-      assertEquals ("AAA\nBBB\nCCC", shown (reportScore, 0), "primeiro com conteudo");
-
-      assertEquals ("", shown (reportScore, 1), "uma pagina alem do fim");
-      assertEquals ("", shown (reportScore, -1), "e antes do inicio");
-    }
-
-    @Test
-    @DisplayName ("o widget limpo e o mesmo de sempre, e nao um novo")
-    void clearsTheSharedWidget ()
-    {
-      ReportScore reportScore = text ("AAA\nBBB\nCCC\n");
-      reportScore.getPagination ();
-
-      assertSame (reportScore.getFormattedPage (0), reportScore.getFormattedPage (99));
+      assertEquals ("", reportScore.getFormattedText (1), "uma pagina alem do fim");
+      assertEquals ("", reportScore.getFormattedText (-1), "e antes do inicio");
     }
   }
 
   /*
    * getSubrecord so e alcancado quando a pagina inteira cabe num registro so - firstRecord ==
-   * lastRecord -, e ai os dois deslocamentos da pagina escolhem o ramo. Os quatro ramos abaixo
-   * sao os quatro do metodo, na ordem em que ele os testa.
+   * lastRecord -, e ai os dois deslocamentos da pagina escolhem o ramo. Os quatro abaixo sao
+   * os quatro do metodo, na ordem em que ele os testa.
    */
   // ---------------------------------------------------------------------------------//
   @Nested
@@ -250,7 +152,7 @@ class ReportScoreTest
     private ReportScore single ()
     {
       ReportScore reportScore = text ("ABCDE\n");
-      reportScore.getPagination ();
+      reportScore.createPages ();
       return reportScore;
     }
 
@@ -263,9 +165,7 @@ class ReportScoreTest
     @DisplayName ("sem deslocamento nenhum, o registro inteiro")
     void wholeRecord ()
     {
-      ReportScore reportScore = single ();
-
-      assertEquals ("ABCDE", shown (reportScore, 0));
+      assertEquals ("ABCDE", single ().getFormattedText (0));
     }
 
     @Test
@@ -275,7 +175,7 @@ class ReportScoreTest
       ReportScore reportScore = single ();
       onlyPage (reportScore).setFirstRecordOffset (2);
 
-      assertEquals ("CDE", shown (reportScore, 0));
+      assertEquals ("CDE", reportScore.getFormattedText (0));
     }
 
     @Test
@@ -285,7 +185,7 @@ class ReportScoreTest
       ReportScore reportScore = single ();
       onlyPage (reportScore).setLastRecordOffset (3);
 
-      assertEquals ("ABC", shown (reportScore, 0));
+      assertEquals ("ABC", reportScore.getFormattedText (0));
     }
 
     @Test
@@ -296,7 +196,7 @@ class ReportScoreTest
       onlyPage (reportScore).setFirstRecordOffset (1);
       onlyPage (reportScore).setLastRecordOffset (4);
 
-      assertEquals ("BCD", shown (reportScore, 0));
+      assertEquals ("BCD", reportScore.getFormattedText (0));
     }
   }
 
@@ -345,7 +245,7 @@ class ReportScoreTest
   {
     private ReportScore with (double score, RecordMaker recordMaker)
     {
-      return new ReportScore (recordMaker, ASCII, new TextReport (false, true), score, 10);
+      return of (recordMaker, new TextReport (false, true), score, 10);
     }
 
     @Test
@@ -385,8 +285,7 @@ class ReportScoreTest
     {
       RecordMaker recordMaker = lines ("A\n");
       ReportMaker reportMaker = new TextReport (false, true);
-      ReportScore reportScore =
-          new ReportScore (recordMaker, ASCII, reportMaker, 100.0, 1);
+      ReportScore reportScore = of (recordMaker, reportMaker, 100.0, 1);
 
       assertTrue (reportScore.matches (recordMaker, ASCII, reportMaker));
       assertFalse (reportScore.matches (new CrlfRecordMaker (), ASCII, reportMaker));
@@ -402,27 +301,25 @@ class ReportScoreTest
   // ---------------------------------------------------------------------------------//
   {
     /*
-     * Afirmado por inteiro, com o campo pagination no fim. Enquanto ninguem chamar
-     * getPagination (), esse campo e nulo - e a string diz "null". Quando os widgets sairem
-     * do ReportScore, e este teste que vai mostrar o que mudou.
-     *
      * O SEPARADOR DECIMAL VEM DO LOCALE, e foi este teste que descobriu: o toString usa
      * String.format com %6.2f e sem Locale explicito, entao imprime "95,50" numa maquina
      * pt-BR e "95.50" numa en-US. Nao e corrigido aqui, porque a Regra 1 preserva
      * comportamento - mas a expectativa e montada com o separador da plataforma, para que o
      * teste valha nas duas.
+     *
+     * A string TERMINA NO PESO. Ate a view sair daqui havia um campo a mais no fim - a
+     * Pagination, que imprimia "null" enquanto ninguem a criasse -, e ele saiu com os widgets.
      */
     @Test
-    @DisplayName ("os tres makers, a pontuacao, o tamanho da amostra, o peso e a paginacao")
+    @DisplayName ("os tres makers, a pontuacao, o tamanho da amostra e o peso")
     void formatsEveryField ()
     {
-      ReportScore reportScore =
-          new ReportScore (lines ("A\n"), ASCII, new TextReport (false, true), 95.5, 20);
+      ReportScore reportScore = of (lines ("A\n"), new TextReport (false, true), 95.5, 20);
 
       char dot = new DecimalFormatSymbols ().getDecimalSeparator ();
 
-      assertEquals ("LF         ASCII      Text        95" + dot + "50  20  0" + dot
-          + "90  null", reportScore.toString ());
+      assertEquals ("LF         ASCII      Text        95" + dot + "50  20  0" + dot + "90",
+          reportScore.toString ());
     }
   }
 }

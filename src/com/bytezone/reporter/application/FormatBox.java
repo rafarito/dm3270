@@ -1,7 +1,9 @@
 package com.bytezone.reporter.application;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.bytezone.reporter.file.ReportData;
 import com.bytezone.reporter.file.ReportScore;
@@ -48,6 +50,20 @@ class FormatBox
   private final PaginationChangeListener changeListener;
 
   private ReportData currentReportData;
+
+  /*
+   * Uma view por ReportScore, guardada por IDENTIDADE.
+   *
+   * A Pagination lembra em que pagina o usuario estava, e o ReportData devolve a MESMA
+   * instancia de ReportScore para uma combinacao de makers ja vista. Enquanto o ReportScore
+   * guardava a propria Pagination, alternar formato de ida e volta devolvia o usuario a
+   * pagina em que ele estava. Com os widgets fora do ReportScore, e este mapa que preserva
+   * isso - construir uma view nova a cada troca de formato zeraria a pagina corrente.
+   *
+   * Por identidade, e nao por equals, porque e disso que se trata: o ReportScore nao
+   * sobrescreve equals, e sao as instancias que o ReportData guarda que precisam casar.
+   */
+  private final Map<ReportScore, ReportScoreView> views = new IdentityHashMap<> ();
 
   // ---------------------------------------------------------------------------------//
   public FormatBox (PaginationChangeListener changeListener)
@@ -138,9 +154,16 @@ class FormatBox
         currentReportData.setReportScore (recordMaker, textMaker, reportMaker);
 
     if (reportScore != null)
-      changeListener.paginationChanged (reportScore.getPagination ());
+      changeListener.paginationChanged (viewFor (reportScore).getPagination ());
     else
       logger.warn ("no reportscore found");
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private ReportScoreView viewFor (ReportScore reportScore)
+  // ---------------------------------------------------------------------------------//
+  {
+    return views.computeIfAbsent (reportScore, ReportScoreView::new);
   }
 
   // ---------------------------------------------------------------------------------//

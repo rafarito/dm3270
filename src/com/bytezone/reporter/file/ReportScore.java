@@ -10,12 +10,6 @@ import com.bytezone.reporter.reports.ReportContext;
 import com.bytezone.reporter.reports.ReportMaker;
 import com.bytezone.reporter.text.TextMaker;
 
-import javafx.scene.Node;
-import javafx.scene.control.Pagination;
-import javafx.scene.control.TextArea;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,8 +18,6 @@ public class ReportScore implements Comparable<ReportScore>, ReportContext
 // -----------------------------------------------------------------------------------//
 {
   private static final Logger logger = LoggerFactory.getLogger (ReportScore.class);
-
-  private static Font font;
 
   private final RecordMaker recordMaker;
   private final TextMaker textMaker;
@@ -36,21 +28,6 @@ public class ReportScore implements Comparable<ReportScore>, ReportContext
   private final double weight;
 
   private final List<Page> pages = new ArrayList<> ();
-  private Pagination pagination;
-  private final TextArea textArea = new TextArea ();
-
-  // ---------------------------------------------------------------------------------//
-  static
-  // ---------------------------------------------------------------------------------//
-  {
-    String[] fontNames = { "Ubuntu Mono", "Menlo", "Courier New", "Monospaced", };
-    for (String fontName : fontNames)
-    {
-      font = Font.font (fontName, FontWeight.NORMAL, 14);
-      if (font.getName ().startsWith (fontName))
-        break;
-    }
-  }
 
   // ---------------------------------------------------------------------------------//
   ReportScore (RecordMaker recordMaker, TextMaker textMaker, ReportMaker reportMaker,
@@ -64,10 +41,6 @@ public class ReportScore implements Comparable<ReportScore>, ReportContext
     this.score = score;
     this.sampleSize = sampleSize;
     this.weight = recordMaker.weight () * reportMaker.weight ();
-
-    textArea.setFont (font);
-    textArea.setEditable (false);
-    textArea.setMinHeight (50);
   }
 
   // ---------------------------------------------------------------------------------//
@@ -117,19 +90,19 @@ public class ReportScore implements Comparable<ReportScore>, ReportContext
     return pages;
   }
 
+  /*
+   * Manda o relatorio dividir os registros em paginas.
+   *
+   * Era a primeira coisa que o antigo getPagination () fazia, e a preguica que o guardava
+   * mudou de lugar junto com a Pagination: hoje quem chama uma vez so e o ReportScoreView.
+   * Chamar duas vezes tambem nao quebraria - as quatro implementacoes de createPages
+   * comecam limpando a lista.
+   */
   // ---------------------------------------------------------------------------------//
-  public Pagination getPagination ()
+  public void createPages ()
   // ---------------------------------------------------------------------------------//
   {
-    if (pagination == null)
-    {
-      reportMaker.createPages (this);
-
-      pagination = new Pagination ();
-      pagination.setPageCount (pages.size ());
-      pagination.setPageFactory (this::getFormattedPage);
-    }
-    return pagination;
+    reportMaker.createPages (this);
   }
 
   /*
@@ -202,26 +175,6 @@ public class ReportScore implements Comparable<ReportScore>, ReportContext
     return text.toString ();
   }
 
-  /*
-   * O mesmo TextArea de sempre, com o texto da pagina dentro.
-   *
-   * A instancia e reaproveitada de proposito: a Pagination guarda este metodo como fabrica de
-   * pagina, e devolver um Node novo a cada chamada mudaria o que a janela faz. Ha teste com
-   * assertSame no ReportScoreTest.
-   *
-   * O ramo de pagina invalida chamava textArea.clear (), e agora chama setText (""), porque a
-   * guarda subiu para o getFormattedText. A diferenca entre os dois e que clear () tambem
-   * desmarca a selecao; o texto resultante e o mesmo, e este ramo nao e alcancavel pela
-   * interface, porque a Pagination limita a fabrica ao pageCount que ela recebeu.
-   */
-  // ---------------------------------------------------------------------------------//
-  public Node getFormattedPage (int pageNumber)
-  // ---------------------------------------------------------------------------------//
-  {
-    textArea.setText (getFormattedText (pageNumber));
-    return textArea;
-  }
-
   // ---------------------------------------------------------------------------------//
   private String getSubrecord (Record record, int from, int to)
   // ---------------------------------------------------------------------------------//
@@ -279,7 +232,7 @@ public class ReportScore implements Comparable<ReportScore>, ReportContext
   public String toString ()
   // ---------------------------------------------------------------------------------//
   {
-    return String.format ("%-10s %-10s %-10s %6.2f %3d  %4.2f  %s", recordMaker,
-        textMaker, reportMaker, score, sampleSize, weight, pagination);
+    return String.format ("%-10s %-10s %-10s %6.2f %3d  %4.2f", recordMaker, textMaker,
+        reportMaker, score, sampleSize, weight);
   }
 }
