@@ -2,6 +2,8 @@ package com.bytezone.dm3270.display;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -190,6 +192,25 @@ class ScreenWatcherTest
     return datasets.get (0);
   }
 
+  /*
+   * O outro lado da lista de dataset: o que o ScreenWatcher entrega ao DatasetStore.
+   *
+   * Ate agora nenhum teste de lista de dataset afirmava sobre isto - so os de membro
+   * afirmavam sobre store.members. Dava para conferir o que ia para a tabela do assistant, mas
+   * nao o que ia para o banco, e os dois lados sao preenchidos por ramos DIFERENTES do switch
+   * de addDataset: o screenType 1 chama setSpace e setDevice no Dataset e nunca
+   * setDisposition, o 2 faz o inverso, e o 4 e o 5 chamam quase tudo. Uma decomposicao que
+   * acertasse o DatasetSummary e errasse o Dataset passaria despercebida.
+   */
+  // ---------------------------------------------------------------------------------//
+  private Dataset onlyStoredDataset ()
+  // ---------------------------------------------------------------------------------//
+  {
+    assertEquals (1, store.datasets.size (),
+        "esperava um dataset gravado, veio " + store.datasets.size ());
+    return store.datasets.get (0);
+  }
+
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("reconhecimento da tela")
@@ -319,6 +340,27 @@ class ScreenWatcherTest
     {
       assertEquals ("3390", onlyDataset ().getDevice ());
     }
+
+    @Test
+    @DisplayName ("o banco recebe espaco e dispositivo, e nenhuma disposicao")
+    void storesSpaceAndDeviceOnly ()
+    {
+      Dataset stored = onlyStoredDataset ();
+
+      assertEquals ("MY.DATA.SET", stored.getName ());
+      assertEquals (150, stored.getTracks ());
+      assertEquals (75, stored.getPercent ());
+      assertEquals (3, stored.getExtents ());
+      assertEquals ("3390", stored.getDevice ());
+
+      // O ScreenWatcher passa getCylinders () adiante, e nada nesta tela o preenche.
+      assertEquals (0, stored.getCylinders ());
+
+      assertNull (stored.getDsorg (), "o ramo do screenType 1 nao chama setDisposition");
+      assertNull (stored.getRecfm ());
+      assertEquals (0, stored.getLrecl ());
+      assertEquals (0, stored.getBlksize ());
+    }
   }
 
   // ---------------------------------------------------------------------------------//
@@ -365,6 +407,24 @@ class ScreenWatcherTest
     {
       assertEquals (27920, onlyDataset ().getBlksize ());
     }
+
+    @Test
+    @DisplayName ("o banco recebe a disposicao, e nenhum espaco")
+    void storesDispositionOnly ()
+    {
+      Dataset stored = onlyStoredDataset ();
+
+      assertEquals ("MY.LOAD.LIB", stored.getName ());
+      assertEquals ("PO", stored.getDsorg ());
+      assertEquals ("FB", stored.getRecfm ());
+      assertEquals (80, stored.getLrecl ());
+      assertEquals (27920, stored.getBlksize ());
+
+      assertEquals (0, stored.getTracks (), "o ramo do screenType 2 nao chama setSpace");
+      assertEquals (0, stored.getPercent ());
+      assertEquals (0, stored.getExtents ());
+      assertNull (stored.getDevice (), "nem setDevice");
+    }
   }
 
   // ---------------------------------------------------------------------------------//
@@ -389,6 +449,25 @@ class ScreenWatcherTest
 
       assertEquals ("PRD001", onlyDataset ().getVolume (),
           "o volume vem do terceiro campo da linha, ja sem espacos");
+    }
+
+    @Test
+    @DisplayName ("o banco recebe so o volume")
+    void storesTheVolumeOnly ()
+    {
+      header ("DSLIST - Data Sets on volume PRD001");
+      headingRow ("Command - Enter \"/\" to select action", "Message", "Volume", "");
+      datasetRow (7, "MY.DATA.SET", "      ", "PRD001");
+      endOfList (8);
+      send ();
+
+      Dataset stored = onlyStoredDataset ();
+
+      assertEquals ("MY.DATA.SET", stored.getName ());
+      assertEquals ("PRD001", stored.getVolume ());
+      assertEquals (0, stored.getTracks (), "o ramo do screenType 3 so chama setVolume");
+      assertNull (stored.getDsorg ());
+      assertNull (stored.getDevice ());
     }
   }
 
@@ -494,6 +573,48 @@ class ScreenWatcherTest
     {
       assertEquals ("CATALOG.MASTER", onlyDataset ().getCatalog ());
     }
+
+    @Test
+    @DisplayName ("o banco recebe volume, espaco, disposicao e catalogo")
+    void storesEverythingTheScreenShowed ()
+    {
+      Dataset stored = onlyStoredDataset ();
+
+      assertEquals ("MY.BIG.DATASET", stored.getName ());
+      assertEquals ("PRD001", stored.getVolume ());
+      assertEquals ("CATALOG.MASTER", stored.getCatalog ());
+
+      assertEquals (150, stored.getTracks ());
+      assertEquals (75, stored.getPercent ());
+      assertEquals (3, stored.getExtents ());
+      assertEquals ("3390", stored.getDevice ());
+
+      assertEquals ("PO", stored.getDsorg ());
+      assertEquals ("FB", stored.getRecfm ());
+      assertEquals (80, stored.getLrecl ());
+      assertEquals (27920, stored.getBlksize ());
+    }
+
+    /*
+     * A diferenca entre os dois tipos, e o motivo de eles nao virarem um so: o DatasetSummary
+     * guarda o TEXTO que a tela mostrou, e o Dataset guarda a data ja convertida para o banco.
+     * "***None***" nao converte - Dataset.setDates apanha a ParseException, loga
+     * "Invalid expires date" e deixa o campo nulo -, enquanto a tabela do assistant continua
+     * mostrando o texto. Unificar os dois mudaria o que a tabela mostra.
+     */
+    @Test
+    @DisplayName ("uma data que nao converte fica nula no banco, e visivel na tela")
+    void anUnparseableDateIsNullInTheDatabaseOnly ()
+    {
+      Dataset stored = onlyStoredDataset ();
+
+      assertNotNull (stored.getCreatedSQL ());
+      assertNotNull (stored.getReferredSQL ());
+      assertNull (stored.getExpiresSQL (), "***None*** nao casa com yyyy/MM/dd");
+
+      assertEquals ("***None***", onlyDataset ().getExpires (),
+          "o texto observado sobrevive inteiro no DatasetSummary");
+    }
   }
 
   // ---------------------------------------------------------------------------------//
@@ -575,6 +696,40 @@ class ScreenWatcherTest
       assertEquals (null, onlyDataset ().getCatalog (),
           "o ramo do screenType 5 nao le campo de catalogo");
     }
+
+    /*
+     * O ramo do screenType 5 e o UNICO que escreve o volume so no DatasetSummary e nao no
+     * Dataset - o 3 e o 4 chamam ds.setVolume, ele nao. O volume aparece na tabela do
+     * assistant e nunca chega ao banco. Esta no item 9 do BACKLOG-DEFEITOS.md e e preservado
+     * de proposito: Regra 1.
+     */
+    @Test
+    @DisplayName ("o banco recebe espaco e disposicao, mas nem volume nem catalogo")
+    void storesSpaceAndDispositionButNotTheVolume ()
+    {
+      Dataset stored = onlyStoredDataset ();
+
+      assertEquals ("MY.OTHER.DATASET", stored.getName ());
+
+      assertNull (stored.getVolume (), "o ramo do screenType 5 nao chama ds.setVolume");
+      assertEquals ("PRD002", onlyDataset ().getVolume (),
+          "mas a tela mostra o volume, e a tabela do assistant tambem");
+
+      assertEquals (300, stored.getTracks ());
+      assertEquals (50, stored.getPercent ());
+      assertEquals (1, stored.getExtents ());
+
+      assertEquals ("PS", stored.getDsorg ());
+      assertEquals ("VB", stored.getRecfm ());
+      assertEquals (255, stored.getLrecl ());
+      assertEquals (27998, stored.getBlksize ());
+
+      assertNull (stored.getCatalog ());
+
+      // O screenType 5 le as datas mas NAO chama ds.setDevice, ao contrario do 4.
+      assertNotNull (stored.getCreatedSQL ());
+      assertNull (stored.getDevice (), "o ramo do screenType 5 nao chama setDevice");
+    }
   }
 
   // ---------------------------------------------------------------------------------//
@@ -635,6 +790,83 @@ class ScreenWatcherTest
 
       assertTrue (watcher.getDatasets ().isEmpty (),
           "check () limpa screenDatasets no inicio de cada tela");
+    }
+  }
+
+  /*
+   * Os dois caminhos de addDataset que ficam entre o reconhecido e o lido.
+   *
+   * Cada ramo do switch tem uma guarda propria sobre a quantidade de campos da linha - == 2 no
+   * screenType 1, == 3 no 3, == 7 no 4, >= 3 e >= 6 no 5. Quando a guarda falha, o
+   * DatasetSummary nao recebe nada, mas o datasetStore.update (ds) esta FORA do switch e
+   * acontece assim mesmo. Sao os dois casos que uma Strategy pode perder sem que nenhum dos
+   * testes acima acuse.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("as guardas de cada ramo, e o que o banco recebe quando elas falham")
+  class PartiallyReadRows
+  // ---------------------------------------------------------------------------------//
+  {
+    @Test
+    @DisplayName ("um campo a mais na linha nao le nada, e o banco recebe so o nome")
+    void aRowThatMissesTheGuardStillStoresTheName ()
+    {
+      header ("DSLIST - Data Sets on volume PRD001");
+      headingRow ("Command - Enter \"/\" to select action", "Tracks %Used XT Device", "");
+
+      // Tres campos na linha, e o ramo do screenType 1 so le com exatamente dois.
+      datasetRow (7, "MY.DATA.SET", "   150   75   3 3390", "sobra");
+      endOfList (8);
+      send ();
+
+      assertEquals ("MY.DATA.SET", onlyDataset ().getDatasetName (),
+          "o dataset entra na lista da tela mesmo sem detalhe nenhum");
+      assertEquals (0, onlyDataset ().getTracks (), "a guarda exige dois campos");
+
+      Dataset stored = onlyStoredDataset ();
+      assertEquals ("MY.DATA.SET", stored.getName ());
+      assertEquals (0, stored.getTracks ());
+      assertNull (stored.getDevice ());
+    }
+
+    @Test
+    @DisplayName ("no layout de tracos, tres campos preenchem o volume e mais nada")
+    void threeFieldsFillOnlyTheVolume ()
+    {
+      header ("DSLIST - Data Sets on volume PRD001");
+      headingRow ("Command - Enter \"/\" to select action", "Message", "Volume", "a", "b",
+                  "c");
+      field (7, 0, PROTECTED, "-------------------------------");
+
+      // A primeira das duas linhas traz nome, mensagem e volume; a segunda vem vazia. Sao
+      // tres campos, e o ramo do screenType 5 le o volume com >= 3 e so entra em espaco,
+      // disposicao e datas com >= 6.
+      field (8, 0, UNPROTECTED, "         MY.THIN.DATASET");
+      field (8, 45, PROTECTED, "      ");
+      field (8, 55, PROTECTED, "PRD003");
+
+      field (10, 0, PROTECTED, "-------------------------------");
+      field (11, 0, PROTECTED, "");
+
+      // Sem a linha de detalhe a tela ficaria com 18 campos, e checkDatasetList desiste
+      // abaixo de 21. As linhas seguintes so recompoem a contagem.
+      endOfList (12);
+      send ();
+
+      DatasetSummary summary = onlyDataset ();
+      assertEquals ("MY.THIN.DATASET", summary.getDatasetName ());
+      assertEquals ("PRD003", summary.getVolume ());
+      assertEquals (0, summary.getTracks (), "espaco so entra com seis campos");
+      assertNull (summary.getDsorg ());
+
+      // O Dataset sai so com o nome: o volume e escrito apenas no DatasetSummary (item 9 do
+      // BACKLOG-DEFEITOS.md), e espaco, disposicao e datas dependem da guarda de seis campos.
+      Dataset stored = onlyStoredDataset ();
+      assertEquals ("MY.THIN.DATASET", stored.getName ());
+      assertNull (stored.getVolume ());
+      assertEquals (0, stored.getTracks ());
+      assertNull (stored.getDsorg ());
     }
   }
 
