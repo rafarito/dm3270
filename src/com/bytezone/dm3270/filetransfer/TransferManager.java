@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bytezone.dm3270.watch.TSOCommandListener;
-import com.bytezone.dm3270.utilities.SiteForm;
+import com.bytezone.dm3270.utilities.Site;
 
 public class TransferManager implements TSOCommandListener
 {
@@ -26,7 +26,7 @@ public class TransferManager implements TSOCommandListener
   // A classe so precisava da tela para ler o prefixo do usuario. Receber a fonte desse
   // valor em vez da tela inteira desacopla o gerenciador da camada JavaFX.
   private final Supplier<String> prefixSource;
-  private SiteForm site;
+  private Site site;
 
   public enum TransferStatus
   {
@@ -38,7 +38,7 @@ public class TransferManager implements TSOCommandListener
     return INDFILE_PATTERN.matcher (command).matches ();
   }
 
-  public TransferManager (Supplier<String> prefixSource, SiteForm site)
+  public TransferManager (Supplier<String> prefixSource, Site site)
   {
     this.prefixSource = prefixSource;
     this.site = site;
@@ -66,7 +66,7 @@ public class TransferManager implements TSOCommandListener
       }
   }
 
-  public void setReplayServer (SiteForm serverSite)
+  public void setReplayServer (Site serverSite)
   {
     site = serverSite;
   }

@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.prefs.Preferences;
 
 import com.bytezone.dm3270.utilities.PreferencesStage;
+import com.bytezone.dm3270.utilities.Site;
 import com.bytezone.dm3270.utilities.SiteForm;
 
 import javafx.collections.FXCollections;
@@ -186,7 +187,7 @@ public class SiteListStage extends PreferencesStage
     }
   }
 
-  Optional<SiteForm> getSelectedSite ()
+  Optional<Site> getSelectedSite ()
   {
     String key = getSelectedName ();
     if (key == null || key.isEmpty ())
@@ -197,7 +198,7 @@ public class SiteListStage extends PreferencesStage
     return Optional.empty ();
   }
 
-  Optional<SiteForm> getSelectedSite (String siteName)
+  Optional<Site> getSelectedSite (String siteName)
   {
     for (SiteForm site : sites)
       if (siteName.equals (site.getName ()))

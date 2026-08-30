@@ -7,7 +7,7 @@ import com.bytezone.dm3270.session.Session;
 import com.bytezone.dm3270.session.SessionTable;
 import com.bytezone.dm3270.streams.SpyServer;
 import com.bytezone.dm3270.streams.TelnetState;
-import com.bytezone.dm3270.utilities.SiteForm;
+import com.bytezone.dm3270.utilities.Site;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,7 @@ public class SpyPane extends BorderPane
   private Thread serverThread;
   private final TelnetState telnetState;
 
-  public SpyPane (Screen screen, SiteForm serverSite, SiteForm clientSite,
+  public SpyPane (Screen screen, Site serverSite, Site clientSite,
       TelnetState telnetState)
   {
     this.telnetState = telnetState;

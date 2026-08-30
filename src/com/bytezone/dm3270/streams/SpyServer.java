@@ -12,7 +12,7 @@ import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.application.Console;
 import com.bytezone.dm3270.session.Session;
 import com.bytezone.dm3270.streams.TelnetSocket.Source;
-import com.bytezone.dm3270.utilities.SiteForm;
+import com.bytezone.dm3270.utilities.Site;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class SpyServer implements Runnable
   private SessionDisplay screen;
 
   // ---------------------------------------------------------------------------------//
-  public SpyServer (SiteForm server, int clientPort, Session session, TelnetState telnetState)
+  public SpyServer (Site server, int clientPort, Session session, TelnetState telnetState)
   // ---------------------------------------------------------------------------------//
   {
     if (server == null)

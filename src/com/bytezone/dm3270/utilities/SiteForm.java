@@ -7,14 +7,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // -----------------------------------------------------------------------------------//
-public class SiteForm
+public class SiteForm implements Site
 // -----------------------------------------------------------------------------------//
 {
-  // O nome do logger e saida observavel: o logback imprime %logger{36}, e esta classe
-  // se chamava Site quando os avisos de porta e modelo foram escritos. O nome antigo
-  // fica, senao toda linha que eles produzem muda de texto - §5.13 do relatorio.
-  private static final Logger logger =
-      LoggerFactory.getLogger ("com.bytezone.dm3270.utilities.Site");
+  // O nome do logger e saida observavel - o logback imprime %logger{36} - e esta classe
+  // se chamava Site quando os avisos de porta e modelo foram escritos. Site agora e a
+  // interface, no mesmo pacote, entao o nome resolvido continua identico (§5.13).
+  private static final Logger logger = LoggerFactory.getLogger (Site.class);
 
   // make these StringProperty and use a table
   public final TextField name = new TextField ();
@@ -49,6 +48,7 @@ public class SiteForm
   }
 
   // ---------------------------------------------------------------------------------//
+  @Override
   public String getName ()
   // ---------------------------------------------------------------------------------//
   {
@@ -56,6 +56,7 @@ public class SiteForm
   }
 
   // ---------------------------------------------------------------------------------//
+  @Override
   public String getURL ()
   // ---------------------------------------------------------------------------------//
   {
@@ -63,6 +64,7 @@ public class SiteForm
   }
 
   // ---------------------------------------------------------------------------------//
+  @Override
   public int getPort ()
   // ---------------------------------------------------------------------------------//
   {
@@ -86,6 +88,7 @@ public class SiteForm
   }
 
   // ---------------------------------------------------------------------------------//
+  @Override
   public boolean getExtended ()
   // ---------------------------------------------------------------------------------//
   {
@@ -93,6 +96,7 @@ public class SiteForm
   }
 
   // ---------------------------------------------------------------------------------//
+  @Override
   public int getModel ()
   // ---------------------------------------------------------------------------------//
   {
@@ -116,6 +120,7 @@ public class SiteForm
   }
 
   // ---------------------------------------------------------------------------------//
+  @Override
   public boolean getPlugins ()
   // ---------------------------------------------------------------------------------//
   {
@@ -123,6 +128,7 @@ public class SiteForm
   }
 
   // ---------------------------------------------------------------------------------//
+  @Override
   public String getFolder ()
   // ---------------------------------------------------------------------------------//
   {
@@ -130,6 +136,7 @@ public class SiteForm
   }
 
   // ---------------------------------------------------------------------------------//
+  @Override
   public boolean getSsl ()
   // ---------------------------------------------------------------------------------//
   {
@@ -137,6 +144,7 @@ public class SiteForm
   }
 
   // ---------------------------------------------------------------------------------//
+  @Override
   public boolean getTrustAll ()
   // ---------------------------------------------------------------------------------//
   {

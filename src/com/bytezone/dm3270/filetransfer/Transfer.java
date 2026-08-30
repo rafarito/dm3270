@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bytezone.dm3270.utilities.FileSaver;
-import com.bytezone.dm3270.utilities.SiteForm;
+import com.bytezone.dm3270.utilities.Site;
 
 // CUT - Control Unit Terminal --------- Buffered
 // DFT - Distributed Function Terminal - WSF
@@ -54,7 +54,7 @@ public class Transfer
 
   // called from TransferManager.tsoCommand()
   // called from TransferManager.prepareTransfer()
-  Transfer (IndFileCommand indFileCommand, SiteForm site, String tlq)
+  Transfer (IndFileCommand indFileCommand, Site site, String tlq)
   {
     this.indFileCommand = indFileCommand;
     inboundBuffer = indFileCommand.getBuffer ();
