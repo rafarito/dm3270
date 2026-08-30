@@ -1281,6 +1281,208 @@ class DatabaseTest
         assertEquals ("PO", rs.getString ("DSORG"));
       }
     }
+
+    /*
+     * As decisoes que o UPDATE toma antes de chegar ao SQL, e que nenhum teste via.
+     *
+     * updateDataset e updateMember nao sao gravacao direta: eles procuram o que ja esta la,
+     * perguntam se o novo DIFERE, e so entao fundem e escrevem. Quando nada difere, saem
+     * devolvendo SUCCESS sem tocar no banco e sem marcar databaseUpdated - que e o campo que o
+     * QueuedDatasetStore devolve ao StoreListener no toString da requisicao.
+     *
+     * Result sozinho nao distingue os dois caminhos: os dois dao SUCCESS. Sem estes testes,
+     * uma reorganizacao que trocasse a fusao por uma substituicao, ou que marcasse
+     * databaseUpdated sempre, passaria pela suite inteira.
+     */
+
+    // Um dataset sem datas, de proposito. differsFrom compara data por getTime (), e um
+    // round-trip pelo SQLite passa pela conversao do driver - o que nao interessa aqui.
+    private Dataset datasetWithoutDates (String name)
+    {
+      Dataset dataset = new Dataset (name);
+      dataset.setLocation ("FUSR01", "3390", "CATALOG.USER.UCAT");
+      dataset.setSpace (15, 1, 2, 75);
+      dataset.setDisposition ("PO", "FB", 80, 27920);
+
+      return dataset;
+    }
+
+    @Test
+    @DisplayName ("um UPDATE que muda alguma coisa marca databaseUpdated")
+    @Timeout (30)
+    void updateMarksTheDatabaseAsWritten () throws InterruptedException
+    {
+      open ();
+      execute (new DatasetRequest (null, Command.ADD, datasetWithoutDates ("MEU.DATASET")));
+
+      Dataset changed = datasetWithoutDates ("MEU.DATASET");
+      changed.setSpace (99, 9, 9, 99);
+
+      DatabaseRequest done =
+          execute (new DatasetRequest (null, Command.UPDATE, changed));
+
+      assertEquals (Result.SUCCESS, done.result);
+      assertTrue (done.databaseUpdated, "o espaco mudou, entao houve escrita");
+    }
+
+    @Test
+    @DisplayName ("um UPDATE identico devolve SUCCESS e nao marca databaseUpdated")
+    @Timeout (30)
+    void anIdenticalUpdateDoesNotWrite () throws InterruptedException
+    {
+      open ();
+      execute (new DatasetRequest (null, Command.ADD, datasetWithoutDates ("MEU.DATASET")));
+
+      DatabaseRequest done = execute (
+          new DatasetRequest (null, Command.UPDATE, datasetWithoutDates ("MEU.DATASET")));
+
+      assertEquals (Result.SUCCESS, done.result, "nada a fazer tambem e sucesso");
+      assertFalse (done.databaseUpdated,
+                   "differsFrom devolveu false: updateDataset sai antes de escrever");
+    }
+
+    @Test
+    @DisplayName ("MODIFY funde no que ja estava, e nao substitui")
+    @Timeout (30)
+    void modifyMergesInsteadOfReplacing () throws InterruptedException, SQLException
+    {
+      open ();
+      execute (new DatasetRequest (null, Command.ADD, sampleDataset ("MEU.DATASET")));
+
+      // So o espaco vem preenchido. O resto vem zerado ou nulo, e merge ignora o que o outro
+      // nao declara - entao volume, disposicao e catalogo tem de sobreviver na linha.
+      Dataset partial = new Dataset ("MEU.DATASET");
+      partial.setSpace (99, 9, 9, 99);
+
+      assertEquals (Result.SUCCESS,
+                    execute (new DatasetRequest (null, Command.MODIFY, partial)).result);
+
+      try (Connection connection = openDatabaseFile ();
+          Statement statement = connection.createStatement ();
+          ResultSet rs = statement
+              .executeQuery ("select * from DATASETS where NAME='MEU.DATASET'"))
+      {
+        assertTrue (rs.next ());
+
+        assertEquals (99, rs.getInt ("TRACKS"), "o que veio na requisicao");
+        assertEquals (9, rs.getInt ("EXTENTS"));
+
+        assertEquals ("FUSR01", rs.getString ("VOLUME"), "o que ja estava sobrevive");
+        assertEquals ("CATALOG.USER.UCAT", rs.getString ("CATALOG"));
+        assertEquals ("PO", rs.getString ("DSORG"));
+        assertEquals (27920, rs.getInt ("BLKSIZE"));
+      }
+    }
+
+    @Test
+    @DisplayName ("MODIFY de membro tambem funde")
+    @Timeout (30)
+    void modifyMergesTheMemberToo () throws InterruptedException, SQLException
+    {
+      open ();
+      Dataset dataset = sampleDataset ("SYS1.PROCLIB");
+      execute (new DatasetRequest (null, Command.ADD, dataset));
+
+      Member member = new Member (dataset, "IEFBR14");
+      member.setSize (120, 100, 20, 1, 5);
+      member.setID ("USER01");
+      execute (new MemberRequest (null, Command.ADD, member));
+
+      // So o tamanho. init, mod, vv, mm e id ficam zerados ou nulos no que chega.
+      Member partial = new Member (dataset, "IEFBR14");
+      partial.setSize (999);
+
+      assertEquals (Result.SUCCESS,
+                    execute (new MemberRequest (null, Command.MODIFY, partial)).result);
+
+      try (Connection connection = openDatabaseFile ();
+          Statement statement = connection.createStatement ();
+          ResultSet rs = statement.executeQuery (
+              "select * from MEMBERS where DATASET='SYS1.PROCLIB' and NAME='IEFBR14'"))
+      {
+        assertTrue (rs.next ());
+
+        assertEquals (999, rs.getInt ("SIZE"), "o que veio na requisicao");
+
+        assertEquals (100, rs.getInt ("INIT"), "o que ja estava sobrevive");
+        assertEquals (20, rs.getInt ("MOD"));
+        assertEquals ("USER01", rs.getString ("ID"));
+      }
+    }
+
+    @Test
+    @DisplayName ("apagar um dataset apaga os membros dele junto")
+    @Timeout (30)
+    void deletingADatasetDeletesItsMembers () throws InterruptedException, SQLException
+    {
+      open ();
+      Dataset dataset = sampleDataset ("SYS1.PROCLIB");
+      execute (new DatasetRequest (null, Command.ADD, dataset));
+
+      Member member = new Member (dataset, "IEFBR14");
+      member.setSize (120, 100, 20, 1, 5);
+      execute (new MemberRequest (null, Command.ADD, member));
+
+      assertEquals (Result.SUCCESS,
+                    execute (new DatasetRequest (null, Command.DELETE, "SYS1.PROCLIB"))
+                        .result);
+
+      // A cascata acontece numa transacao propria, com os membros apagados ANTES do dataset.
+      try (Connection connection = openDatabaseFile ();
+          Statement statement = connection.createStatement ();
+          ResultSet rs = statement.executeQuery (
+              "select count(*) from MEMBERS where DATASET='SYS1.PROCLIB'"))
+      {
+        assertTrue (rs.next ());
+        assertEquals (0, rs.getInt (1), "os membros deveriam ter ido junto");
+      }
+    }
+
+    @Test
+    @DisplayName ("listar membros de um dataset que nao existe falha")
+    @Timeout (30)
+    void listingMembersOfAMissingDatasetFails () throws InterruptedException
+    {
+      open ();
+
+      assertEquals (Result.FAILURE,
+                    execute (new MemberRequest (null, Command.LIST,
+                                                new Dataset ("NAO.EXISTE"), "*")).result);
+    }
+
+    /*
+     * Um defeito preservado de proposito - item do BACKLOG-DEFEITOS.md.
+     *
+     * createMemberList monta "select * from MEMBERS where DATASET='X'" e, quando o nome do
+     * membro tem curinga depois da primeira posicao, concatena "where NAME>=..." - um segundo
+     * where. O SQL e invalido, a SQLException e apanhada, e a requisicao devolve FAILURE.
+     *
+     * Nao e alcancavel pela aplicacao, porque o QueuedDatasetStore nunca emite LIST de membro.
+     * O teste existe para que a decomposicao nao "conserte" isso sem querer ao mover o metodo:
+     * corrigir o where para and e uma decisao do time, num commit fix proprio.
+     */
+    @Test
+    @DisplayName ("um curinga no meio do nome do membro monta SQL invalido e falha")
+    @Timeout (30)
+    void aWildcardInsideTheMemberNameBuildsInvalidSql () throws InterruptedException
+    {
+      open ();
+      Dataset dataset = sampleDataset ("SYS1.PROCLIB");
+      execute (new DatasetRequest (null, Command.ADD, dataset));
+
+      Member member = new Member (dataset, "IEFBR14");
+      member.setSize (120, 100, 20, 1, 5);
+      execute (new MemberRequest (null, Command.ADD, member));
+
+      // Controle: o curinga sozinho fica na posicao zero, o ramo do prefixo nao roda, e a
+      // query sai valida. E o mesmo builder do caso negativo abaixo.
+      assertEquals (Result.SUCCESS,
+                    execute (new MemberRequest (null, Command.LIST, dataset, "*")).result);
+
+      assertEquals (Result.FAILURE,
+                    execute (new MemberRequest (null, Command.LIST, dataset, "IEF*")).result,
+                    "dois where na mesma query");
+    }
   }
 
   // ---------------------------------------------------------------------------------//
