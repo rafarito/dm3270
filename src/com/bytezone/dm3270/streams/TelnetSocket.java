@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.time.LocalDateTime;
 
+import com.bytezone.dm3270.runtime.Source;
 import com.bytezone.dm3270.telnet.TelnetCommand;
 import com.bytezone.dm3270.telnet.TelnetSubcommand;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
@@ -39,11 +40,6 @@ public class TelnetSocket implements Runnable
 
   private TelnetSocket partner;
   private boolean prevent3270E;
-
-  public enum Source
-  {
-    CLIENT, SERVER
-  }
 
   // Only used by a SpyServer, which creates two SocketListeners. Each SocketListener
   // copies its inputStream to its partner's outputStream after sending a copy to

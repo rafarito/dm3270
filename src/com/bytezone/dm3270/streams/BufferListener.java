@@ -2,7 +2,7 @@ package com.bytezone.dm3270.streams;
 
 import java.time.LocalDateTime;
 
-import com.bytezone.dm3270.streams.TelnetSocket.Source;
+import com.bytezone.dm3270.runtime.Source;
 
 // -----------------------------------------------------------------------------------//
 public interface BufferListener

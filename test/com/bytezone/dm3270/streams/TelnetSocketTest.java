@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.bytezone.dm3270.streams.TelnetSocket.Source;
+import com.bytezone.dm3270.runtime.Source;
 
 // -----------------------------------------------------------------------------------//
 @DisplayName ("TelnetSocket - as duas pontas espelhadas do SpyServer")

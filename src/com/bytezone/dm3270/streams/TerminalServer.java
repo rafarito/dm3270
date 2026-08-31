@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
-import com.bytezone.dm3270.streams.TelnetSocket.Source;
+import com.bytezone.dm3270.runtime.Source;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 import org.slf4j.Logger;

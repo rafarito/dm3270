@@ -11,7 +11,7 @@ import java.net.UnknownHostException;
 import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.application.Console;
 import com.bytezone.dm3270.session.Session;
-import com.bytezone.dm3270.streams.TelnetSocket.Source;
+import com.bytezone.dm3270.runtime.Source;
 import com.bytezone.dm3270.utilities.Site;
 
 import org.slf4j.Logger;

@@ -7,7 +7,7 @@ import com.bytezone.dm3270.buffers.NamedBuffer;
 import com.bytezone.dm3270.buffers.ReplyBuffer;
 import com.bytezone.dm3270.commands.Command;
 import com.bytezone.dm3270.extended.TN3270ExtendedCommand;
-import com.bytezone.dm3270.streams.TelnetSocket.Source;
+import com.bytezone.dm3270.runtime.Source;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;

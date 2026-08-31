@@ -27,7 +27,7 @@ import com.bytezone.dm3270.extended.CommandHeader.DataType;
 import com.bytezone.dm3270.extended.ResponseCommand;
 import com.bytezone.dm3270.extended.TN3270ExtendedCommand;
 import com.bytezone.dm3270.extended.UnbindCommand;
-import com.bytezone.dm3270.streams.TelnetSocket.Source;
+import com.bytezone.dm3270.runtime.Source;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.telnet.TN3270ExtendedSubcommand;
 import com.bytezone.dm3270.telnet.TelnetCommand;

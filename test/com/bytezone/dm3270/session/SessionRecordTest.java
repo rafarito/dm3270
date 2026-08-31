@@ -20,7 +20,7 @@ import com.bytezone.dm3270.extended.CommandHeader;
 import com.bytezone.dm3270.extended.TN3270ExtendedCommand;
 import com.bytezone.dm3270.orders.Order;
 import com.bytezone.dm3270.session.SessionRecord.SessionRecordType;
-import com.bytezone.dm3270.streams.TelnetSocket.Source;
+import com.bytezone.dm3270.runtime.Source;
 
 /*
  * Caracterizacao do SessionRecord - uma mensagem lida do fio, com a origem, o instante e o

@@ -11,7 +11,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bytezone.dm3270.streams.TelnetSocket.Source;
+import com.bytezone.dm3270.runtime.Source;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 // -----------------------------------------------------------------------------------//

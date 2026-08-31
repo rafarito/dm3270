@@ -27,7 +27,7 @@ import com.bytezone.dm3270.session.Session;
 import com.bytezone.dm3270.session.SessionRecord;
 import com.bytezone.dm3270.session.SessionRecord.SessionRecordType;
 import com.bytezone.dm3270.streams.MainframeServer;
-import com.bytezone.dm3270.streams.TelnetSocket.Source;
+import com.bytezone.dm3270.runtime.Source;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.utilities.GuiFactory;
 

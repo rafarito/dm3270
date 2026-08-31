@@ -31,7 +31,7 @@ import com.bytezone.dm3270.extended.CommandHeader;
 import com.bytezone.dm3270.orders.Order;
 import com.bytezone.dm3270.replyfield.QueryReplyField;
 import com.bytezone.dm3270.session.SessionRecord.SessionRecordType;
-import com.bytezone.dm3270.streams.TelnetSocket.Source;
+import com.bytezone.dm3270.runtime.Source;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.structuredfields.StructuredField;
 import com.bytezone.dm3270.testing.JavaFxToolkit;
