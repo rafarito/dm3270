@@ -22,6 +22,20 @@ em paralelo sem antes isolar esses casos.
 
 ---
 
+## O que neste arquivo esta atualizado, e o que nao esta
+
+Este documento acompanha a refatoracao estrutural da branch `refactor/solid-architecture`, e
+ficou defasado entre a Onda 1 e o Passo 5. As secoes abaixo foram **remedidas no Passo 5**:
+"Situacao atual", "Rede de seguranca", "Testes que exigem JavaFX" e "Proximos alvos".
+
+As tabelas de **cobertura por pacote e por modulo**, o **mapa de modulos** e a lista de
+**defeitos corrigidos** sao instantaneos mais antigos: as ordens de grandeza continuam
+valendo, os numeros exatos nao. Regenere com `mvn clean test` e
+`mvn test-compile pitest:mutationCoverage` antes de citar qualquer um deles.
+
+O estado corrente da refatoracao - o que falta, o que foi decidido e por que - esta no
+`CLAUDE.md` e no `RELATORIO-REFATORACAO.md`, que nao sao versionados.
+
 ## Metricas da suite
 
 ### Cobertura — JaCoCo
@@ -72,24 +86,29 @@ e o que diz se os testes escritos valem alguma coisa.
 
 ### Situacao atual
 
+Medido ao fim do Passo 5.
+
 | | `dm3270` | `dm3270-plugins` |
 |---|---:|---:|
-| Testes | 1.246 | 164 |
-| Cobertura de instrucoes (projeto todo) | 42,3% | — |
-| Mutantes gerados | 3.389 | 577 |
-| Mutation coverage | 62% | 54% |
-| **Test strength** | **84%** | **80%** |
+| Testes | 1.450 | 238 |
+| Cobertura de instrucoes (projeto todo) | 51% | — |
+| Mutantes gerados | 4.020 | — |
+| Mutation coverage | 66% | — |
+| **Test strength** | **86%** | — |
 
-Os 42,3% do projeto todo refletem a camada JavaFX sem teste, nao a qualidade da suite:
+Os 51% do projeto todo refletem a camada JavaFX sem teste, nao a qualidade da suite:
 `application`, `assistant`, `console` e `reporter.application` somam mais de 20 mil
-instrucoes e quase nenhum teste. Nos pacotes de protocolo a cobertura passa de 80%.
+instrucoes e quase nenhum teste. Nos pacotes de protocolo a cobertura passa de 80%. Os
+numeros do PIT nos plugins nao foram remedidos no Passo 5.
 
-O modelo de tela saiu desse grupo na onda de desacoplamento: `ScreenPosition`,
-`ScreenContext`, `ContextManager`, `Pen`, `PenType1` e `FxPalette` deixaram de depender do
-JavaFX, ganharam teste e entraram no `targetClasses` do PIT. `Cursor` ficou de fora de
-proposito - e exercitado de passagem pelo `HeadlessProcessingTest`, mas nenhum teste
-verifica comportamento de cursor: eram 117 mutantes com zero mortos, o tipo de numero que
-afunda a metrica sem informar nada.
+**O modelo de tela saiu desse grupo na onda de desacoplamento**, e depois dele mais quatro
+pacotes: `datasets` na Onda 3, `watch` no Passo 1, `reporter.file` no Passo 4, e `session` e
+`streams` no Passo 5. Todos rodam headless e todos estao no `targetClasses`, com uma excecao
+explicada abaixo.
+
+**Correcao de uma afirmacao antiga deste arquivo:** ele dizia que `Cursor` ficava de fora do
+`targetClasses` de proposito, por ter 117 mutantes com zero mortos. **`Cursor` entrou na Fase
+2**, junto com o `CursorTest`, e hoje mata 76 dos 117.
 
 ## Rede de seguranca da refatoracao estrutural
 
@@ -99,9 +118,14 @@ sustentam essa promessa, e todos rodam no `mvn test`:
 | Mecanismo | Onde | O que protege |
 |---|---|---|
 | Golden master do parser | `ParserGoldenMasterTest` + `test/golden/mf-parse.txt` | Reprocessa uma sessao TN3270 real e congela tudo que o parser monta: registros, comandos, orders, respostas telnet. Cobre `telnet`, `buffers`, `commands`, `orders`, `extended`, `structuredfields` e `replyfield` de uma vez |
-| Regras de camada | `LayeringTest` + `test/archunit-baseline/` | Cinco regras de dependencia congeladas com ArchUnit. Violacao nova quebra a build; violacao existente nao. O baseline versionado e o placar: ele so encolhe |
-| Placar de ciclos | `LayeringTest.MAX_MUTUAL_CYCLES` | Conta os pares de pacotes com dependencia mutua. Falha se subir **e** se cair sem atualizar o limite, para que todo ganho seja registrado no commit que o produziu |
-| Caracterizacao | `SiteTest`, `ScreenContextPoolingTest` | Congela o comportamento atual das classes que serao desmontadas, **incluindo os defeitos** — ver [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md) |
+| Regras de camada | `LayeringTest` + `test/archunit-baseline/` | **Onze** regras de dependencia com ArchUnit. **Dez chegaram a zero e NAO sao congeladas** - uma violacao nova quebra a build sem baseline para absorve-la. So `uiIsTheOnlyPlaceThatKnowsJavaFx` segue congelada, em 240 violacoes, e o baseline versionado e o placar: ele so encolhe |
+| Placar de ciclos | `LayeringTest.MAX_MUTUAL_CYCLES`, hoje **12** | Conta os pares de pacotes com dependencia mutua. Falha se subir **e** se cair sem atualizar o limite, para que todo ganho seja registrado no commit que o produziu |
+| Caracterizacao | `SiteFormTest`, `ScreenContextPoolingTest`, `ReportScoreTest`, `SessionRecordTest`, `SessionTest`, e outros | Congela o comportamento atual das classes que serao desmontadas, **incluindo os defeitos** — ver [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md) |
+
+**Uma regra que chegou a zero e trocada pela regra nua**, com o baseline e a entrada dele no
+`stored.rules` apagados. E isso que separa "hoje nao ha violacao" de "nao pode haver
+violacao": um baseline pode ser refrozen com `-Darchunit.freeze.refreeze=true`, uma regra nua
+nao pode ser afrouxada por comando nenhum.
 
 Quando um golden master falhar, o teste grava o resultado obtido em `target/golden/` e
 aponta a primeira linha divergente. Duas leituras possiveis: ou a refatoracao mudou
@@ -110,9 +134,23 @@ reaprovado — o que exige justificativa no commit, nunca um `rm` silencioso.
 
 ### Testes que exigem JavaFX
 
-`Site`, `ScreenPosition`, `Pen` e `Screen` so podem ser instanciadas com o toolkit ativo.
-A extensao `JavaFxToolkit` liga o toolkit uma vez por JVM; use com
-`@ExtendWith (JavaFxToolkit.class)`.
+`SiteForm` e `Screen` so podem ser instanciadas com o toolkit ativo. A extensao
+`JavaFxToolkit` liga o toolkit uma vez por JVM; use com `@ExtendWith (JavaFxToolkit.class)`.
+
+**A lista encolheu, e o encolhimento e o resultado da refatoracao.** `ScreenPosition` e `Pen`
+sairam na Onda 1; `Site` virou uma porta com implementacao headless (`SiteValue`) no Passo 3;
+`ReportScore` saiu no Passo 4; `Session` e `SessionRecord` sairam no Passo 5. Nos tres ultimos
+casos **a ausencia da anotacao no teste e a assercao principal**, e esta dita no cabecalho de
+cada classe de teste.
+
+Duas notas praticas sobre a extensao:
+
+- **nem tudo que e JavaFX precisa dela.** `SimpleStringProperty` e um bean comum e funciona
+  sem toolkit; o que exige toolkit e `Control` - `Label`, `TextField`, `TableView`. Por isso o
+  `SessionRecordTest` nunca precisou da anotacao e o `SessionTest` precisou ate o Label sair;
+- **`onFxThread (...)` executa um trecho na thread da aplicacao e espera.** Serve para ler o
+  efeito de um `Platform.runLater` pendente: como a fila e FIFO, o que voce enfileirar depois
+  roda depois.
 
 Em ambiente headless — o CI, por exemplo — a suite precisa rodar sob um X virtual:
 
@@ -141,7 +179,7 @@ erro.
 | `dm3270.streams` | 52% | `MainframeServer` e `TelnetListener` sao JavaFX |
 | `dm3270.commands` | 61% | subiu com o `HeadlessScreenTarget`; `Profile` ainda e JavaFX |
 | `reporter.file` | 42% | `ReportScore` instancia `TextArea` no construtor |
-| `dm3270.utilities` | 60% | subiu com o `SiteTest` |
+| `dm3270.utilities` | 60% | subiu com o `SiteFormTest` (chamava-se `SiteTest` ate o Passo 3) |
 | `reporter.reports` | 30% | `createPages` e `getFormattedRecord` recebem `ReportScore` |
 | `dm3270.session` | 24% | `Session` e `SessionRecord` sao JavaFX |
 | `dm3270.plugins` | 21% | `PluginsStage` e JavaFX |
@@ -431,18 +469,34 @@ testes seguem lá, agora descrevendo a regra em vez de alertar sobre ela:
 
 ## Proximos alvos
 
-1. **Fake de `Pen` e `DisplayScreen`.** As duas sao interfaces de metodos puros; um fake
-   em teste destrava o `process()` de todas as orders e de boa parte de
-   `structuredfields` — hoje o maior buraco entre o codigo que **nao** e JavaFX.
-2. **Extrair o modelo da view em `dm3270.display`** (`FieldManager`, `Cursor`,
-   `ScreenPacker`). Sao 9.700 instrucoes sem teste e a parte mais critica do emulador.
-3. **`ReportScore` sem JavaFX.** O `TextArea` e a `Font` no construtor bloqueiam
-   `createPages` e `getFormattedRecord` dos quatro formatos de relatorio, alem de
-   `ReportData.createScores`. Separar a pontuacao da apresentacao libera
-   `reporter.file` e `reporter.reports` de uma vez.
-4. **`SessionRecord` e `Session`** — leitura e navegacao dos arquivos de replay, hoje
-   cobertos apenas pelo `SessionReader`.
-5. **`TransferManager`** — o resto do fluxo de IND$FILE depende de `Screen`; extrair a
+**Quatro dos seis alvos que esta lista trazia foram feitos.** Ficam registrados riscados,
+porque a ordem em que cairam e o argumento de que o metodo funciona:
+
+1. ~~**Fake de `Pen` e `DisplayScreen`.**~~ Feito na Onda 1 e ampliado depois: hoje e o
+   `HeadlessScreenTarget`, que usa um `Pen` e um vetor de `ScreenPosition` **reais** e monta
+   campos de verdade. Desde o Passo 5 tambem implementa `SessionDisplay`.
+2. ~~**Extrair o modelo da view em `dm3270.display`.**~~ Feito na Fase 2: o modelo de tela
+   virou o pacote `screen`, com zero JavaFX e regra de camada propria. `display` ficou sendo
+   so a view.
+3. ~~**`ReportScore` sem JavaFX.**~~ Feito no Passo 4, e rendeu mais do que esta linha previa:
+   a porta `reports.ReportContext` desfez o ciclo `reporter.file <-> reporter.reports`.
+4. ~~**`SessionRecord` e `Session`.**~~ Feito no Passo 5, e tambem rendeu mais: desfez o ciclo
+   `session <-> streams`, que o relatorio dizia depender do composition root.
+
+O que continua aberto, em ordem de retorno medido:
+
+1. **O composition root.** E o unico caminho que resta para os dois placares: seis dos doze
+   ciclos restantes esperam por ele - dois de `getTransferManager ()` no `ScreenTarget`,
+   quatro de `streams`. E o maior item estrutural que sobra, e o mais caro.
+2. **`TransferManager`** — o resto do fluxo de IND$FILE depende de `Screen`; extrair a
    parte de estado tornaria testavel o ciclo abrir/transferir/fechar.
-6. Corrigir os defeitos da primeira tabela de achados e trocar os testes que documentam
-   o comportamento atual (`REGRESSAO`) por testes que exigem o comportamento correto.
+3. **O caminho de lancamento**: `Console`, `OptionStage` e `ConsoleKeyPress` **nao tem teste
+   nenhum**. Sao o ultimo item da Onda 2 e a Onda 4 do diagnostico, e caracterizar vem antes
+   de qualquer coisa.
+4. **`TelnetListener` no `targetClasses` do PIT.** Ele ganhou os tres primeiros testes da sua
+   historia no Passo 5, mas ficou de fora da lista pelo mesmo criterio do `ScreenWatcher`:
+   uma classe grande com dois caminhos cobertos entra com sobreviventes demais para o numero
+   significar alguma coisa. Entra quando o tratamento de subcomandos telnet tiver rede.
+5. Corrigir os defeitos do [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md) e trocar os testes que
+   documentam o comportamento atual por testes que exigem o comportamento correto. **Isso e
+   decisao do time, nao tarefa aprovada**, e nao pertence a branch da refatoracao (Regra 1).
