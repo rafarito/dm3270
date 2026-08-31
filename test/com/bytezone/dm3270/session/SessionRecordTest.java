@@ -26,10 +26,10 @@ import com.bytezone.dm3270.runtime.Source;
  * Caracterizacao do SessionRecord - uma mensagem lida do fio, com a origem, o instante e o
  * rotulo que a tabela de replay mostra.
  *
- * Esta classe faz duas coisas ao mesmo tempo: guarda a mensagem parseada (que e dominio) e
- * guarda cinco Property do JavaFX que existem so para o SessionTable ligar colunas por nome de
- * string. Os testes abaixo congelam o comportamento de HOJE, antes de as duas metades serem
- * separadas.
+ * Estes testes nasceram para congelar o comportamento ANTES de a classe ser aberta, quando
+ * ela ainda guardava cinco Property do JavaFX ao lado da mensagem parseada. As Property foram
+ * para application.SessionRow e os rotulos viraram campos finais; os testes continuam
+ * afirmando exatamente os mesmos valores, que e o que prova que a separacao nao mudou nada.
  *
  * O que precisa sobreviver, e nao e obvio:
  *
@@ -39,10 +39,9 @@ import com.bytezone.dm3270.runtime.Source;
  *     coluna Command aparece vazia para ele. Esta dito no comentario do NamedBuffer;
  *   - quando o dateTime e nulo, a property time nunca chega a ser escrita, e a coluna mm:ss
  *     fica vazia. Um cabecalho curto num arquivo de replay produz exatamente isso;
- *   - getTime () NAO devolve a hora. Ver o grupo Defeitos, no fim.
- *
- * Nao ha @ExtendWith (JavaFxToolkit.class) porque SimpleStringProperty e um bean comum e nao
- * precisa de toolkit - o que precisa e o Label da Session, e por isso o SessionTest o tem.
+ *   - o acessor da hora se chama getTimeText () e nao getTime (). O segundo nome pertencia a
+ *     um getter defeituoso, que devolvia o commandName, e que foi preservado do lado da linha
+ *     da tabela - o SessionRowTest o congela la.
  */
 // -----------------------------------------------------------------------------------//
 @DisplayName ("SessionRecord - a mensagem gravada, e o rotulo que a tabela mostra")
@@ -153,7 +152,7 @@ class SessionRecordTest
       SessionRecord record =
           record (SessionRecordType.TN3270, write (), Source.SERVER, true);
 
-      assertEquals ("30:42", record.timeProperty ().get ());
+      assertEquals ("30:42", record.getTimeText ());
     }
 
     @Test
@@ -163,7 +162,7 @@ class SessionRecordTest
       SessionRecord record = new SessionRecord (SessionRecordType.TN3270, write (),
           Source.SERVER, null, true);
 
-      assertNull (record.timeProperty ().get ());
+      assertNull (record.getTimeText ());
     }
 
     @Test
@@ -173,9 +172,9 @@ class SessionRecordTest
       SessionRecord record =
           record (SessionRecordType.TN3270, write (), Source.SERVER, true);
 
-      assertSame (record.sourceNameProperty (), record.sourceNameProperty ());
       assertEquals ("Server", record.getSourceName ());
       assertEquals ("Server", record.getSourceName ());
+      assertEquals ("Write", record.getCommandName ());
     }
   }
 
@@ -326,45 +325,6 @@ class SessionRecordTest
           Source.SERVER, null, true);
 
       assertThrows (NullPointerException.class, () -> record.toString ());
-    }
-  }
-
-  // ---------------------------------------------------------------------------------//
-  @Nested
-  @DisplayName ("defeitos, congelados como estao")
-  class Defects
-  // ---------------------------------------------------------------------------------//
-  {
-    /*
-     * getTime () le a property errada - devolve o commandName em vez da hora. Hoje e latente:
-     * o PropertyValueFactory resolve timeProperty () primeiro e nunca chega ao getter, e
-     * nenhum arquivo de src/ ou test/ o chama. Este teste existe para que a separacao que vem
-     * a seguir leve o defeito para o lado certo em vez de ativa-lo na coluna mm:ss.
-     */
-    @Test
-    @DisplayName ("getTime () devolve o nome do comando, e nao a hora")
-    void getTimeReturnsTheCommandName ()
-    {
-      SessionRecord record =
-          record (SessionRecordType.TN3270, write (), Source.SERVER, true);
-
-      assertEquals ("30:42", record.timeProperty ().get ());
-      assertEquals ("Write", record.getTime ());
-    }
-
-    /*
-     * Consequencia do mesmo defeito: sem NamedBuffer nao ha commandName, e getTime () devolve
-     * nulo mesmo com a hora presente na property.
-     */
-    @Test
-    @DisplayName ("sem nome de comando, getTime () devolve nulo com a hora preenchida")
-    void getTimeIsNullWhenThereIsNoCommandName ()
-    {
-      SessionRecord record =
-          record (SessionRecordType.TN3270E, header (), Source.SERVER, true);
-
-      assertEquals ("30:42", record.timeProperty ().get ());
-      assertNull (record.getTime ());
     }
   }
 

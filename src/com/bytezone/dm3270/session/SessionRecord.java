@@ -9,11 +9,23 @@ import com.bytezone.dm3270.commands.Command;
 import com.bytezone.dm3270.extended.TN3270ExtendedCommand;
 import com.bytezone.dm3270.runtime.Source;
 
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-
+/*
+ * Uma mensagem lida do fio, com a origem, o instante e os rotulos que a descrevem.
+ *
+ * Os cinco rotulos eram cinco Property do JavaFX, criadas preguicosamente e escritas pelo
+ * proprio construtor. Existiam so para o SessionTable ligar colunas por nome de string:
+ * nenhum dos quinze metodos que as cercavam era chamado por arquivo nenhum do projeto. Hoje
+ * sao campos finais, e a conversao para linha de tabela acontece em application.SessionRow.
+ *
+ * SAO DERIVADOS UMA VEZ, no construtor, e nunca recalculados - era assim antes, quando o
+ * construtor escrevia atraves dos setters, e continua sendo. O rotulo diz o que a mensagem
+ * era no instante em que chegou.
+ *
+ * DOIS PODEM SER NULOS, e isso e carga util: commandName quando a mensagem nao e um
+ * NamedBuffer - o CommandHeader e o unico caso, e esta explicado la -, e timeText quando o
+ * registro veio de um cabecalho curto, sem instante. As duas colunas aparecem vazias, como
+ * antes.
+ */
 // -----------------------------------------------------------------------------------//
 public class SessionRecord
 // -----------------------------------------------------------------------------------//
@@ -29,11 +41,11 @@ public class SessionRecord
   private final SessionRecordType sessionRecordType;
   private final LocalDateTime dateTime;
 
-  private StringProperty sourceName;
-  private StringProperty commandType;
-  private StringProperty commandName;
-  private IntegerProperty bufferSize;
-  private StringProperty time;
+  private final String sourceName;
+  private final String commandType;
+  private final String commandName;
+  private final int bufferSize;
+  private final String timeText;
 
   public enum SessionRecordType
   {
@@ -52,30 +64,22 @@ public class SessionRecord
     this.genuine = genuine;
 
     if (genuine)
-      setSourceName (source == Source.CLIENT ? "Client" : "Server");
+      sourceName = source == Source.CLIENT ? "Client" : "Server";
     else
-      setSourceName ("MITM-" + (source == Source.CLIENT ? "C" : "S"));
+      sourceName = "MITM-" + (source == Source.CLIENT ? "C" : "S");
 
-    switch (sessionRecordType)
+    commandType = switch (sessionRecordType)
     {
-      case TELNET:
-        setCommandType ("Telnet");
-        break;
-      case TN3270:
-        setCommandType ("TN3270");
-        break;
-      case TN3270E:
-        setCommandType ("Extended");
-        break;
-    }
+      case TELNET -> "Telnet";
+      case TN3270 -> "TN3270";
+      case TN3270E -> "Extended";
+    };
 
     // O CommandHeader nao e um NamedBuffer e continua sem nome, como antes.
-    if (message instanceof NamedBuffer named)
-      setCommandName (named.getName ());
+    commandName = message instanceof NamedBuffer named ? named.getName () : null;
 
-    setBufferSize (message.size ());
-    if (dateTime != null)
-      setTime (timeFormatter.format (dateTime));
+    bufferSize = message.size ();
+    timeText = dateTime == null ? null : timeFormatter.format (dateTime);
   }
 
   // ---------------------------------------------------------------------------------//
@@ -167,150 +171,48 @@ public class SessionRecord
   }
 
   // ---------------------------------------------------------------------------------//
-  // Time
+  // Os rotulos, na ordem em que o SessionTable os mostra
   // ---------------------------------------------------------------------------------//
-
-  // ---------------------------------------------------------------------------------//
-  public void setTime (String value)
-  // ---------------------------------------------------------------------------------//
-  {
-    timeProperty ().set (value);
-  }
-
-  // ---------------------------------------------------------------------------------//
-  public String getTime ()
-  // ---------------------------------------------------------------------------------//
-  {
-    return commandNameProperty ().get ();
-  }
 
   /*
-   * O texto que a coluna mm:ss mostra. NAO se chama getTime () porque esse nome ja esta tomado
-   * logo acima, por um getter que devolve o commandName - um defeito preservado sob a Regra 1,
-   * registrado no backlog. Dar o nome certo ao acessor certo e o que impede a projecao de
-   * copiar o defeito sem perceber.
+   * NAO se chama getTime (). Esse nome pertencia a um getter que devolvia o commandName - um
+   * defeito preservado sob a Regra 1, que hoje mora em application.SessionRow, onde a forma
+   * JavaBean e exigida pelo PropertyValueFactory. Nomes diferentes para as duas coisas e o que
+   * impede alguem de religar a coluna mm:ss ao getter errado sem que nada quebre na
+   * compilacao. Esta no BACKLOG-DEFEITOS.md.
    */
   // ---------------------------------------------------------------------------------//
   public String getTimeText ()
   // ---------------------------------------------------------------------------------//
   {
-    return timeProperty ().get ();
-  }
-
-  // ---------------------------------------------------------------------------------//
-  public StringProperty timeProperty ()
-  // ---------------------------------------------------------------------------------//
-  {
-    if (time == null)
-      time = new SimpleStringProperty ();
-    return time;
-  }
-
-  // ---------------------------------------------------------------------------------//
-  // SourceName
-  // ---------------------------------------------------------------------------------//
-
-  // ---------------------------------------------------------------------------------//
-  public void setSourceName (String value)
-  // ---------------------------------------------------------------------------------//
-  {
-    sourceNameProperty ().set (value);
+    return timeText;
   }
 
   // ---------------------------------------------------------------------------------//
   public String getSourceName ()
   // ---------------------------------------------------------------------------------//
   {
-    return sourceNameProperty ().get ();
-  }
-
-  // ---------------------------------------------------------------------------------//
-  public StringProperty sourceNameProperty ()
-  // ---------------------------------------------------------------------------------//
-  {
-    if (sourceName == null)
-      sourceName = new SimpleStringProperty ();
     return sourceName;
-  }
-
-  // ---------------------------------------------------------------------------------//
-  // CommandType
-  // ---------------------------------------------------------------------------------//
-
-  // ---------------------------------------------------------------------------------//
-  public void setCommandType (String value)
-  // ---------------------------------------------------------------------------------//
-  {
-    commandTypeProperty ().set (value);
   }
 
   // ---------------------------------------------------------------------------------//
   public String getCommandType ()
   // ---------------------------------------------------------------------------------//
   {
-    return commandTypeProperty ().get ();
-  }
-
-  // ---------------------------------------------------------------------------------//
-  public StringProperty commandTypeProperty ()
-  // ---------------------------------------------------------------------------------//
-  {
-    if (commandType == null)
-      commandType = new SimpleStringProperty ();
     return commandType;
-  }
-
-  // ---------------------------------------------------------------------------------//
-  // CommandName
-  // ---------------------------------------------------------------------------------//
-
-  // ---------------------------------------------------------------------------------//
-  public void setCommandName (String value)
-  // ---------------------------------------------------------------------------------//
-  {
-    commandNameProperty ().set (value);
   }
 
   // ---------------------------------------------------------------------------------//
   public String getCommandName ()
   // ---------------------------------------------------------------------------------//
   {
-    return commandNameProperty ().get ();
-  }
-
-  // ---------------------------------------------------------------------------------//
-  public StringProperty commandNameProperty ()
-  // ---------------------------------------------------------------------------------//
-  {
-    if (commandName == null)
-      commandName = new SimpleStringProperty ();
     return commandName;
-  }
-
-  // ---------------------------------------------------------------------------------//
-  // BufferSize
-  // ---------------------------------------------------------------------------------//
-
-  // ---------------------------------------------------------------------------------//
-  public void setBufferSize (int value)
-  // ---------------------------------------------------------------------------------//
-  {
-    bufferSizeProperty ().set (value);
   }
 
   // ---------------------------------------------------------------------------------//
   public int getBufferSize ()
   // ---------------------------------------------------------------------------------//
   {
-    return bufferSizeProperty ().get ();
-  }
-
-  // ---------------------------------------------------------------------------------//
-  public IntegerProperty bufferSizeProperty ()
-  // ---------------------------------------------------------------------------------//
-  {
-    if (bufferSize == null)
-      bufferSize = new SimpleIntegerProperty ();
     return bufferSize;
   }
 

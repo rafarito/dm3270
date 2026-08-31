@@ -83,6 +83,9 @@ class SessionRowTest
 
     assertNull (row.getCommandName ());
     assertEquals ("30:42", row.timeProperty ().get ());
+
+    // a outra face do mesmo defeito: sem nome de comando, getTime () devolve nulo
+    assertNull (row.getTime ());
   }
 
   /*
