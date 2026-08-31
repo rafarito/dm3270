@@ -26,9 +26,6 @@ import com.bytezone.dm3270.session.SessionRecord.SessionRecordType;
 import com.bytezone.dm3270.runtime.Source;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
-import javafx.application.Platform;
-import javafx.scene.control.Label;
-
 // -----------------------------------------------------------------------------------//
 public class Session implements Iterable<SessionRecord>
 // -----------------------------------------------------------------------------------//
@@ -37,13 +34,13 @@ public class Session implements Iterable<SessionRecord>
 
   private final List<SessionRecord> sessionRecords = new ArrayList<> ();
   private final List<SessionRecordListener> recordListeners = new ArrayList<> ();
+  private final List<SessionHeaderListener> headerListeners = new ArrayList<> ();
   private final TerminalFunction function;
 
   private String clientName = null;
   private String serverName = null;
   private final List<String> labels = new ArrayList<> ();
   private boolean safeFlag;
-  private final Label headerLabel = new Label ();
   private ScreenDimensions screenDimensions;
 
   /*
@@ -95,11 +92,31 @@ public class Session implements Iterable<SessionRecord>
     return screenDimensions;
   }
 
+  /*
+   * O texto que o cabecalho da janela mostra. Era montado dentro do runLater que escrevia no
+   * Label; agora e lido por quem ouve, no mesmo instante em que era lido antes.
+   */
   // ---------------------------------------------------------------------------------//
-  public Label getHeaderLabel ()
+  public String getHeaderText ()
   // ---------------------------------------------------------------------------------//
   {
-    return headerLabel;
+    return String.format ("%s : %s", getServerName (), getClientName ());
+  }
+
+  /*
+   * Dispara na hora se algum dos dois lados ja foi reconhecido. E o que reproduz o cabecalho
+   * ja preenchido do modo Replay - onde a sessao e carregada inteira antes de a janela existir
+   * - sem fazer o modo Spy nascer escrito "Unknown : Unknown", que e o que aconteceria se a
+   * janela lesse getHeaderText () na construcao. Hoje o Label nasce vazio, e continua nascendo.
+   */
+  // ---------------------------------------------------------------------------------//
+  public synchronized void addHeaderListener (SessionHeaderListener listener)
+  // ---------------------------------------------------------------------------------//
+  {
+    headerListeners.add (listener);
+
+    if (clientName != null || serverName != null)
+      listener.headerChanged ();
   }
 
   // called from MainframeStage.prepareButtons()
@@ -157,7 +174,7 @@ public class Session implements Iterable<SessionRecord>
     if (optionalName.isPresent ())
     {
       clientName = optionalName.get ();
-      setHeaderText ();
+      notifyHeaderChanged ();
     }
   }
 
@@ -195,15 +212,15 @@ public class Session implements Iterable<SessionRecord>
       }
 
     if (serverName != null)
-      setHeaderText ();
+      notifyHeaderChanged ();
   }
 
   // ---------------------------------------------------------------------------------//
-  private void setHeaderText ()
+  private void notifyHeaderChanged ()
   // ---------------------------------------------------------------------------------//
   {
-    Platform.runLater ( () -> headerLabel
-        .setText (String.format ("%s : %s", getServerName (), getClientName ())));
+    for (SessionHeaderListener listener : headerListeners)
+      listener.headerChanged ();
   }
 
   /*

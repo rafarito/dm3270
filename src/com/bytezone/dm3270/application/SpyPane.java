@@ -11,6 +11,7 @@ import com.bytezone.dm3270.utilities.Site;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
@@ -46,9 +47,13 @@ public class SpyPane extends BorderPane
     spyServer = new SpyServer (serverSite, clientSite.getPort (), session, telnetState);
     spyServer.setScreen (screen);
 
-    final Label label = session.getHeaderLabel ();
+    final Label label = new Label ();
     label.setFont (new Font ("Arial", 20));
     label.setPadding (new Insets (10, 10, 10, 10));         // trbl
+
+    // o texto e lido dentro do runLater, como era quando a Session possuia o Label
+    session.addHeaderListener (
+        () -> Platform.runLater ( () -> label.setText (session.getHeaderText ())));
 
     CommandPane commandPane =
         new CommandPane (sessionTable, CommandPane.ProcessInstruction.DontProcess);

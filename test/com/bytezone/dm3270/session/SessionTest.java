@@ -20,7 +20,6 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.bytezone.dm3270.commands.AIDCommand;
@@ -34,7 +33,6 @@ import com.bytezone.dm3270.session.SessionRecord.SessionRecordType;
 import com.bytezone.dm3270.runtime.Source;
 import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.structuredfields.StructuredField;
-import com.bytezone.dm3270.testing.JavaFxToolkit;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 /*
@@ -61,12 +59,12 @@ import com.bytezone.dm3270.utilities.Dm3270Utility;
  *   - safeSave () embaralha o texto digitado pelo usuario para 0x7B antes de gravar, e volta
  *     a gravar normalmente depois. O flag e de instancia, nao de chamada.
  *
- * O @ExtendWith (JavaFxToolkit.class) esta aqui pelo Label, que e um Control. O
- * SessionRecordTest nao precisa dele - Property e bean comum. Quando o Label sair daqui, esta
- * anotacao sai junto, e essa ausencia sera o teste principal.
+ * REPARE NO QUE ESTA CLASSE NAO TEM MAIS: nao ha @ExtendWith (JavaFxToolkit.class). Ate o
+ * commit que levou o Label para a borda, a Session construia um Control no proprio campo, e
+ * nenhum destes testes podia rodar sem toolkit grafico. Hoje a identificacao das duas pontas, o
+ * acumulado e a persistencia sao exercitados headless, e essa ausencia e o teste principal.
  */
 // -----------------------------------------------------------------------------------//
-@ExtendWith (JavaFxToolkit.class)
 @DisplayName ("Session - a conversa acumulada, e quem esta nas duas pontas")
 class SessionTest
 // -----------------------------------------------------------------------------------//
@@ -152,12 +150,18 @@ class SessionTest
     return new SessionRecord (SessionRecordType.TN3270, message, source, WHEN, true);
   }
 
-  // Le o rotulo na thread do JavaFX, o que garante que o runLater pendente ja rodou.
+  // Conta os avisos de cabecalho, que e o que o Label ouvia.
   // ---------------------------------------------------------------------------------//
-  private static String headerText (Session session)
+  private static class HeaderSpy implements SessionHeaderListener
   // ---------------------------------------------------------------------------------//
   {
-    return JavaFxToolkit.onFxThread ( () -> session.getHeaderLabel ().getText ());
+    private int calls;
+
+    @Override
+    public void headerChanged ()
+    {
+      calls++;
+    }
   }
 
   // ---------------------------------------------------------------------------------//
@@ -392,28 +396,40 @@ class SessionTest
   class Header
   // ---------------------------------------------------------------------------------//
   {
+    /*
+     * O Label nascia vazio, e nao escrito "Unknown : Unknown". O que garantia isso era nao
+     * haver aviso nenhum antes da primeira identificacao - e e isto que o teste afirma.
+     */
     @Test
-    @DisplayName ("nasce vazio, e nao com Unknown")
-    void startsBlank ()
+    @DisplayName ("nao avisa nada antes de identificar alguem")
+    void staysQuietUntilSomeoneIsIdentified ()
     {
       Session session = session ();
+      HeaderSpy spy = new HeaderSpy ();
 
-      assertEquals ("", headerText (session));
+      session.addHeaderListener (spy);
+      session.add (record (serverText ("READY"), Source.SERVER));
+
+      assertEquals (0, spy.calls);
+      assertEquals ("Unknown : Unknown", session.getHeaderText ());
     }
 
     @Test
-    @DisplayName ("identificar um lado escreve os dois no rotulo")
+    @DisplayName ("identificar um lado avisa, e o texto traz os dois")
     void showsBothSides ()
     {
       Session session = session ();
+      HeaderSpy spy = new HeaderSpy ();
+      session.addHeaderListener (spy);
 
       session.add (record (serverText ("Hercules Version  : 4.0"), Source.SERVER));
 
-      assertEquals ("Hercules : Unknown", headerText (session));
+      assertEquals (1, spy.calls);
+      assertEquals ("Hercules : Unknown", session.getHeaderText ());
     }
 
     @Test
-    @DisplayName ("com os dois lados conhecidos o rotulo traz servidor e cliente")
+    @DisplayName ("com os dois lados vistos o texto traz servidor e cliente")
     void showsServerAndClient ()
     {
       Session session = session ();
@@ -421,17 +437,38 @@ class SessionTest
       session.add (record (serverText ("Hercules Version  : 4.0"), Source.SERVER));
       session.add (record (clientReply (), Source.CLIENT));
 
-      assertEquals ("Hercules : Unknown", headerText (session));
+      assertEquals ("Hercules : Unknown", session.getHeaderText ());
       assertEquals ("Unknown", session.getClientName ());
     }
 
+    /*
+     * O caso do modo Replay: a sessao e carregada inteira antes de a janela existir, e quem se
+     * inscreve depois tem de receber o aviso mesmo assim - senao o cabecalho ficaria em branco
+     * numa sessao ja identificada.
+     */
     @Test
-    @DisplayName ("o rotulo e sempre o mesmo widget")
-    void theLabelIsStable ()
+    @DisplayName ("quem se inscreve depois da identificacao e avisado na hora")
+    void aLateSubscriberIsToldImmediately ()
     {
       Session session = session ();
+      session.add (record (serverText ("Hercules Version  : 4.0"), Source.SERVER));
 
-      assertSame (session.getHeaderLabel (), session.getHeaderLabel ());
+      HeaderSpy spy = new HeaderSpy ();
+      session.addHeaderListener (spy);
+
+      assertEquals (1, spy.calls);
+    }
+
+    @Test
+    @DisplayName ("quem se inscreve numa sessao sem nome nenhum nao e avisado")
+    void aLateSubscriberOnAnEmptySessionIsNotTold ()
+    {
+      Session session = session ();
+      HeaderSpy spy = new HeaderSpy ();
+
+      session.addHeaderListener (spy);
+
+      assertEquals (0, spy.calls);
     }
   }
 

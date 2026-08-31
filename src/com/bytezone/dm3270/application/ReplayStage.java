@@ -41,9 +41,13 @@ class ReplayStage extends Stage
   {
     this.prefs = prefs;
 
-    final Label label = session.getHeaderLabel ();
+    final Label label = new Label ();
     label.setFont (new Font ("Arial", 20));
     label.setPadding (new Insets (10, 10, 10, 10));                 // trbl
+
+    // o texto e lido dentro do runLater, como era quando a Session possuia o Label
+    session.addHeaderListener (
+        () -> Platform.runLater ( () -> label.setText (session.getHeaderText ())));
 
     boolean showTelnet = prefs.getBoolean ("ShowTelnet", false);
     boolean showExtended = prefs.getBoolean ("ShowExtended", false);
