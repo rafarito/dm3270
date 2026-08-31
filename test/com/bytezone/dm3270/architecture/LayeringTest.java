@@ -57,6 +57,14 @@ class LayeringTest
   // database na onda 3, e database passou a depender dele.
   private static final String[] DATASET_DOMAIN = { "com.bytezone.dm3270.datasets.." };
 
+  // A conversa gravada: os registros, quem esta nas duas pontas, e o leitor do arquivo de
+  // replay. Saiu do JavaFX no passo 5; a projecao para a tabela mora em application.
+  private static final String[] SESSION = { "com.bytezone.dm3270.session.." };
+
+  // Os sockets e o telnet. Falam com a tela por ScreenTarget e SessionDisplay, e entregam o
+  // que e da thread grafica por um Executor recebido de fora.
+  private static final String[] STREAMS = { "com.bytezone.dm3270.streams.." };
+
   // A pilha que transforma bytes do socket em estrutura. E o que precisa rodar headless.
   private static final String[] PROTOCOL_PACKAGES =
       { "com.bytezone.dm3270.buffers..", "com.bytezone.dm3270.commands..",
@@ -184,6 +192,40 @@ class LayeringTest
       noClasses ().that ().resideInAnyPackage (DATASET_DOMAIN)                          //
           .should ().dependOnClassesThat ().resideInAnyPackage ("javafx..")             //
           .because ("o dominio dos datasets tem de rodar headless, como o modelo de tela");
+
+  /*
+   * As duas regras que o passo 5 acrescentou, e as duas nascem em zero.
+   *
+   * session tinha 44 violacoes, as terceira e setima maiores do baseline. SessionRecord
+   * guardava cinco Property que existiam so para o SessionTable ligar colunas por nome de
+   * string, e Session guardava um ObservableList, um Label e um Platform.runLater. Nada disso
+   * e conversa gravada: e linha de tabela. As Property foram para application.SessionRow, a
+   * lista observavel para application.SessionRows e o Label para as duas janelas que o
+   * mostravam, atras das portas SessionRecordListener e SessionHeaderListener.
+   *
+   * streams tinha 3, todas Platform.runLater: duas no TelnetListener e uma no MainframeServer.
+   * Viraram um java.util.concurrent.Executor recebido no construtor, e o composition root
+   * passa Platform::runLater. E o que permitiu escrever o primeiro teste do TelnetListener.
+   *
+   * POR QUE DUAS REGRAS PROPRIAS SE A CONGELADA JA COBRE OS DOIS PACOTES. Porque a congelada
+   * cobre por AUSENCIA no baseline, e um baseline pode ser refrozen. Uma regra nua nao pode:
+   * uma violacao nova em session ou em streams quebra a build sem que exista comando algum
+   * para absorve-la. E a mesma razao pela qual datasetsDomainDoesNotKnowJavaFx existe ao lado
+   * da congelada desde a onda 3.
+   */
+  // ---------------------------------------------------------------------------------//
+  @ArchTest
+  static final ArchRule sessionDoesNotKnowJavaFx =                                      //
+      noClasses ().that ().resideInAnyPackage (SESSION)                                 //
+          .should ().dependOnClassesThat ().resideInAnyPackage ("javafx..")             //
+          .because ("a conversa gravada e dominio, e a linha de tabela mora em application");
+
+  // ---------------------------------------------------------------------------------//
+  @ArchTest
+  static final ArchRule streamsDoesNotKnowJavaFx =                                      //
+      noClasses ().that ().resideInAnyPackage (STREAMS)                                 //
+          .should ().dependOnClassesThat ().resideInAnyPackage ("javafx..")             //
+          .because ("quem le bytes de um socket nao decide em que thread a tela desenha");
 
   /*
    * A terceira regra a valer integralmente.
