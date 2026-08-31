@@ -14,6 +14,7 @@ import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.plugins.PluginsStage;
 import com.bytezone.dm3270.session.Session;
+import com.bytezone.dm3270.streams.SessionLoader;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 import com.bytezone.dm3270.utilities.Site;
@@ -114,7 +115,7 @@ public class Console extends Application
         else
           try
           {
-            Session session = new Session (telnetState, path);   // can throw Exception
+            Session session = SessionLoader.replay (telnetState, path);   // can throw Exception
             alternateScreenDimensions = session.getScreenDimensions ();
 
             Optional<Site> serverSite = optionStage.serverSitesListStage

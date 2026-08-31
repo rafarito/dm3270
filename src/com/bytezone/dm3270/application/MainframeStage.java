@@ -28,6 +28,7 @@ import com.bytezone.dm3270.session.SessionRecord;
 import com.bytezone.dm3270.session.SessionRecord.SessionRecordType;
 import com.bytezone.dm3270.streams.MainframeServer;
 import com.bytezone.dm3270.runtime.Source;
+import com.bytezone.dm3270.streams.SessionLoader;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.utilities.GuiFactory;
 
@@ -216,7 +217,7 @@ public class MainframeStage extends Stage implements Mainframe
 
     try
     {
-      Session session = new Session (telnetState, lines);
+      Session session = SessionLoader.test (telnetState, lines);
       List<String> labels = session.getLabels ();
 
       SessionRecord dr = createCommand ();

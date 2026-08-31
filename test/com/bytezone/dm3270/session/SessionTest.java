@@ -32,7 +32,7 @@ import com.bytezone.dm3270.orders.Order;
 import com.bytezone.dm3270.replyfield.QueryReplyField;
 import com.bytezone.dm3270.session.SessionRecord.SessionRecordType;
 import com.bytezone.dm3270.runtime.Source;
-import com.bytezone.dm3270.streams.TelnetState;
+import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.structuredfields.StructuredField;
 import com.bytezone.dm3270.testing.JavaFxToolkit;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
@@ -78,7 +78,7 @@ class SessionTest
   private static Session session ()
   // ---------------------------------------------------------------------------------//
   {
-    return new Session (new TelnetState ());
+    return new Session (TerminalFunction.SPY);
   }
 
   // ---------------------------------------------------------------------------------//

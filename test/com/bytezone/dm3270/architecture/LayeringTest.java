@@ -329,13 +329,30 @@ class LayeringTest
    * ConsoleLogStage e do PluginsStage na onda 3, e a medicao que o achou foi a mesma: olhar o
    * que o consumidor REALMENTE usa antes de mover qualquer coisa.
    *
-   * OS 13 QUE SOBRAM sao de duas naturezas. Inerentes ao 3270, e nao se pretende mexer:
+   * E caiu a 12, no passo 5, e este documento dizia que nao daria. O §7.2 do relatorio
+   * classificava session <-> streams entre os que "dependem do composition root". Nao dependia.
+   * A medicao aresta por aresta mostrou que session nomeava streams por tres tipos so:
+   * TelnetSocket.Source, um enum de duas constantes aninhado dentro da classe que abre a
+   * conexao, e TelnetListener mais TelnetState, que a Session usava EXCLUSIVAMENTE dentro de
+   * init () para reconstruir uma sessao a partir de um arquivo.
+   *
+   * Nenhum dos tres e sobre o que uma sessao gravada e. O Source foi para runtime, ao lado do
+   * TerminalFunction, pelo mesmo motivo que o TerminalFunction foi: e um dado, e nao a
+   * composicao da aplicacao. O carregamento foi para streams.SessionLoader, do lado de quem
+   * tem o listener - reconstruir uma sessao EXIGE o TelnetListener, mas ser uma sessao nao. O
+   * campo TelnetState da Session existia so para chegar ate ali, e saiu junto.
+   *
+   * session -> streams chegou a zero, e streams -> session continua existindo numa direcao so:
+   * o TelnetListener produz SessionRecord e o SpyServer repassa a Session. E a quinta vez que
+   * a leitura do codigo contradisse o plano, e a segunda vez que contradisse para melhor.
+   *
+   * OS 12 QUE SOBRAM sao de duas naturezas. Inerentes ao 3270, e nao se pretende mexer:
    * commands <-> screen (um ReadCommand pede a tela que produza um AIDCommand, e AIDCommand e
    * comando de protocolo), attributes <-> screen, attributes <-> orders, orders <-> screen,
    * commands <-> structuredfields. Acidentais que ficam para as ondas seguintes:
    * filetransfer <-> screen e commands <-> filetransfer, que dependem de tirar
-   * getTransferManager () do ScreenTarget; e os cinco de streams, que dependem do composition
-   * root.
+   * getTransferManager () do ScreenTarget; e os quatro de streams - application, buffers,
+   * commands e telnet -, que dependem do composition root.
    *
    * SOBRA UM DE reporter, e ele NAO e alvo: record <-> text. Vem de tres metodos de TextMaker
    * que recebem Record - getText, test e countAlphanumericBytes - e que so desempacotam
@@ -343,7 +360,7 @@ class LayeringTest
    * layout de Record, por convencao espalhada em oito chamadores em vez de por tipo. Seria
    * trocar desenho por placar, e a decisao de deixar como esta foi tomada com o usuario.
    */
-  private static final int MAX_MUTUAL_CYCLES = 13;
+  private static final int MAX_MUTUAL_CYCLES = 12;
 
   // ---------------------------------------------------------------------------------//
   @ArchTest

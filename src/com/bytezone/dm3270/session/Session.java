@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -24,9 +23,7 @@ import com.bytezone.dm3270.extended.TN3270ExtendedCommand;
 import com.bytezone.dm3270.orders.Order;
 import com.bytezone.dm3270.orders.TextOrder;
 import com.bytezone.dm3270.session.SessionRecord.SessionRecordType;
-import com.bytezone.dm3270.streams.TelnetListener;
 import com.bytezone.dm3270.runtime.Source;
-import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 import javafx.application.Platform;
@@ -43,7 +40,6 @@ public class Session implements Iterable<SessionRecord>
   private final ObservableList<SessionRecord> sessionRecords =
       FXCollections.observableArrayList ();
   private final TerminalFunction function;
-  private final TelnetState telnetState;
 
   private String clientName = null;
   private String serverName = null;
@@ -52,67 +48,18 @@ public class Session implements Iterable<SessionRecord>
   private final Label headerLabel = new Label ();
   private ScreenDimensions screenDimensions;
 
-  // called by SpyPane constructor
+  /*
+   * O modo e a unica coisa que uma sessao precisa saber sobre como foi aberta. Os dois
+   * construtores que liam um arquivo viraram streams.SessionLoader: reconstruir uma sessao
+   * gravada exige o TelnetListener, e uma sessao nao tem por que conhecer o pacote que abre
+   * conexoes so por causa disso.
+   */
+  // called by SpyPane, and by streams.SessionLoader
   // ---------------------------------------------------------------------------------//
-  public Session (TelnetState telnetState)
-  // ---------------------------------------------------------------------------------//
-  {
-    this.function = TerminalFunction.SPY;
-    this.telnetState = telnetState;
-  }
-
-  // called by MainframeStage constructor
-  // ---------------------------------------------------------------------------------//
-  public Session (TelnetState telnetState, List<String> lines) throws Exception
+  public Session (TerminalFunction function)
   // ---------------------------------------------------------------------------------//
   {
-    function = TerminalFunction.TEST;
-    this.telnetState = telnetState;
-
-    SessionReader server = new SessionReader (Source.SERVER, lines);
-    SessionReader client = new SessionReader (Source.CLIENT, lines);
-
-    init (client, server);
-  }
-
-  // called by Console.startSelectedFunction()
-  // ---------------------------------------------------------------------------------//
-  public Session (TelnetState telnetState, Path path) throws Exception
-  // ---------------------------------------------------------------------------------//
-  {
-    function = TerminalFunction.REPLAY;
-    this.telnetState = telnetState;
-
-    SessionReader server = new SessionReader (Source.SERVER, path);
-    SessionReader client = new SessionReader (Source.CLIENT, path);
-
-    init (client, server);
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private void init (SessionReader client, SessionReader server) throws Exception
-  // ---------------------------------------------------------------------------------//
-  {
-    TelnetListener clientTelnetListener =
-        new TelnetListener (Source.CLIENT, this, function, null, telnetState);
-    TelnetListener serverTelnetListener =
-        new TelnetListener (Source.SERVER, this, function, null, telnetState);
-
-    while (client.nextLineNo () != server.nextLineNo ())
-      if (client.nextLineNo () < server.nextLineNo ())
-        while (client.nextLineNo () < server.nextLineNo ())
-          clientTelnetListener.listen (Source.CLIENT, client.nextBuffer (),
-              client.getDateTime (), client.isGenuine ());
-      else
-        while (client.nextLineNo () > server.nextLineNo ())
-        {
-          byte[] buffer = server.nextBuffer ();
-          serverTelnetListener.listen (Source.SERVER, buffer, server.getDateTime (),
-              server.isGenuine ());
-          if (buffer[buffer.length - 2] == (byte) 0xFF
-              && buffer[buffer.length - 1] == (byte) 0xEF)
-            labels.add (server.getLabel ());
-        }
+    this.function = function;
   }
 
   // ---------------------------------------------------------------------------------//
