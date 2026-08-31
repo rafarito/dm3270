@@ -2,6 +2,7 @@ package com.bytezone.dm3270.streams;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 
 import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.buffers.Buffer;
@@ -25,7 +26,6 @@ import com.bytezone.dm3270.telnet.TelnetSubcommand;
 import com.bytezone.dm3270.telnet.TerminalTypeSubcommand;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
-import javafx.application.Platform;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +35,19 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
 // -----------------------------------------------------------------------------------//
 {
   private static final Logger logger = LoggerFactory.getLogger (TelnetListener.class);
+
+  /*
+   * Para onde mandar o que so pode acontecer na thread da interface.
+   *
+   * Eram chamadas diretas a Platform.runLater, e por causa delas o pacote streams - que le
+   * bytes de um socket - nomeava o toolkit grafico. O composition root passa
+   * Platform::runLater, que ja satisfaz Executor; um teste passa Runnable::run e o caminho
+   * roda headless.
+   *
+   * E um tipo do JDK de proposito, e nao uma interface nova: a porta teria um metodo so, com
+   * a assinatura exata do Executor, e inventa-la seria cerimonia sem ganho nenhum.
+   */
+  private final Executor uiThread;
 
   private final Session session;
   private final Source source;
@@ -54,9 +67,10 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
   // in REPLAY mode.
   // ---------------------------------------------------------------------------------//
   public TelnetListener (Source source, Session session, TerminalFunction function,
-      SessionDisplay screen, TelnetState telnetState)
+      SessionDisplay screen, TelnetState telnetState, Executor uiThread)
   // ---------------------------------------------------------------------------------//
   {
+    this.uiThread = uiThread;
     this.screen = screen;
     this.telnetState = telnetState;
     this.function = function;
@@ -68,9 +82,10 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
   // Use this when not recording the session and running in TERMINAL mode.
   // ---------------------------------------------------------------------------------//
   public TelnetListener (SessionDisplay screen, TerminalFunction function,
-      TelnetState telnetState)
+      TelnetState telnetState, Executor uiThread)
   // ---------------------------------------------------------------------------------//
   {
+    this.uiThread = uiThread;
     this.screen = screen;
     this.telnetState = telnetState;
     this.function = function;
@@ -112,7 +127,7 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
   public void close ()
   // ---------------------------------------------------------------------------------//
   {
-    Platform.runLater ( () -> screen.displayText (telnetState.getSummary ()));
+    uiThread.execute ( () -> screen.displayText (telnetState.getSummary ()));
   }
 
   // ---------------------------------------------------------------------------------//
@@ -236,7 +251,7 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
       if (sessionRecordType == SessionRecordType.TELNET)      // no gui involved
         processMessage (message);
       else
-        Platform.runLater ( () -> processMessage (message));
+        uiThread.execute ( () -> processMessage (message));
     }
   }
 

@@ -44,7 +44,8 @@ public class SpyPane extends BorderPane
     SessionRows sessionRows = new SessionRows ();
     session.addRecordListener (sessionRows);
 
-    spyServer = new SpyServer (serverSite, clientSite.getPort (), session, telnetState);
+    spyServer = new SpyServer (serverSite, clientSite.getPort (), session, telnetState,
+        Platform::runLater);
     spyServer.setScreen (screen);
 
     final Label label = new Label ();

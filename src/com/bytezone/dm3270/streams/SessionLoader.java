@@ -2,6 +2,7 @@ package com.bytezone.dm3270.streams;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import com.bytezone.dm3270.runtime.Source;
 import com.bytezone.dm3270.runtime.TerminalFunction;
@@ -46,37 +47,41 @@ public class SessionLoader
 
   // chamado pelo Console.startSelectedFunction ()
   // ---------------------------------------------------------------------------------//
-  public static Session replay (TelnetState telnetState, Path path) throws Exception
+  public static Session replay (TelnetState telnetState, Path path, Executor uiThread)
+      throws Exception
   // ---------------------------------------------------------------------------------//
   {
     SessionReader server = new SessionReader (Source.SERVER, path);
     SessionReader client = new SessionReader (Source.CLIENT, path);
 
-    return load (telnetState, TerminalFunction.REPLAY, client, server);
+    return load (telnetState, TerminalFunction.REPLAY, client, server, uiThread);
   }
 
   // chamado pela MainframeStage.prepareButtons ()
   // ---------------------------------------------------------------------------------//
-  public static Session test (TelnetState telnetState, List<String> lines) throws Exception
+  public static Session test (TelnetState telnetState, List<String> lines,
+      Executor uiThread) throws Exception
   // ---------------------------------------------------------------------------------//
   {
     SessionReader server = new SessionReader (Source.SERVER, lines);
     SessionReader client = new SessionReader (Source.CLIENT, lines);
 
-    return load (telnetState, TerminalFunction.TEST, client, server);
+    return load (telnetState, TerminalFunction.TEST, client, server, uiThread);
   }
 
   // ---------------------------------------------------------------------------------//
   private static Session load (TelnetState telnetState, TerminalFunction function,
-      SessionReader client, SessionReader server) throws Exception
+      SessionReader client, SessionReader server, Executor uiThread) throws Exception
   // ---------------------------------------------------------------------------------//
   {
     Session session = new Session (function);
 
     TelnetListener clientTelnetListener =
-        new TelnetListener (Source.CLIENT, session, function, null, telnetState);
+        new TelnetListener (Source.CLIENT, session, function, null, telnetState,
+            uiThread);
     TelnetListener serverTelnetListener =
-        new TelnetListener (Source.SERVER, session, function, null, telnetState);
+        new TelnetListener (Source.SERVER, session, function, null, telnetState,
+            uiThread);
 
     while (client.nextLineNo () != server.nextLineNo ())
       if (client.nextLineNo () < server.nextLineNo ())

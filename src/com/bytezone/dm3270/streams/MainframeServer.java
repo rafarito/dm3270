@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.concurrent.Executor;
 
 import com.bytezone.dm3270.application.Mainframe;
 import com.bytezone.dm3270.commands.Command;
@@ -13,7 +14,6 @@ import com.bytezone.dm3270.telnet.TelnetCommand;
 import com.bytezone.dm3270.telnet.TelnetSubcommand;
 import com.bytezone.dm3270.telnet.TerminalTypeSubcommand;
 
-import javafx.application.Platform;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,11 +36,25 @@ public class MainframeServer implements Runnable
 
   private Mainframe mainframe;
 
+  /*
+   * Para onde mandar o que so pode acontecer na thread da interface.
+   *
+   * Eram chamadas diretas a Platform.runLater, e por causa delas o pacote streams - que le
+   * bytes de um socket - nomeava o toolkit grafico. O composition root passa
+   * Platform::runLater, que ja satisfaz Executor; um teste passa Runnable::run e o caminho
+   * roda headless.
+   *
+   * E um tipo do JDK de proposito, e nao uma interface nova: a porta teria um metodo so, com
+   * a assinatura exata do Executor, e inventa-la seria cerimonia sem ganho nenhum.
+   */
+  private final Executor uiThread;
+
   // ---------------------------------------------------------------------------------//
-  public MainframeServer (int port)
+  public MainframeServer (int port, Executor uiThread)
   // ---------------------------------------------------------------------------------//
   {
     this.port = port;
+    this.uiThread = uiThread;
   }
 
   // ---------------------------------------------------------------------------------//
@@ -100,7 +114,7 @@ public class MainframeServer implements Runnable
         {
           bytesRead = sanitise (buffer, bytesRead);       // remove 0xFF bytes
           Command command = Command.getReply (buffer, 0, bytesRead);
-          Platform.runLater ( () -> mainframe.receiveCommand (command));
+          uiThread.execute ( () -> mainframe.receiveCommand (command));
         }
       }
     }

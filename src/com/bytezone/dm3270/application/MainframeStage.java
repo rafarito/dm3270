@@ -91,7 +91,7 @@ public class MainframeStage extends Stage implements Mainframe
   {
     this.telnetState = telnetState;
 
-    mainframeServer = new MainframeServer (mainframePort);
+    mainframeServer = new MainframeServer (mainframePort, Platform::runLater);
     mainframeServer.setStage (this);
 
     GuiFactory gui = new GuiFactory ();
@@ -217,7 +217,7 @@ public class MainframeStage extends Stage implements Mainframe
 
     try
     {
-      Session session = SessionLoader.test (telnetState, lines);
+      Session session = SessionLoader.test (telnetState, lines, Platform::runLater);
       List<String> labels = session.getLabels ();
 
       SessionRecord dr = createCommand ();

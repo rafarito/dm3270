@@ -115,7 +115,9 @@ public class Console extends Application
         else
           try
           {
-            Session session = SessionLoader.replay (telnetState, path);   // can throw Exception
+            // can throw Exception
+            Session session =
+                SessionLoader.replay (telnetState, path, Platform::runLater);
             alternateScreenDimensions = session.getScreenDimensions ();
 
             Optional<Site> serverSite = optionStage.serverSitesListStage

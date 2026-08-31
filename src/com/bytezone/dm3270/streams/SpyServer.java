@@ -11,6 +11,8 @@ import java.net.UnknownHostException;
 import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.application.Console;
 import com.bytezone.dm3270.session.Session;
+import java.util.concurrent.Executor;
+
 import com.bytezone.dm3270.runtime.Source;
 import com.bytezone.dm3270.utilities.Site;
 
@@ -36,10 +38,12 @@ public class SpyServer implements Runnable
   private TelnetSocket clientTelnetSocket;
   private TelnetSocket serverTelnetSocket;
   private final Session session;
+  private final Executor uiThread;
   private SessionDisplay screen;
 
   // ---------------------------------------------------------------------------------//
-  public SpyServer (Site server, int clientPort, Session session, TelnetState telnetState)
+  public SpyServer (Site server, int clientPort, Session session,
+      TelnetState telnetState, Executor uiThread)
   // ---------------------------------------------------------------------------------//
   {
     if (server == null)
@@ -55,6 +59,7 @@ public class SpyServer implements Runnable
     this.clientPort = clientPort;
     this.session = session;
     this.telnetState = telnetState;
+    this.uiThread = uiThread;
   }
 
   // ---------------------------------------------------------------------------------//
@@ -87,10 +92,12 @@ public class SpyServer implements Runnable
       // create two SocketListeners and link them to each other
       clientTelnetSocket =
           new TelnetSocket (Source.CLIENT, clientSocket, new TelnetListener (
-              Source.CLIENT, session, TerminalFunction.SPY, screen, telnetState));
+              Source.CLIENT, session, TerminalFunction.SPY, screen, telnetState,
+              uiThread));
       serverTelnetSocket =
           new TelnetSocket (Source.SERVER, serverSocket, new TelnetListener (
-              Source.SERVER, session, TerminalFunction.SPY, screen, telnetState));
+              Source.SERVER, session, TerminalFunction.SPY, screen, telnetState,
+              uiThread));
 
       // TelnetSocket.link() will connect both sockets to each other (bidirectional)
       serverTelnetSocket.link (clientTelnetSocket);
