@@ -203,7 +203,15 @@
               continuarem a ser mortos, e a cobertura pareceria ter melhorado.
             -->
             <param>com.bytezone.dm3270.datasets.*</param>
-            <param>com.bytezone.dm3270.session.SessionReader</param>
+            <!--
+              O pacote inteiro da sessao, e nao so o SessionReader. Session e SessionRecord
+              sairam do JavaFX no passo 5 e ganharam teste proprio; ate ali ficavam de fora
+              porque nao havia como executa-las sem toolkit. Entrar ACRESCENTA DENOMINADOR e
+              por isso pode nao subir a porcentagem - e a direcao honesta, como foi com o
+              SiteValue no passo 3 e o ReportScore no passo 4. O SessionTable saiu do pacote,
+              entao nao entra aqui.
+            -->
+            <param>com.bytezone.dm3270.session.*</param>
             <param>com.bytezone.dm3270.streams.TelnetState</param>
             <param>com.bytezone.dm3270.streams.TerminalServer</param>
             <param>com.bytezone.dm3270.streams.TelnetSocket</param>
