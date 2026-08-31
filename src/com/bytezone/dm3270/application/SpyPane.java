@@ -5,7 +5,6 @@ import java.io.File;
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.session.Session;
-import com.bytezone.dm3270.session.SessionTable;
 import com.bytezone.dm3270.streams.SpyServer;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.utilities.Site;
@@ -39,6 +38,10 @@ public class SpyPane extends BorderPane
 
     SessionTable sessionTable = new SessionTable ();
     Session session = new Session (TerminalFunction.SPY);
+
+    // antes de o SpyServer existir, para que nenhum registro escape da tabela
+    SessionRows sessionRows = new SessionRows ();
+    session.addRecordListener (sessionRows);
 
     spyServer = new SpyServer (serverSite, clientSite.getPort (), session, telnetState);
     spyServer.setScreen (screen);
@@ -76,7 +79,7 @@ public class SpyPane extends BorderPane
                  clientSite.getPort (), serverSite.getURL (), serverSite.getPort ());
 
     sessionTable.setPlaceholder (new Label (message));
-    sessionTable.setItems (session.getDataRecords ());
+    sessionTable.setItems (sessionRows.getRows ());
 
     btnSave.setOnAction ( (e) ->
     {

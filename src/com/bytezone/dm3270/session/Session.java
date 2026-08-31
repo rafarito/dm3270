@@ -27,8 +27,6 @@ import com.bytezone.dm3270.runtime.Source;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.control.Label;
 
 // -----------------------------------------------------------------------------------//
@@ -37,8 +35,8 @@ public class Session implements Iterable<SessionRecord>
 {
   private static final Logger logger = LoggerFactory.getLogger (Session.class);
 
-  private final ObservableList<SessionRecord> sessionRecords =
-      FXCollections.observableArrayList ();
+  private final List<SessionRecord> sessionRecords = new ArrayList<> ();
+  private final List<SessionRecordListener> recordListeners = new ArrayList<> ();
   private final TerminalFunction function;
 
   private String clientName = null;
@@ -114,6 +112,10 @@ public class Session implements Iterable<SessionRecord>
       throw new IllegalArgumentException ("DataRecord is null");
 
     sessionRecords.add (sessionRecord);       // should this be concurrent?
+
+    // a ObservableList notificava exatamente aqui, antes da identificacao abaixo
+    for (SessionRecordListener listener : recordListeners)
+      listener.recordAdded (sessionRecord);
 
     // this code checks to see whether it can identify the client and/or server
     if (function != TerminalFunction.TERMINAL && sessionRecord.isCommand ())
@@ -204,11 +206,24 @@ public class Session implements Iterable<SessionRecord>
         .setText (String.format ("%s : %s", getServerName (), getClientName ())));
   }
 
+  /*
+   * Entrega ao novo ouvinte tudo o que ja chegou, e so entao o registra. Os dois passos estao
+   * sob o mesmo synchronized de add () de proposito: no modo Spy a thread do socket pode estar
+   * acrescentando enquanto a interface se inscreve, e uma janela entre ler e assinar perderia
+   * registros. Antes nao havia janela nenhuma porque a lista era compartilhada; agora nao ha
+   * porque a inscricao e atomica.
+   *
+   * E tambem o que faz REPLAY e SPY passarem pelo mesmo caminho: no primeiro a sessao ja esta
+   * inteira carregada quando a janela e montada, no segundo ela esta vazia.
+   */
   // ---------------------------------------------------------------------------------//
-  public ObservableList<SessionRecord> getDataRecords ()
+  public synchronized void addRecordListener (SessionRecordListener listener)
   // ---------------------------------------------------------------------------------//
   {
-    return sessionRecords;
+    for (SessionRecord sessionRecord : sessionRecords)
+      listener.recordAdded (sessionRecord);
+
+    recordListeners.add (listener);
   }
 
   // ---------------------------------------------------------------------------------//

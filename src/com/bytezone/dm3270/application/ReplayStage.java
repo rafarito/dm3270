@@ -7,7 +7,6 @@ import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.session.Session;
 import com.bytezone.dm3270.session.SessionRecord;
 import com.bytezone.dm3270.session.SessionRecord.SessionRecordType;
-import com.bytezone.dm3270.session.SessionTable;
 import com.bytezone.dm3270.utilities.WindowSaver;
 
 import javafx.application.Platform;
@@ -54,6 +53,9 @@ class ReplayStage extends Stage
     checkBoxes.setPadding (new Insets (10, 10, 10, 10));            // trbl
     checkBoxes.getChildren ().addAll (showTelnetCB, show3270ECB);
 
+    SessionRows sessionRows = new SessionRows ();
+    session.addRecordListener (sessionRows);
+
     SessionTable sessionTable = new SessionTable ();
     CommandPane commandPane =
         new CommandPane (sessionTable, CommandPane.ProcessInstruction.DoProcess);
@@ -63,8 +65,8 @@ class ReplayStage extends Stage
 
     setTitle ("Replay Commands - " + path.getFileName ());
 
-    ObservableList<SessionRecord> masterData = session.getDataRecords ();
-    FilteredList<SessionRecord> filteredData = new FilteredList<> (masterData, p -> true);
+    ObservableList<SessionRow> masterData = sessionRows.getRows ();
+    FilteredList<SessionRow> filteredData = new FilteredList<> (masterData, p -> true);
 
     ChangeListener<? super Boolean> changeListener =
         (observable, oldValue, newValue) -> change (sessionTable, filteredData);
@@ -81,11 +83,11 @@ class ReplayStage extends Stage
     showTelnetCB.setSelected (showTelnet);
     show3270ECB.setSelected (showExtended);
 
-    SortedList<SessionRecord> sortedData = new SortedList<> (filteredData);
+    SortedList<SessionRow> sortedData = new SortedList<> (filteredData);
     sortedData.comparatorProperty ().bind (sessionTable.comparatorProperty ());
     sessionTable.setItems (sortedData);
 
-    displayFirstScreen (session, sessionTable);
+    displayFirstScreen (session, sessionRows, sessionTable);
 
     setOnCloseRequest (e -> Platform.exit ());
 
@@ -109,7 +111,8 @@ class ReplayStage extends Stage
     setScene (scene);
   }
 
-  private void displayFirstScreen (Session session, SessionTable table)
+  private void displayFirstScreen (Session session, SessionRows sessionRows,
+      SessionTable table)
   {
     // look for the first useful screen
     int[] screenSizes = { 2306, 2301, 2206, 1957, 2309, 3194, 1372 };
@@ -132,25 +135,25 @@ class ReplayStage extends Stage
       return;
     }
 
-    table.getSelectionModel ().select (dataRecord);
+    table.getSelectionModel ().select (sessionRows.rowFor (dataRecord));
     int index = table.getSelectionModel ().getSelectedIndex ();
     table.scrollTo (index);
   }
 
-  private void change (SessionTable table, FilteredList<SessionRecord> filteredData)
+  private void change (SessionTable table, FilteredList<SessionRow> filteredData)
   {
     // get the previously selected line
-    SessionRecord selectedRecord = table.getSelectionModel ().getSelectedItem ();
+    SessionRow selectedRow = table.getSelectionModel ().getSelectedItem ();
 
-    // change the filter predicate
-    filteredData.setPredicate (sessionRecord -> sessionRecord.isTN3270 ()
-        || (sessionRecord.isTelnet () && showTelnetCB.isSelected ())
-        || (sessionRecord.isTN3270Extended () && show3270ECB.isSelected ()));
+    // change the filter predicate - o tipo continua vindo do registro, nao da linha
+    filteredData.setPredicate (row -> row.getRecord ().isTN3270 ()
+        || (row.getRecord ().isTelnet () && showTelnetCB.isSelected ())
+        || (row.getRecord ().isTN3270Extended () && show3270ECB.isSelected ()));
 
     // restore the previously selected item (if it is still visible)
-    if (selectedRecord != null)
+    if (selectedRow != null)
     {
-      table.getSelectionModel ().select (selectedRecord);
+      table.getSelectionModel ().select (selectedRow);
       table.requestFocus ();
     }
   }

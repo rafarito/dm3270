@@ -9,7 +9,6 @@ import com.bytezone.dm3270.extended.AbstractExtendedCommand;
 import com.bytezone.dm3270.extended.CommandHeader;
 import com.bytezone.dm3270.session.SessionRecord;
 import com.bytezone.dm3270.session.SessionRecord.SessionRecordType;
-import com.bytezone.dm3270.session.SessionTable;
 import com.bytezone.dm3270.runtime.Source;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
@@ -56,7 +55,8 @@ class CommandPane extends TabPane
                        tabReplyBuffer);
 
     sessionTable.getSelectionModel ().selectedItemProperty ()
-        .addListener ( (observable, oldValue, newValue) -> replay (newValue));
+        .addListener ( (observable, oldValue, newValue) -> replay (
+            newValue == null ? null : newValue.getRecord ()));
   }
 
   public void setScreen (Screen screen)

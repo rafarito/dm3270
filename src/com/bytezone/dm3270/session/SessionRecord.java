@@ -184,6 +184,19 @@ public class SessionRecord
     return commandNameProperty ().get ();
   }
 
+  /*
+   * O texto que a coluna mm:ss mostra. NAO se chama getTime () porque esse nome ja esta tomado
+   * logo acima, por um getter que devolve o commandName - um defeito preservado sob a Regra 1,
+   * registrado no backlog. Dar o nome certo ao acessor certo e o que impede a projecao de
+   * copiar o defeito sem perceber.
+   */
+  // ---------------------------------------------------------------------------------//
+  public String getTimeText ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return timeProperty ().get ();
+  }
+
   // ---------------------------------------------------------------------------------//
   public StringProperty timeProperty ()
   // ---------------------------------------------------------------------------------//
