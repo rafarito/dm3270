@@ -362,6 +362,76 @@ A correção é um `return` depois do `logger.warn`, ou um `if (subcommand != nu
 
 ---
 
+## 13. `SessionRow.getTime ()` devolve o nome do comando, não a hora
+
+**Arquivo:** [application/SessionRow.java](src/com/bytezone/dm3270/application/SessionRow.java)
+
+```java
+public final String getTime ()
+{
+  return commandNameProperty ().get ();     // <- deveria ser timeProperty ()
+}
+```
+
+O getter lê a *property errada*. Onde deveria devolver o `mm:ss` do registro, devolve o nome
+do comando — `"Write"`, `"Read SF"` — e devolve `null` quando a mensagem não tem nome, ainda
+que a hora esteja preenchida.
+
+**Hoje é latente, e há duas razões para isso.** A coluna `mm:ss` do `SessionTable` se liga
+pela string `"time"`, e o `PropertyValueFactory` resolve `timeProperty ()` antes de procurar
+um getter — então a tabela nunca chega a este método. E nenhum arquivo de `src/` ou `test/` o
+chama: foi verificado por *grep* antes de mover a classe.
+
+**Por que ele foi movido em vez de corrigido.** O defeito nasceu dentro do `SessionRecord` e
+veio junto quando a linha da tabela foi separada dele, no Passo 5. Corrigir seria um commit
+`fix` nesta branch, que a Regra 1 proíbe. O que o passo fez foi impedir que ele *deixasse* de
+ser latente: uma projeção que copiasse campo a campo pelos getters — que é o padrão de
+`TableDatasets` — ativaria o defeito e poria o nome do comando na coluna da hora. Por isso o
+`SessionRecord` expõe `getTimeText ()`, com nome diferente, e é dele que a linha copia.
+
+`SessionRowTest` congela as duas faces do defeito, e é o teste que precisa ser invertido no
+dia em que alguém corrigir isto.
+
+---
+
+## 14. Os registros de sessão são acrescentados fora da thread do JavaFX
+
+**Arquivos:** [streams/TelnetListener.java](src/com/bytezone/dm3270/streams/TelnetListener.java)
+— `processRecord`, [session/Session.java](src/com/bytezone/dm3270/session/Session.java) — `add`,
+[application/SessionRows.java](src/com/bytezone/dm3270/application/SessionRows.java)
+
+No modo Spy, `SpyServer` sobe duas threads de socket. Cada uma chega, pela cadeia
+`TelnetSocket.listen` → `TelnetListener.processRecord`, a `session.add (sessionRecord)` — e
+`add` avisa os ouvintes, que acrescentam uma linha à `ObservableList` que a `SessionTable`
+está observando naquele instante. **Nada disso passa por `Platform.runLater`.**
+
+Mutar uma coleção observável ligada ao grafo de cena a partir de outra thread não tem
+garantia nenhuma no JavaFX: a `TableView` pode ler a lista no meio da alteração. Na prática
+raramente se manifesta, porque a inserção é rápida e a tabela repinta por pulsação.
+
+**O código sabe.** Os dois comentários estão lá desde antes desta refatoração:
+
+```java
+// add the SessionRecord to the Session - is it OK to do this from a non-EDT?   TelnetListener
+sessionRecords.add (sessionRecord);       // should this be concurrent?         Session
+```
+
+E o `Platform.runLater` que existe logo abaixo, no mesmo método, protege **apenas** o
+`processMessage` do modo Terminal — não o `add`.
+
+**Não é o item 7.** Aquele é sobre os campos públicos mutáveis das requisições de banco
+atravessando a fila do `DatabaseThread`; este é sobre a thread que escreve numa coleção do
+JavaFX.
+
+**O Passo 5 reproduziu isto de propósito.** A `Session` deixou de guardar a `ObservableList`,
+que agora vive em `application.SessionRows`, mas o aviso continua saindo da thread do socket
+e a inserção continua acontecendo nela. Envolver a notificação em `runLater` mudaria o
+instante em que cada linha aparece na tabela, e o `SessionRecordListener` documenta a escolha.
+A correção é decidir onde o `runLater` entra — provavelmente em `SessionRows.recordAdded`, que
+é a única implementação e já está do lado da interface.
+
+---
+
 ## Onde estão os defeitos que a refatoração *vai* resolver
 
 Estes não estão nesta lista porque não são mudança de comportamento:
