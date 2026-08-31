@@ -26,6 +26,7 @@ import com.bytezone.dm3270.screen.ScreenOption;
 import com.bytezone.dm3270.datasets.DatasetStore;
 import com.bytezone.dm3270.screen.ScreenPosition;
 import com.bytezone.dm3270.screen.ScreenTarget;
+import com.bytezone.dm3270.streams.SessionDisplay;
 import com.bytezone.dm3270.streams.TelnetState;
 
 /*
@@ -66,7 +67,7 @@ import com.bytezone.dm3270.streams.TelnetState;
  * interno.
  */
 // -----------------------------------------------------------------------------------//
-public final class HeadlessScreenTarget implements ScreenTarget, CursorHost, FieldHost
+public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, FieldHost
 // -----------------------------------------------------------------------------------//
 {
   // metricas fixas: nada e desenhado de verdade, mas ScreenPosition.draw as le
@@ -262,6 +263,19 @@ public final class HeadlessScreenTarget implements ScreenTarget, CursorHost, Fie
   {
     List<Field> unprotected = fieldManager.getUnprotectedFields ();
     return unprotected.isEmpty () ? Optional.empty () : Optional.of (unprotected.get (0));
+  }
+
+  // ---------------------------------------------------------------------------------//
+  // A porta SessionDisplay, que o ScreenTarget nao cobre
+  //
+  // E a unica coisa que o TelnetListener pede a tela como widget: o resumo do telnet,
+  // escrito quando o socket cai. Anotada em calls, como o resto do que nao mexe no buffer.
+  // ---------------------------------------------------------------------------------//
+
+  @Override
+  public void displayText (String text)
+  {
+    calls.add ("displayText:" + text);
   }
 
   // ---------------------------------------------------------------------------------//
