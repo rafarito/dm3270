@@ -8,7 +8,6 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.Executor;
 
-import com.bytezone.dm3270.application.Mainframe;
 import com.bytezone.dm3270.commands.Command;
 import com.bytezone.dm3270.telnet.TelnetCommand;
 import com.bytezone.dm3270.telnet.TelnetSubcommand;

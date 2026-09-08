@@ -388,13 +388,26 @@ class LayeringTest
    * o TelnetListener produz SessionRecord e o SpyServer repassa a Session. E a quinta vez que
    * a leitura do codigo contradisse o plano, e a segunda vez que contradisse para melhor.
    *
-   * OS 12 QUE SOBRAM sao de duas naturezas. Inerentes ao 3270, e nao se pretende mexer:
+   * E caiu a 11, no passo 6, e de novo contra o que estava escrito aqui. O paragrafo acima
+   * classificava os quatro de streams como dependentes do composition root. A medicao aresta
+   * por aresta - a mesma dos dois greps da licao 1 - mostrou que streams -> application era
+   * sustentada por UM tipo vivo: a interface Mainframe, sete linhas e um metodo, que morava em
+   * application. O outro import, o de Console em SpyServer, estava morto havia ondas e nunca
+   * chegou a contar, porque esta contagem le bytecode e nao declaracao de import.
+   *
+   * Mainframe nao e composicao de aplicacao: e o que o MainframeServer chama quando um comando
+   * chega do cliente. Pela regra desta refatoracao a porta se declara no pacote que CONSOME,
+   * entao ela foi para streams e application.MainframeStage continua implementando. Mesmo
+   * corte de SessionDisplay na onda 3 e de ReportContext no passo 4, e nenhuma aresta nova:
+   * Mainframe nomeia commands.Command, e streams -> commands ja existia.
+   *
+   * OS 11 QUE SOBRAM sao de duas naturezas. Inerentes ao 3270, e nao se pretende mexer:
    * commands <-> screen (um ReadCommand pede a tela que produza um AIDCommand, e AIDCommand e
    * comando de protocolo), attributes <-> screen, attributes <-> orders, orders <-> screen,
    * commands <-> structuredfields. Acidentais que ficam para as ondas seguintes:
    * filetransfer <-> screen e commands <-> filetransfer, que dependem de tirar
-   * getTransferManager () do ScreenTarget; e os quatro de streams - application, buffers,
-   * commands e telnet -, que dependem do composition root.
+   * getTransferManager () do ScreenTarget; e os tres de streams - buffers, commands e
+   * telnet -, dos quais so streams <-> telnet e mesmo estrutural.
    *
    * SOBRA UM DE reporter, e ele NAO e alvo: record <-> text. Vem de tres metodos de TextMaker
    * que recebem Record - getText, test e countAlphanumericBytes - e que so desempacotam
@@ -402,7 +415,7 @@ class LayeringTest
    * layout de Record, por convencao espalhada em oito chamadores em vez de por tipo. Seria
    * trocar desenho por placar, e a decisao de deixar como esta foi tomada com o usuario.
    */
-  private static final int MAX_MUTUAL_CYCLES = 12;
+  private static final int MAX_MUTUAL_CYCLES = 11;
 
   // ---------------------------------------------------------------------------------//
   @ArchTest
