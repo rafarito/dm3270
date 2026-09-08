@@ -354,7 +354,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   @Override
   public ReadStructuredFieldCommand buildQueryReply ()
   {
-    return new ReadStructuredFieldCommand (telnetState);
+    return new ReadStructuredFieldCommand (telnetState.getSecondary ());
   }
 
   // ---------------------------------------------------------------------------------//

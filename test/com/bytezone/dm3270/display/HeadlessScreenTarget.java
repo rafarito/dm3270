@@ -485,7 +485,7 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
   public ReadStructuredFieldCommand buildQueryReply ()
   // -------------------------------------------------------------------------------//
   {
-    return new ReadStructuredFieldCommand (telnetState);
+    return new ReadStructuredFieldCommand (telnetState.getSecondary ());
   }
 
   // O TelnetState real do dublê, para quem quiser inspecionar a negociacao.

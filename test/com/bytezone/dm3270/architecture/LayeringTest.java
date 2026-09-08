@@ -401,13 +401,20 @@ class LayeringTest
    * corte de SessionDisplay na onda 3 e de ReportContext no passo 4, e nenhuma aresta nova:
    * Mainframe nomeia commands.Command, e streams -> commands ja existia.
    *
-   * OS 11 QUE SOBRAM sao de duas naturezas. Inerentes ao 3270, e nao se pretende mexer:
+   * E caiu a 10, no mesmo passo e pelo mesmo metodo. commands -> streams era um import, num
+   * arquivo, para um metodo: o construtor ReadStructuredFieldCommand (TelnetState) chamava
+   * buildReply, e buildReply lia getSecondary () e mais nada das 483 linhas do TelnetState -
+   * so para chegar num ScreenDimensions. Estreitar o parametro para o que ele de fato usa
+   * zerou a direcao. Quem constroi continua sendo Screen.buildQueryReply (), que tem o
+   * TelnetState em maos e agora passa telnetState.getSecondary (): a mesma leitura, no mesmo
+   * instante, feita por quem ja conhece os dois lados.
+   *
+   * OS 10 QUE SOBRAM sao de duas naturezas. Inerentes ao 3270, e nao se pretende mexer:
    * commands <-> screen (um ReadCommand pede a tela que produza um AIDCommand, e AIDCommand e
    * comando de protocolo), attributes <-> screen, attributes <-> orders, orders <-> screen,
    * commands <-> structuredfields. Acidentais que ficam para as ondas seguintes:
    * filetransfer <-> screen e commands <-> filetransfer, que dependem de tirar
-   * getTransferManager () do ScreenTarget; e os tres de streams - buffers, commands e
-   * telnet -, dos quais so streams <-> telnet e mesmo estrutural.
+   * getTransferManager () do ScreenTarget; e os dois de streams - buffers e telnet.
    *
    * SOBRA UM DE reporter, e ele NAO e alvo: record <-> text. Vem de tres metodos de TextMaker
    * que recebem Record - getText, test e countAlphanumericBytes - e que so desempacotam
@@ -415,7 +422,7 @@ class LayeringTest
    * layout de Record, por convencao espalhada em oito chamadores em vez de por tipo. Seria
    * trocar desenho por placar, e a decisao de deixar como esta foi tomada com o usuario.
    */
-  private static final int MAX_MUTUAL_CYCLES = 11;
+  private static final int MAX_MUTUAL_CYCLES = 10;
 
   // ---------------------------------------------------------------------------------//
   @ArchTest

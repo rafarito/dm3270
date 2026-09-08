@@ -64,7 +64,7 @@ class ReadStructuredFieldCommandTest
     void listsTenReplies ()
     {
       ReadStructuredFieldCommand command =
-          new ReadStructuredFieldCommand (new TelnetState ());
+          new ReadStructuredFieldCommand (new TelnetState ().getSecondary ());
 
       assertEquals (10, count (command.toString (), "Type       :"),
                     command.toString ());
@@ -75,7 +75,7 @@ class ReadStructuredFieldCommandTest
     void startsWithAid ()
     {
       ReadStructuredFieldCommand command =
-          new ReadStructuredFieldCommand (new TelnetState ());
+          new ReadStructuredFieldCommand (new TelnetState ().getSecondary ());
 
       assertEquals (AIDCommand.AID_STRUCTURED_FIELD, command.getData ()[0]);
       assertEquals ("Read SF", command.getName ());
@@ -90,7 +90,7 @@ class ReadStructuredFieldCommandTest
       telnetState.setDeviceType ("IBM-3278-" + model + "-E");
 
       ReadStructuredFieldCommand command =
-          new ReadStructuredFieldCommand (telnetState);
+          new ReadStructuredFieldCommand (telnetState.getSecondary ());
 
       ScreenDimensions dimensions = command.getScreenDimensions ();
 
@@ -104,7 +104,7 @@ class ReadStructuredFieldCommandTest
     void identifiesItself ()
     {
       ReadStructuredFieldCommand command =
-          new ReadStructuredFieldCommand (new TelnetState ());
+          new ReadStructuredFieldCommand (new TelnetState ().getSecondary ());
 
       assertTrue (command.toString ().contains ("dm3270"), command.toString ());
     }
@@ -114,7 +114,7 @@ class ReadStructuredFieldCommandTest
     void everythingIsListedInTheSummary ()
     {
       ReadStructuredFieldCommand command =
-          new ReadStructuredFieldCommand (new TelnetState ());
+          new ReadStructuredFieldCommand (new TelnetState ().getSecondary ());
 
       String text = command.toString ();
 
@@ -130,7 +130,7 @@ class ReadStructuredFieldCommandTest
       telnetState.setDeviceType ("IBM-3278-2-E");
 
       ReadStructuredFieldCommand command =
-          new ReadStructuredFieldCommand (telnetState);
+          new ReadStructuredFieldCommand (telnetState.getSecondary ());
 
       String text = command.toString ();
 
@@ -144,7 +144,7 @@ class ReadStructuredFieldCommandTest
     void generatedReplyIsParseable ()
     {
       byte[] buffer =
-          new ReadStructuredFieldCommand (new TelnetState ()).getData ();
+          new ReadStructuredFieldCommand (new TelnetState ().getSecondary ()).getData ();
 
       ReadStructuredFieldCommand parsed = new ReadStructuredFieldCommand (buffer);
 
@@ -156,7 +156,7 @@ class ReadStructuredFieldCommandTest
     @DisplayName ("process nao precisa de tela")
     void processIsANoOp ()
     {
-      new ReadStructuredFieldCommand (new TelnetState ()).process (null);
+      new ReadStructuredFieldCommand (new TelnetState ().getSecondary ()).process (null);
     }
   }
 
