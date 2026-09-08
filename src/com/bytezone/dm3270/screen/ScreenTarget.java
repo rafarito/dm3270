@@ -130,10 +130,26 @@ public interface ScreenTarget extends DisplayScreen, KeyboardState
   ReadStructuredFieldCommand buildQueryReply ();
 
   /*
-   * TODO (onda 3): esta e a ultima aresta do modelo de tela para fora do protocolo.
-   * FileTransferOutboundSF.process pede o gerenciador a tela porque quem o possui e a
-   * Screen, que possui tudo. Quando a Screen for decomposta, o gerenciador passa a ser
-   * injetado pelo composition root e este metodo sai daqui.
+   * TODO: esta e a ultima aresta do modelo de tela para fora do protocolo, e sustenta dois dos
+   * tres ciclos mutuos acidentais que restam - filetransfer <-> screen e
+   * commands <-> filetransfer. FileTransferOutboundSF.process pede o gerenciador a tela porque
+   * quem o possui e a Screen, que possui tudo, e porque quem despacha o comando montado a
+   * partir de bytes so tem a tela na mao.
+   *
+   * A etiqueta dizia "onda 3" e envelheceu: a onda 3 nao o tirou, e o passo 6 tambem nao.
+   *
+   * TRES SAIDAS JA FORAM MEDIDAS E RECUSADAS, e ficam registradas para ninguem reavaliar:
+   *
+   *   1. interface-marcador com cast - troca a violacao de camada por algo pior;
+   *   2. Buffer.process recebendo um contexto de sessao - refactor de assinatura em 25
+   *      implementacoes, com o golden master no caminho;
+   *   3. uma porta estreita declarada AQUI, que e o padrao desta refatoracao e foi o que
+   *      derrubou o ciclo do reporter no passo 4. Medida no passo 6, e NAO SERVE: os quatro
+   *      metodos que FileTransferOutboundSF chama - openTransfer, getTransfer, process e
+   *      closeTransfer - sao package-private, devolvem Optional<Transfer> e recebem
+   *      FileTransferOutboundSF. A porta nomearia filetransfer de qualquer jeito.
+   *
+   * Sai quando o composition root assumir a fiacao e injetar o gerenciador em quem precisa.
    */
   TransferManager getTransferManager ();
 
