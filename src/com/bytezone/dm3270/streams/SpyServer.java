@@ -9,7 +9,6 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import com.bytezone.dm3270.runtime.TerminalFunction;
-import com.bytezone.dm3270.application.Console;
 import com.bytezone.dm3270.session.Session;
 import java.util.concurrent.Executor;
 
