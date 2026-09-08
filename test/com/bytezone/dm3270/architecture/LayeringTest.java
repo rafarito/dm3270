@@ -228,6 +228,41 @@ class LayeringTest
           .because ("quem le bytes de um socket nao decide em que thread a tela desenha");
 
   /*
+   * As duas regras que o passo 6 acrescenta, e as duas nascem em zero - pelo mesmo motivo das
+   * duas do passo 5. A congelada ja cobria os tres pacotes, mas cobre por AUSENCIA no
+   * baseline, e um baseline pode ser refrozen; uma regra nua nao pode ser absorvida por
+   * comando nenhum. E a regra 5 na direcao contraria: apertar a rede assim que o refactor a
+   * torna apertavel.
+   *
+   * A primeira tranca a direcao do composition root. streams nomeava application por um tipo
+   * vivo so - a interface Mainframe, que agora e declarada aqui, do lado que a consome - e por
+   * um import morto de Console em SpyServer. Enquanto valer, application monta o grafo de
+   * objetos e ninguem o nomeia de volta, sem excecao documentada nenhuma.
+   *
+   * A segunda protege os dois cortes de dentro do protocolo. NAO PODE SER PROTOCOL_PACKAGES
+   * INTEIRO, e isso e o ponto: telnet depende de TelnetState legitimamente - TelnetCommand e
+   * as duas subclasses de subcomando negociam contra ele -, e streams <-> telnet e um dos
+   * ciclos que ficam. O que a regra diz e mais estreito e verdadeiro: um bloco de bytes
+   * (buffers) e um comando 3270 (commands) nao tem por que saber que existe uma sessao telnet.
+   */
+  // ---------------------------------------------------------------------------------//
+  @ArchTest
+  static final ArchRule streamsDoesNotDependOnApplication =                             //
+      noClasses ().that ().resideInAnyPackage (STREAMS)                                 //
+          .should ().dependOnClassesThat ()                                             //
+          .resideInAnyPackage ("com.bytezone.dm3270.application..")                     //
+          .because ("quem le bytes de um socket nao conhece o composition root");
+
+  // ---------------------------------------------------------------------------------//
+  @ArchTest
+  static final ArchRule buffersAndCommandsDoNotKnowStreams =                            //
+      noClasses ().that ()                                                              //
+          .resideInAnyPackage ("com.bytezone.dm3270.buffers..",                         //
+                               "com.bytezone.dm3270.commands..")                        //
+          .should ().dependOnClassesThat ().resideInAnyPackage (STREAMS)                //
+          .because ("o bloco de bytes e o comando 3270 nao conhecem a sessao telnet");
+
+  /*
    * A terceira regra a valer integralmente.
    *
    * Comecou em 14 violacoes, de tres causas: os eventos de teclado, que foram para o pacote
@@ -236,8 +271,10 @@ class LayeringTest
    * aplicacao; e o ConsolePane, que a Screen guardava inteiro para chamar tres metodos.
    *
    * NAO ESTA CONGELADA. O pacote application e o composition root: ele monta o grafo de
-   * objetos e por isso conhece todo mundo. Ninguem conhece ele de volta - com uma excecao
-   * documentada, streams, que ainda usa Mainframe e Console em MainframeServer e SpyServer.
+   * objetos e por isso conhece todo mundo. Ninguem conhece ele de volta, e desde o passo 6
+   * isso vale SEM EXCECAO: a ultima era streams, por Mainframe em MainframeServer e por um
+   * import morto de Console em SpyServer, e as duas cairam. A regra
+   * streamsDoesNotDependOnApplication, acima, e o que impede a excecao de voltar.
    */
   // ---------------------------------------------------------------------------------//
   @ArchTest
