@@ -409,12 +409,36 @@ class LayeringTest
    * TelnetState em maos e agora passa telnetState.getSecondary (): a mesma leitura, no mesmo
    * instante, feita por quem ja conhece os dois lados.
    *
-   * OS 10 QUE SOBRAM sao de duas naturezas. Inerentes ao 3270, e nao se pretende mexer:
+   * E caiu a 9, fechando o passo 6. buffers -> streams era um import num arquivo de vinte
+   * linhas: AbstractTelnetCommand, que guarda um campo protected TelnetState e NAO O USA -
+   * quem le sao as subclasses, e as subclasses que existem sao duas, TelnetCommand e
+   * TelnetSubcommand, as duas em telnet. buffers e a abstracao mais baixa do sistema, um bloco
+   * de bytes vindo do socket, e o pacote inteiro so nomeava tres coisas de fora; que uma delas
+   * fosse o estado de uma sessao telnet era acidente historico, nao camada.
+   *
+   * A classe foi para junto de quem a estende, e continua estendendo
+   * buffers.AbstractReplyBuffer - telnet -> buffers ja existia e nao muda. Isto e movimento de
+   * classe, entao vale dizer por que nao e desonestidade de placar (regra 5): depois dele
+   * buffers nao conhece streams em
+   * ponto nenhum, e o pacote volta a ser so a abstracao de bloco de bytes. O acoplamento caiu;
+   * nao foi trocado de rotulo.
+   *
+   * OS 9 QUE SOBRAM sao de duas naturezas. Inerentes ao 3270, e nao se pretende mexer:
    * commands <-> screen (um ReadCommand pede a tela que produza um AIDCommand, e AIDCommand e
    * comando de protocolo), attributes <-> screen, attributes <-> orders, orders <-> screen,
-   * commands <-> structuredfields. Acidentais que ficam para as ondas seguintes:
+   * commands <-> structuredfields - sao CINCO, e nao se espera que caiam. Acidentais, TRES:
    * filetransfer <-> screen e commands <-> filetransfer, que dependem de tirar
-   * getTransferManager () do ScreenTarget; e os dois de streams - buffers e telnet.
+   * getTransferManager () do ScreenTarget; e streams <-> telnet, o unico que e mesmo
+   * estrutural - TelnetListener implementa TelnetCommandProcessor, o enum aninhado
+   * TN3270ExtendedSubcommand.Function e campo de TelnetState, e sao ~30 call sites.
+   *
+   * E A TERCEIRA SAIDA PARA O getTransferManager () TAMBEM ESTA FECHADA, medido no passo 6. O
+   * relatorio ja registrava duas recusadas - interface-marcador com cast, e mudar
+   * Buffer.process para receber um contexto de sessao. A terceira seria o padrao desta
+   * refatoracao: declarar em screen uma porta estreita com o que o parser realmente usa. Nao
+   * serve. Os quatro metodos que FileTransferOutboundSF chama - openTransfer, getTransfer,
+   * process e closeTransfer - sao package-private, devolvem Optional<Transfer> e recebem
+   * FileTransferOutboundSF: a porta nomearia filetransfer de qualquer jeito.
    *
    * SOBRA UM DE reporter, e ele NAO e alvo: record <-> text. Vem de tres metodos de TextMaker
    * que recebem Record - getText, test e countAlphanumericBytes - e que so desempacotam
@@ -422,7 +446,7 @@ class LayeringTest
    * layout de Record, por convencao espalhada em oito chamadores em vez de por tipo. Seria
    * trocar desenho por placar, e a decisao de deixar como esta foi tomada com o usuario.
    */
-  private static final int MAX_MUTUAL_CYCLES = 10;
+  private static final int MAX_MUTUAL_CYCLES = 9;
 
   // ---------------------------------------------------------------------------------//
   @ArchTest
