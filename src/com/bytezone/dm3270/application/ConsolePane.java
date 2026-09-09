@@ -326,7 +326,6 @@ public class ConsolePane extends BorderPane
   }
 
   // called from Console.startSelectedFunction()
-  // called from Terminal.start()
   void connect ()
   {
     if (server == null)
