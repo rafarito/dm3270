@@ -13,7 +13,6 @@ import com.bytezone.dm3270.utilities.FileSaver;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 
@@ -66,13 +65,6 @@ class TreePanel
     fileTree.setRoot (root);
     fileTree.setStyle ("-fx-font-size: 12; -fx-font-family: Monospaced");
     fileTree.setShowRoot (false);
-
-    if (false)
-    {
-      EventHandler<TreeItem.TreeModificationEvent<FileNode>> expandListener =
-          (TreeItem.TreeModificationEvent<FileNode> node) -> openDirectory (node);
-      root.addEventHandler (TreeItem.<FileNode> branchExpandedEvent (), expandListener);
-    }
 
     ChangeListener<TreeItem<FileNode>> changeListener =
         (observable, oldValue, newValue) -> selection (newValue);
@@ -230,14 +222,6 @@ class TreePanel
     TreeItem<FileNode> newItem = new TreeItem<> (fileNode);
     fileNode.setTreeItem (newItem);
     return newItem;
-  }
-
-  // ---------------------------------------------------------------------------------//
-  public void openDirectory (TreeItem.TreeModificationEvent<FileNode> evt)
-  // ---------------------------------------------------------------------------------//
-  {
-    TreeItem<FileNode> treeItem = evt.getSource ();
-    logger.info ("Open: {}", treeItem);
   }
 
   // ---------------------------------------------------------------------------------//
