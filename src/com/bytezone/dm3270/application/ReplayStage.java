@@ -78,11 +78,9 @@ class ReplayStage extends Stage
     showTelnetCB.selectedProperty ().addListener (changeListener);
     show3270ECB.selectedProperty ().addListener (changeListener);
 
-    if (true)         // this sucks - remove it when java works properly
-    {
-      showTelnetCB.setSelected (true);          // must be a bug
-      show3270ECB.setSelected (true);
-    }
+    // this sucks - remove it when java works properly
+    showTelnetCB.setSelected (true);            // must be a bug
+    show3270ECB.setSelected (true);
 
     showTelnetCB.setSelected (showTelnet);
     show3270ECB.setSelected (showExtended);
@@ -122,13 +120,12 @@ class ReplayStage extends Stage
     int[] screenSizes = { 2306, 2301, 2206, 1957, 2309, 3194, 1372 };
     SessionRecord dataRecord = null;
 
-    if (true)
-      for (int screenSize : screenSizes)
-      {
-        dataRecord = session.getBySize (screenSize);
-        if (dataRecord != null)
-          break;
-      }
+    for (int screenSize : screenSizes)
+    {
+      dataRecord = session.getBySize (screenSize);
+      if (dataRecord != null)
+        break;
+    }
 
     if (dataRecord == null)
       dataRecord = session.getNext (SessionRecordType.TN3270);

@@ -182,12 +182,9 @@ class PenType1 implements Pen
   {
     if (pendingAttributes.size () > 0)
     {
-      if (true)
-      {
-        logger.debug ("Unapplied attributes at {}", currentPosition);
-        for (Attribute attribute : pendingAttributes)
-          logger.debug ("{}", attribute);
-      }
+      logger.debug ("Unapplied attributes at {}", currentPosition);
+      for (Attribute attribute : pendingAttributes)
+        logger.debug ("{}", attribute);
       applyAttributes (screenPositions[currentPosition]);
     }
     currentPosition = validate (position);
