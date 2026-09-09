@@ -8,8 +8,9 @@ package com.bytezone.dm3270.watch;
  * FieldManager a quem so queria ser avisado. Era a outra razao pela qual assistant nomeava
  * display.
  *
- * Um metodo so, de proposito: removeScreenChangeListener existe no FieldManager e nao tem
- * chamador nenhum no projeto. Uma porta declara o que se usa.
+ * Um metodo so, de proposito. O FieldManager tinha tambem um removeScreenChangeListener, que
+ * nunca teve chamador nenhum no projeto e foi removido na limpeza do passo 10. Uma porta
+ * declara o que se usa.
  */
 // -----------------------------------------------------------------------------------//
 public interface ScreenChangeSource

@@ -14,9 +14,9 @@ import com.bytezone.dm3270.screen.Field;
  *
  * Sao sete metodos, levantados do codigo e nao imaginados: getFields e getMenus para
  * reconhecer a tela, os dois getRowFields para ler linha a linha, e os tres de comparacao de
- * texto, que o ScreenWatcher usa para conferir rotulos em posicao fixa. As outras tres
- * sobrecargas de textMatches e textMatchesTrim que o FieldManager oferece nao entram porque
- * ninguem as chama.
+ * texto, que o ScreenWatcher usa para conferir rotulos em posicao fixa. O FieldManager tinha
+ * outras tres sobrecargas de textMatches e textMatchesTrim, que nao entraram aqui porque
+ * ninguem as chamava; a limpeza do passo 10 as removeu.
  *
  * Os sete eram de visibilidade de pacote no FieldManager. Passaram a publicos, o que a
  * primeira vista e encapsulamento perdido - mas o que se perdeu foi acesso ACIDENTAL de

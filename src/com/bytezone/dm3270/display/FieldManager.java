@@ -223,20 +223,10 @@ public class FieldManager implements ScreenFields, ScreenChangeSource
     return rowFields;
   }
 
-  boolean textMatches (Field field, String text)
-  {
-    return text.equals (field.getText ());
-  }
-
   @Override
   public boolean textMatches (int fieldNo, String text)
   {
     return text.equals (fields.get (fieldNo).getText ());
-  }
-
-  boolean textMatches (Field field, String text, int location)
-  {
-    return field.getFirstLocation () == location && text.equals (field.getText ());
   }
 
   @Override
@@ -250,12 +240,6 @@ public class FieldManager implements ScreenFields, ScreenChangeSource
   public boolean textMatchesTrim (Field field, String text)
   {
     return text.equals (field.getText ().trim ());
-  }
-
-  boolean textMatchesTrim (Field field, String text, int location)
-  {
-    return field.getFirstLocation () == location
-        && text.equals (field.getText ().trim ());
   }
 
   @Override
@@ -295,12 +279,6 @@ public class FieldManager implements ScreenFields, ScreenChangeSource
   {
     if (!screenChangeListeners.contains (listener))
       screenChangeListeners.add (listener);
-  }
-
-  public void removeScreenChangeListener (ScreenChangeListener listener)
-  {
-    if (screenChangeListeners.contains (listener))
-      screenChangeListeners.remove (listener);
   }
 
   // ---------------------------------------------------------------------------------//
