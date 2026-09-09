@@ -189,8 +189,6 @@ public class ScreenWatcher
     if (isSplitScreen)
       return;
 
-    checkMenu ();
-
     isTSOCommandScreen = checkTSOCommandScreen (screenFields);
     if (isTSOCommandScreen)
     {
@@ -215,28 +213,6 @@ public class ScreenWatcher
         }
         else
           checkSingleDataset (screenFields);
-      }
-    }
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private void checkMenu ()
-  // ---------------------------------------------------------------------------------//
-  {
-    if (true)
-      return;
-
-    List<Field> rowFields = fieldManager.getRowFields (0, 1);
-    dumpFields (rowFields);
-
-    if (rowFields.size () > 1 && rowFields.size () < 10)
-    {
-      Field menuField = rowFields.get (0);
-      String text = menuField.getText ();
-      if (" Menu".equals (text) && menuField.isAlphanumeric () && menuField.isProtected ()
-          && menuField.isVisible () && menuField.isIntensified ())
-      {
-        logger.debug ("Possible menu");
       }
     }
   }
