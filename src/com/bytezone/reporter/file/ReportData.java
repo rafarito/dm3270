@@ -157,10 +157,6 @@ public class ReportData
     assert scores.size () > 0;
     Collections.sort (scores);
     Collections.reverse (scores);
-
-    if (false)
-      for (ReportScore rs : scores)
-        logger.debug ("{}", rs);
   }
 
   // ---------------------------------------------------------------------------------//

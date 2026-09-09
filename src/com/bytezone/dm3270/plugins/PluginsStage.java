@@ -329,12 +329,6 @@ public class PluginsStage extends PreferencesStage
       PluginData pluginData =
           PluginFields.toPluginData (sequence++, screenLocation, screen.getFields ());
 
-      if (false)
-      {
-        logger.debug ("--------------------------------------------");
-        logger.debug ("{}", pluginData);
-      }
-
       processAll (pluginData);
       AIDCommand command = processReply (pluginData);
       if (command != null)

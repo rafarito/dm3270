@@ -100,9 +100,6 @@ public abstract class DefaultReportMaker implements ReportMaker
 
     g2.translate (pageFormat.getImageableX (), pageFormat.getImageableY ());
 
-    if (false)
-      pageFormat.setOrientation (PageFormat.LANDSCAPE);
-
     if (pageFormat.getOrientation () == PageFormat.PORTRAIT)
     {
       //      g2.setFont (headerFont);

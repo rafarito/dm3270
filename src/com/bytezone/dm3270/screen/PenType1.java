@@ -62,12 +62,6 @@ class PenType1 implements Pen
     // sometimes a reset attribute is overwritten by a new SFA
     if (pendingAttributes.size () > 0)
     {
-      if (false)
-      {
-        logger.debug ("Unapplied attributes at {}", currentPosition);
-        for (Attribute attribute : pendingAttributes)
-          logger.debug ("  {}", attribute);
-      }
       pendingAttributes.clear ();
     }
   }
