@@ -3,7 +3,6 @@ package com.bytezone.dm3270.application;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.prefs.Preferences;
 
@@ -64,14 +63,6 @@ public class Console extends Application
     for (String raw : getParameters ().getRaw ())
       if (raw.equalsIgnoreCase ("-reset"))
         prefs.clear ();
-
-    if (false)
-    {
-      String[] keys = prefs.keys ();
-      Arrays.sort (keys);
-      for (String key : keys)
-        logger.info (String.format ("%-18s : %s", key, prefs.get (key, "")));
-    }
   }
 
   @Override
@@ -85,8 +76,6 @@ public class Console extends Application
     optionStage = new OptionStage (prefs, pluginsStage);
 
     primaryScreenBounds = javafx.stage.Screen.getPrimary ().getVisualBounds ();
-    if (false)
-      logger.debug ("{}", javafx.stage.Screen.getPrimary ().getDpi ());
 
     optionStage.okButton.setOnAction (e -> startSelectedFunction ());
     optionStage.cancelButton.setOnAction (e -> optionStage.hide ());
