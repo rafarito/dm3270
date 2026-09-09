@@ -120,11 +120,6 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   private boolean insertMode;
   private boolean readModifiedAll = false;
 
-  public enum BuildInstruction
-  {
-    BUILD_FIELDS, DONT_BUILD_FIELDS
-  }
-
   // ---------------------------------------------------------------------------------//
   public Screen (ScreenDimensions defaultScreenDimensions,
       ScreenDimensions alternateScreenDimensions, Preferences prefs, TerminalFunction function,
