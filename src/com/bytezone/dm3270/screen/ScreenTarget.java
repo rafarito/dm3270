@@ -130,11 +130,19 @@ public interface ScreenTarget extends DisplayScreen, KeyboardState
   ReadStructuredFieldCommand buildQueryReply ();
 
   /*
-   * TODO: esta e a ultima aresta do modelo de tela para fora do protocolo, e sustenta dois dos
-   * tres ciclos mutuos acidentais que restam - filetransfer <-> screen e
-   * commands <-> filetransfer. FileTransferOutboundSF.process pede o gerenciador a tela porque
-   * quem o possui e a Screen, que possui tudo, e porque quem despacha o comando montado a
-   * partir de bytes so tem a tela na mao.
+   * TODO: esta e a ultima aresta do modelo de tela para fora do protocolo, e sustenta UM dos
+   * tres ciclos mutuos acidentais que restam - filetransfer <-> screen.
+   * FileTransferOutboundSF.process pede o gerenciador a tela porque quem o possui e a Screen,
+   * que possui tudo, e porque quem despacha o comando montado a partir de bytes so tem a tela
+   * na mao.
+   *
+   * ATE O PASSO 10 ESTE TODO DIZIA "dois ciclos", E ESTAVA ERRADO - o mesmo erro estava no
+   * LayeringTest e no documento de handoff. A medicao aresta por aresta: commands <-> filetransfer
+   * e sustentado por quatro construcoes que NAO TOCAM o ScreenTarget - as duas fabricas de
+   * structured field em WriteStructuredFieldCommand e ReadStructuredFieldCommand, as tres
+   * "new ReadStructuredFieldCommand (buffer)" dentro do proprio FileTransferOutboundSF, e a
+   * leitura da constante AIDCommand.AID_ENTER no TransferMenu. Tirar getTransferManager () daqui
+   * derruba um ciclo, nao dois.
    *
    * A etiqueta dizia "onda 3" e envelheceu: a onda 3 nao o tirou, e o passo 6 tambem nao.
    *
