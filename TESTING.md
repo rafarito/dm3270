@@ -86,15 +86,21 @@ e o que diz se os testes escritos valem alguma coisa.
 
 ### Situacao atual
 
-Medido ao fim do Passo 5.
+Medido ao fim do Passo 6.
 
 | | `dm3270` | `dm3270-plugins` |
 |---|---:|---:|
-| Testes | 1.450 | 238 |
+| Testes | 1.452 | 248 |
 | Cobertura de instrucoes (projeto todo) | 51% | — |
 | Mutantes gerados | 4.020 | — |
 | Mutation coverage | 66% | — |
 | **Test strength** | **86%** | — |
+
+**Os quatro numeros do PIT e do JaCoCo sao identicos aos do Passo 5, e isso e o esperado.** O
+Passo 6 nao acrescentou teste de comportamento nenhum e nao mexeu no `targetClasses`: os dois
+testes a mais sao as duas regras de camada novas, que o ArchUnit conta como teste e o PIT nao
+enxerga. Um passo que so corta acoplamento move o placar de ciclos e nao move o de cobertura -
+e reconhecer isso e o que impede de procurar um ganho que nao existe.
 
 Os 51% do projeto todo refletem a camada JavaFX sem teste, nao a qualidade da suite:
 `application`, `assistant`, `console` e `reporter.application` somam mais de 20 mil
@@ -105,6 +111,12 @@ numeros do PIT nos plugins nao foram remedidos no Passo 5.
 pacotes: `datasets` na Onda 3, `watch` no Passo 1, `reporter.file` no Passo 4, e `session` e
 `streams` no Passo 5. Todos rodam headless e todos estao no `targetClasses`, com uma excecao
 explicada abaixo.
+
+**O Passo 6 nao acrescentou pacote headless - todos os que ele tocou ja eram -, mas apertou
+tres fronteiras:** `streams` nao nomeia mais `application`, e `buffers` e `commands` nao
+nomeiam mais `streams`. As duas regras de camada novas,
+`streamsDoesNotDependOnApplication` e `buffersAndCommandsDoNotKnowStreams`, nasceram em zero e
+nao sao congeladas.
 
 **Correcao de uma afirmacao antiga deste arquivo:** ele dizia que `Cursor` ficava de fora do
 `targetClasses` de proposito, por ter 117 mutantes com zero mortos. **`Cursor` entrou na Fase
@@ -118,8 +130,8 @@ sustentam essa promessa, e todos rodam no `mvn test`:
 | Mecanismo | Onde | O que protege |
 |---|---|---|
 | Golden master do parser | `ParserGoldenMasterTest` + `test/golden/mf-parse.txt` | Reprocessa uma sessao TN3270 real e congela tudo que o parser monta: registros, comandos, orders, respostas telnet. Cobre `telnet`, `buffers`, `commands`, `orders`, `extended`, `structuredfields` e `replyfield` de uma vez |
-| Regras de camada | `LayeringTest` + `test/archunit-baseline/` | **Onze** regras de dependencia com ArchUnit. **Dez chegaram a zero e NAO sao congeladas** - uma violacao nova quebra a build sem baseline para absorve-la. So `uiIsTheOnlyPlaceThatKnowsJavaFx` segue congelada, em 240 violacoes, e o baseline versionado e o placar: ele so encolhe |
-| Placar de ciclos | `LayeringTest.MAX_MUTUAL_CYCLES`, hoje **12** | Conta os pares de pacotes com dependencia mutua. Falha se subir **e** se cair sem atualizar o limite, para que todo ganho seja registrado no commit que o produziu |
+| Regras de camada | `LayeringTest` + `test/archunit-baseline/` | **Treze** regras de dependencia com ArchUnit. **Doze chegaram a zero e NAO sao congeladas** - uma violacao nova quebra a build sem baseline para absorve-la. So `uiIsTheOnlyPlaceThatKnowsJavaFx` segue congelada, em 240 violacoes, e o baseline versionado e o placar: ele so encolhe |
+| Placar de ciclos | `LayeringTest.MAX_MUTUAL_CYCLES`, hoje **9** | Conta os pares de pacotes com dependencia mutua. Falha se subir **e** se cair sem atualizar o limite, para que todo ganho seja registrado no commit que o produziu |
 | Caracterizacao | `SiteFormTest`, `ScreenContextPoolingTest`, `ReportScoreTest`, `SessionRecordTest`, `SessionTest`, e outros | Congela o comportamento atual das classes que serao desmontadas, **incluindo os defeitos** — ver [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md) |
 
 **Uma regra que chegou a zero e trocada pela regra nua**, com o baseline e a entrada dele no
@@ -485,14 +497,20 @@ porque a ordem em que cairam e o argumento de que o metodo funciona:
 
 O que continua aberto, em ordem de retorno medido:
 
-1. **O composition root.** E o unico caminho que resta para os dois placares: seis dos doze
-   ciclos restantes esperam por ele - dois de `getTransferManager ()` no `ScreenTarget`,
-   quatro de `streams`. E o maior item estrutural que sobra, e o mais caro.
+1. **O composition root.** Continua sendo o maior item estrutural que sobra, e o mais caro -
+   mas **nao e mais o unico caminho, e esta lista ja disse que era**. Ela afirmava que "seis
+   dos doze ciclos restantes esperam por ele"; o Passo 6 derrubou tres desses seis sem
+   toca-lo, medindo aresta por aresta. Hoje sao **nove ciclos**, dos quais cinco sao inerentes
+   ao 3270, um e do `reporter` e foi descartado com o usuario, e **tres sao acidentais**: dois
+   de `getTransferManager ()` no `ScreenTarget` e `streams <-> telnet`, o unico dos tres que e
+   mesmo estrutural. Antes de aceitar que um ciclo depende de um refactor grande, rode os dois
+   `grep` de import entre os dois pacotes e veja quais tipos sustentam cada direcao.
 2. **`TransferManager`** — o resto do fluxo de IND$FILE depende de `Screen`; extrair a
    parte de estado tornaria testavel o ciclo abrir/transferir/fechar.
 3. **O caminho de lancamento**: `Console`, `OptionStage` e `ConsoleKeyPress` **nao tem teste
    nenhum**. Sao o ultimo item da Onda 2 e a Onda 4 do diagnostico, e caracterizar vem antes
-   de qualquer coisa.
+   de qualquer coisa. Medido: o `Console` alcanca **dez campos package-private de widgets** do
+   `OptionStage`, que e 100% da superficie de pacote daquela classe.
 4. **`TelnetListener` no `targetClasses` do PIT.** Ele ganhou os tres primeiros testes da sua
    historia no Passo 5, mas ficou de fora da lista pelo mesmo criterio do `ScreenWatcher`:
    uma classe grande com dois caminhos cobertos entra com sobreviventes demais para o numero
