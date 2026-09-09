@@ -173,6 +173,30 @@ xvfb-run --auto-servernum mvn test
 Sem isso, `Platform.startup` falha e a extensao diz exatamente esse motivo na mensagem de
 erro.
 
+### Uma falha intermitente que nao e sua
+
+`ReportTesterTest.describesFileOnDisk` pode falhar **sem que nada esteja errado no codigo**,
+com esta mensagem:
+
+```
+org.junit.platform.commons.JUnitException: Failed to close extension context
+Caused by: java.io.IOException: Failed to delete temp directory C:\...\junit-<numero>.
+  The following paths could not be deleted ...
+  Suppressed: java.nio.file.DirectoryNotEmptyException
+```
+
+E a limpeza do `@TempDir` do JUnit no Windows: alguem ainda segura um handle do diretorio
+quando o JUnit tenta apaga-lo, e a exclusao falha. O sintoma denuncia a natureza — a linha de
+resultado sai como **`Tests run: 1452, Failures: 0, Errors: 1`**, ou seja, **zero falhas de
+assercao**: o teste passou e a infraestrutura tropecou depois dele.
+
+Foi observado uma vez no Passo 10 e nao se reproduziu em quatro execucoes seguidas, nem
+isoladamente (`mvn test -Dtest=ReportTesterTest`) nem na suite inteira. **Antes de investigar
+uma mudanca sua, rode de novo.** Se reproduzir com consistencia, ai sim ha o que investigar.
+
+E o mesmo conselho do erro de fork do Surefire (`Error occurred in starting fork` sem nenhuma
+falha de teste): rodar de novo antes de concluir qualquer coisa.
+
 ### Cobertura por pacote — `dm3270`
 
 | Pacote | Cobertura | Observacao |
