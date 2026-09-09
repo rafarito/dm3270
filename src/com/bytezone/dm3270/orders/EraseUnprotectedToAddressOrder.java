@@ -1,7 +1,6 @@
 package com.bytezone.dm3270.orders;
 
 import com.bytezone.dm3270.screen.DisplayScreen;
-import com.bytezone.dm3270.screen.Pen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,36 +28,7 @@ public class EraseUnprotectedToAddressOrder extends Order
   public void process (DisplayScreen screen)
   // ---------------------------------------------------------------------------------//
   {
-    if (false)
-    {
-      Pen pen = screen.getPen ();
-      //      Cursor cursor = screen.getScreenCursor ();
-      //      int cursorPostion = cursor.getLocation ();
-      //      Field resetField = null;
-      //
-      //      for (Field field : screen.getFieldManager ().getUnprotectedFields ())
-      //        if (field.contains (cursorPostion))
-      //        {
-      //          resetField = field;
-      //          break;
-      //        }
-      //
-      //      // this relies on stopAddress being in an unprotected field
-      //      while (resetField != null)
-      //      {
-      //        resetField.clear (false);       // don't set modified (is this correct?)
-      //        if (resetField.contains (stopAddress.getLocation ()))
-      //        {
-      //          cursor.moveTo (resetField.getFirstLocation ());
-      //          break;
-      //        }
-      //        resetField = resetField.getNextUnprotectedField ();
-      //      }
-    }
-    else
-    {
-      logger.warn ("EraseUnprotectedToAddress not finished");
-    }
+    logger.warn ("EraseUnprotectedToAddress not finished");
   }
 
   // ---------------------------------------------------------------------------------//
