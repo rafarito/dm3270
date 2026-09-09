@@ -318,6 +318,19 @@ class LayeringTest
    * sobrepoem quase todo; a do bytecode e a que vale como placar, porque e a que descreve o
    * acoplamento que o compilador realmente impoe.
    *
+   * QUEM RECONTAR POR grep VAI ACHAR 11, E NAO 9, e o placar nao esta mentindo. Os dois pares
+   * a mais existem no import e somem do bytecode, porque a unica coisa que o consumidor usa e
+   * uma constante de compilacao, que o javac embute no chamador - a classe de origem nao chega
+   * a aparecer no constant pool:
+   *
+   *   assistant -> commands              TSOCommand:120 le AIDCommand.AID_ENTER
+   *   replyfield -> structuredfields     QueryReplyField:78 e OEMAuxilliaryDevice:56 leem
+   *                                      StructuredField.QUERY_REPLY, os dois num assert
+   *
+   * As duas sao "public static final byte", e por isso invisiveis a qualquer analise de
+   * bytecode - inclusive a do ArchUnit. Sao acoplamento de fonte real, mas nao acoplamento
+   * que o compilador imponha, que e o que este placar mede.
+   *
    * SOBRE O 24 DE AGORA, que subiu de 23: e o unico aumento desta refatoracao, e tem uma
    * causa so, nomeada. Separar o modelo de tela da view criou um pacote novo, e tres ciclos
    * que estavam escondidos DENTRO de display passaram a ser contados duas vezes - uma pela
@@ -463,11 +476,27 @@ class LayeringTest
    * OS 9 QUE SOBRAM sao de duas naturezas. Inerentes ao 3270, e nao se pretende mexer:
    * commands <-> screen (um ReadCommand pede a tela que produza um AIDCommand, e AIDCommand e
    * comando de protocolo), attributes <-> screen, attributes <-> orders, orders <-> screen,
-   * commands <-> structuredfields - sao CINCO, e nao se espera que caiam. Acidentais, TRES:
-   * filetransfer <-> screen e commands <-> filetransfer, que dependem de tirar
-   * getTransferManager () do ScreenTarget; e streams <-> telnet, o unico que e mesmo
-   * estrutural - TelnetListener implementa TelnetCommandProcessor, o enum aninhado
-   * TN3270ExtendedSubcommand.Function e campo de TelnetState, e sao ~30 call sites.
+   * commands <-> structuredfields - sao CINCO, e nao se espera que caiam. Acidentais, TRES, e
+   * a descricao deles aqui estava errada em dois pontos ate o passo 10:
+   *
+   *   filetransfer <-> screen        depende de tirar getTransferManager () do ScreenTarget.
+   *                                  Do lado de screen sao DUAS linhas - o import e a
+   *                                  declaracao; do lado de filetransfer, tres tipos em dois
+   *                                  arquivos
+   *   commands <-> filetransfer      NAO depende do getTransferManager, ao contrario do que
+   *                                  este comentario e o TODO do ScreenTarget afirmavam. Sao
+   *                                  quatro construcoes que nao tocam a tela:
+   *                                  WriteStructuredFieldCommand:77,
+   *                                  ReadStructuredFieldCommand:107 e as tres
+   *                                  "new ReadStructuredFieldCommand" de FileTransferOutboundSF
+   *   streams <-> telnet             o unico mesmo estrutural, mas por TelnetState, e nao pelo
+   *                                  enum Function. TelnetListener implementa
+   *                                  TelnetCommandProcessor, e as cinco classes de telnet
+   *                                  recebem TelnetState no construtor e mutam 12 metodos
+   *                                  dele. O "~30 call sites" que este comentario dizia sobre
+   *                                  TN3270ExtendedSubcommand.Function sao TRES linhas de
+   *                                  src/, todas em TelnetState: o import, o tipo do campo
+   *                                  functions e o parametro de setFunctions
    *
    * E A TERCEIRA SAIDA PARA O getTransferManager () TAMBEM ESTA FECHADA, medido no passo 6. O
    * relatorio ja registrava duas recusadas - interface-marcador com cast, e mudar
