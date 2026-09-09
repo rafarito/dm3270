@@ -175,8 +175,9 @@ erro.
 
 ### Uma falha intermitente que nao e sua
 
-`ReportTesterTest.describesFileOnDisk` pode falhar **sem que nada esteja errado no codigo**,
-com esta mensagem:
+**Qualquer classe de teste que use `@TempDir` pode falhar sem que nada esteja errado no
+codigo.** Sao seis: `DatabaseTest`, `TransferManagerTest`, `TransferTest`, `SessionReaderTest`,
+`SessionTest` e `ReportTesterTest`. A mensagem:
 
 ```
 org.junit.platform.commons.JUnitException: Failed to close extension context
@@ -186,13 +187,23 @@ Caused by: java.io.IOException: Failed to delete temp directory C:\...\junit-<nu
 ```
 
 E a limpeza do `@TempDir` do JUnit no Windows: alguem ainda segura um handle do diretorio
-quando o JUnit tenta apaga-lo, e a exclusao falha. O sintoma denuncia a natureza — a linha de
-resultado sai como **`Tests run: 1452, Failures: 0, Errors: 1`**, ou seja, **zero falhas de
-assercao**: o teste passou e a infraestrutura tropecou depois dele.
+quando o JUnit tenta apaga-lo, e a exclusao falha. **O sintoma que identifica o caso** e a linha
+de resultado sair como
 
-Foi observado uma vez no Passo 10 e nao se reproduziu em quatro execucoes seguidas, nem
-isoladamente (`mvn test -Dtest=ReportTesterTest`) nem na suite inteira. **Antes de investigar
-uma mudanca sua, rode de novo.** Se reproduzir com consistencia, ai sim ha o que investigar.
+```
+Tests run: 1452, Failures: 0, Errors: 1
+```
+
+ou seja, **zero falhas de assercao**: o teste passou e a infraestrutura tropecou depois dele.
+
+Foi observada duas vezes durante o Passo 10, **em classes diferentes** - primeiro em
+`ReportTesterTest.describesFileOnDisk`, depois em `SessionReaderTest` -, e nao reproduziu em
+nenhuma das outras seis execucoes da suite no mesmo dia. A primeira versao desta secao culpava
+o `ReportTesterTest`; a segunda ocorrencia mostrou que a classe e circunstancial e o que importa
+e o `@TempDir`.
+
+**Antes de investigar uma mudanca sua, rode de novo.** Se reproduzir com consistencia, ou sempre
+na mesma classe, ai sim ha o que investigar.
 
 E o mesmo conselho do erro de fork do Surefire (`Error occurred in starting fork` sem nenhuma
 falha de teste): rodar de novo antes de concluir qualquer coisa.
