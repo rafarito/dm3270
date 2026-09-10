@@ -25,16 +25,20 @@ em paralelo sem antes isolar esses casos.
 ## O que neste arquivo esta atualizado, e o que nao esta
 
 Este documento acompanha a refatoracao estrutural da branch `refactor/solid-architecture`, e
-ficou defasado entre a Onda 1 e o Passo 5. As secoes abaixo foram **remedidas no Passo 5**:
-"Situacao atual", "Rede de seguranca", "Testes que exigem JavaFX" e "Proximos alvos".
+ficou defasado entre a Onda 1 e o Passo 5.
 
-As tabelas de **cobertura por pacote e por modulo**, o **mapa de modulos** e a lista de
-**defeitos corrigidos** sao instantaneos mais antigos: as ordens de grandeza continuam
-valendo, os numeros exatos nao. Regenere com `mvn clean test` e
-`mvn test-compile pitest:mutationCoverage` antes de citar qualquer um deles.
+**Remedido no Passo 10, e portanto confiavel:** "Situacao atual", "Cobertura por pacote —
+`dm3270`", "Mapa de modulos", "Uma falha intermitente que nao e sua", "Testes que exigem
+JavaFX", "Rede de seguranca" e "Proximos alvos". Todos os numeros dessas secoes foram medidos
+de novo com `mvn clean test` e `mvn test-compile pitest:mutationCoverage`.
+
+**Ainda sao instantaneos antigos** — ordens de grandeza valem, numeros exatos nao: "Cobertura
+por modulo — `dm3270-plugins`", a secao "Cobertura atual" (que duplica a de cima com dados mais
+velhos) e a lista de "Defeitos corrigidos". Regenere antes de citar.
 
 O estado corrente da refatoracao - o que falta, o que foi decidido e por que - esta no
-`CLAUDE.md` e no `RELATORIO-REFATORACAO.md`, que nao sao versionados.
+`CLAUDE.md` e no `RELATORIO-REFATORACAO.md`, que **nao sao versionados** e por isso nao chegam
+a quem clona o repositorio. Se voce e um agente e nao os tem, peca ao usuario.
 
 ## Metricas da suite
 
@@ -86,21 +90,26 @@ e o que diz se os testes escritos valem alguma coisa.
 
 ### Situacao atual
 
-Medido ao fim do Passo 6.
+Medido ao fim do Passo 10.
 
 | | `dm3270` | `dm3270-plugins` |
 |---|---:|---:|
-| Testes | 1.452 | 248 |
+| Testes | 1.452 | 248 (63 no `UploadDataset`) |
 | Cobertura de instrucoes (projeto todo) | 51% | — |
-| Mutantes gerados | 4.020 | — |
-| Mutation coverage | 66% | — |
-| **Test strength** | **86%** | — |
+| Cobertura de ramos | 48% | — |
+| Mutantes gerados | 4.019 | — |
+| Mutation coverage | 66% (2.642/4.019) | — |
+| **Test strength** | **86%** (2.642/3.087) | — |
+| Classes no `targetClasses` | 162 | — |
 
-**Os quatro numeros do PIT e do JaCoCo sao identicos aos do Passo 5, e isso e o esperado.** O
-Passo 6 nao acrescentou teste de comportamento nenhum e nao mexeu no `targetClasses`: os dois
-testes a mais sao as duas regras de camada novas, que o ArchUnit conta como teste e o PIT nao
-enxerga. Um passo que so corta acoplamento move o placar de ciclos e nao move o de cobertura -
-e reconhecer isso e o que impede de procurar um ganho que nao existe.
+**Os numeros sao praticamente os mesmos do Passo 6, e isso e o esperado nos dois passos.** O
+Passo 6 so cortou acoplamento; o Passo 10 so removeu codigo morto. Nenhum dos dois acrescentou
+teste de comportamento. **A unica variacao e um mutante a menos** — 4.020 para 4.019 —, e ele
+tem nome: era a chamada `void` de `ScreenWatcher.checkMenu`, que o mutator `VOID_METHOD_CALLS`
+gerava e que **sobrevivia por ser equivalente**, porque o metodo era um `if (true) return;`.
+Removido o metodo, o pacote `watch` subiu de 70% para 71% de mutacao sem que nenhum teste novo
+tenha sido escrito. Um passo que so corta acoplamento ou so remove morto move um placar e nao
+move o outro - e reconhecer isso e o que impede de procurar um ganho que nao existe.
 
 Os 51% do projeto todo refletem a camada JavaFX sem teste, nao a qualidade da suite:
 `application`, `assistant`, `console` e `reporter.application` somam mais de 20 mil
@@ -210,28 +219,48 @@ falha de teste): rodar de novo antes de concluir qualquer coisa.
 
 ### Cobertura por pacote — `dm3270`
 
-| Pacote | Cobertura | Observacao |
-|---|---:|---|
-| `dm3270.replyfield` | 97% | |
-| `reporter.text` | 93% | |
-| `reporter.record` | 88% | |
-| `dm3270.database` | 87% | inclui integracao real com SQLite |
-| `dm3270.attributes` | 91% | sem JavaFX desde a troca por `TerminalColor` |
-| `dm3270.telnet` | 87% | |
-| `dm3270.orders` | 90% | ja usava `DisplayScreen`; agora exercitado headless |
-| `dm3270.extended` | 85% | |
-| `dm3270.structuredfields` | 84% | |
-| `dm3270.buffers` | 80% | |
-| `dm3270.filetransfer` | 62% | os quatro dialogos sao JavaFX |
-| `dm3270.streams` | 52% | `MainframeServer` e `TelnetListener` sao JavaFX |
-| `dm3270.commands` | 61% | subiu com o `HeadlessScreenTarget`; `Profile` ainda e JavaFX |
-| `reporter.file` | 42% | `ReportScore` instancia `TextArea` no construtor |
-| `dm3270.utilities` | 60% | subiu com o `SiteFormTest` (chamava-se `SiteTest` ate o Passo 3) |
-| `reporter.reports` | 30% | `createPages` e `getFormattedRecord` recebem `ReportScore` |
-| `dm3270.session` | 24% | `Session` e `SessionRecord` sao JavaFX |
-| `dm3270.plugins` | 21% | `PluginsStage` e JavaFX |
-| `dm3270.display` | 10% | o modelo tem teste; `Screen` (1.010 linhas) e as janelas ainda nao |
-| `dm3270.application`, `dm3270.assistant`, `dm3270.console`, `reporter.application` | 0% | UI |
+**Remedida no Passo 10.** Instrucoes e ramos vem do JaCoCo; mutacao e test strength, do PIT.
+Ordenada da pior cobertura para a melhor, porque e assim que serve de lista de alvos para quem
+for escrever teste. Um traco em "Mutacao" significa que o pacote **nao esta** no
+`targetClasses` do PIT - ver "Nem todo sobrevivente e um teste faltando", abaixo.
+
+| Pacote | Instr. | Ramos | Mutacao | Observacao |
+|---|---:|---:|---:|---|
+| `dm3270.assistant` | 0% | 0% | — | UI: abas de dataset, job e transferencia |
+| `dm3270.console` | 0% | 0% | — | UI, mas com parser de mensagem dentro (`ConsoleMessage`) |
+| `reporter.application` | 4% | 3% | — | UI do visualizador |
+| `dm3270.application` | 6% | 5% | — | UI: janelas, teclado, ciclo de vida |
+| `dm3270.display` | 12% | 14% | 50% | so `FxPalette` esta no PIT; `Screen` (1.094 linhas) e as janelas nao tem teste |
+| `dm3270.plugins` | 20% | 23% | 60% | so `PluginData`, `PluginField` e `ScreenLocation` no PIT; `PluginsStage` (750) fora |
+| `reporter.reports` | 34% | 40% | **34%** | a pior mutacao do projeto |
+| `dm3270.streams` | 53% | 46% | **38%** | `TelnetListener` e `MainframeServer` rodam headless desde o Passo 5, mas so 4 classes estao no PIT |
+| `dm3270.utilities` | 54% | 70% | 87% | listado classe a classe no PIT: `Dm3270Utility`, `FileSaver`, `SiteValue` |
+| `dm3270.filetransfer` | 62% | 60% | 53% | 13 classes de protocolo com teste; os 4 dialogos sao JavaFX |
+| `dm3270.commands` | 64% | 51% | **50%** | subiu com o `HeadlessScreenTarget` |
+| `dm3270.screen` | 64% | 51% | **50%** | o modelo de tela; listado classe a classe no PIT |
+| `reporter.file` | 73% | 54% | 66% | `ReportScore` saiu do JavaFX no Passo 4 |
+| `dm3270.buffers` | 79% | 75% | 77% | |
+| `dm3270.datasets` | 79% | 83% | 75% | dominio saido de `database` na Onda 3 |
+| `dm3270.watch` | 84% | 66% | 71% | 215/303 mutantes; os sete layouts do Passo 1 entram com 100% |
+| `dm3270.structuredfields` | 84% | 65% | 63% | |
+| `dm3270.extended` | 85% | 71% | 71% | |
+| `dm3270.session` | 85% | 79% | 81% | saiu do JavaFX no Passo 5 |
+| `dm3270.database` | 87% | 80% | 68% | inclui integracao real com SQLite |
+| `reporter.record` | 87% | 86% | 80% | |
+| `dm3270.telnet` | 87% | 86% | 84% | |
+| `dm3270.orders` | 89% | 78% | 84% | exercitado headless |
+| `dm3270.attributes` | 92% | 83% | 89% | sem JavaFX desde a troca por `TerminalColor` |
+| `reporter.text` | 95% | 96% | 95% | |
+| `dm3270.replyfield` | 96% | 85% | 81% | |
+| `dm3270.runtime` | — | — | — | dois enums, 55 linhas |
+
+**Total do projeto: 51% de instrucoes, 48% de ramos.** O numero reflete a camada JavaFX sem
+teste, e nao a qualidade da suite: os quatro pacotes de UI no topo da tabela somam mais de 20
+mil instrucoes e quase nenhum teste. Nos pacotes de protocolo a cobertura passa de 80%.
+
+**Os quatro piores em mutacao — `reporter.reports` (34%), `streams` (38%), `commands` (50%) e
+`screen` (50%) — sao onde a rede e mais fina hoje.** Nenhum deles e alvo de refatoracao por
+causa disso; e informacao para quem for escrever teste.
 
 ### Cobertura por modulo — `dm3270-plugins`
 
@@ -278,33 +307,46 @@ Para transformar em trava depois que os numeros estabilizarem, use `jacoco:check
 
 ## Mapa de modulos
 
-### `dm3270` — 228 arquivos, 25 pacotes
+### `dm3270` — 285 arquivos, 27 pacotes, 33.748 linhas
 
-| Pacote | Responsabilidade | Criticidade | Tem teste |
-|---|---|:---:|:---:|
-| `dm3270.utilities` | Conversao EBCDIC/ASCII, empacotamento de bytes, dump hex, caminhos de gravacao | **Critica** | sim |
-| `dm3270.orders` | Orders do data stream (SBA, SF, SFE, RA, IC, PT, EUA, GE, FCO, MF) e enderecamento de 12/14 bits | **Critica** | sim |
-| `dm3270.attributes` | Atributo de inicio de campo e atributos estendidos (cor, destaque) | **Critica** | sim |
-| `dm3270.commands` | Comandos 3270: Write, Erase Write, Read, EAU, WSF, RSF e a resposta AID | **Critica** | sim |
-| `dm3270.buffers` | Encapsulamento telnet: escape de `0xFF`, terminador `IAC EOR` | **Critica** | sim |
-| `dm3270.telnet` | Maquina de estados do stream, comandos telnet e subcomandos TN3270E | **Critica** | sim |
-| `dm3270.extended` | TN3270E: cabecalho de comando, imagem BIND, protocolos de LU | Alta | sim |
-| `dm3270.structuredfields` | Structured fields (Outbound3270DS, ReadPartition, SetReplyMode, EraseReset) | Alta | sim |
-| `dm3270.replyfield` | Query replies que declaram as capacidades do terminal | Alta | sim |
-| `dm3270.filetransfer` | IND$FILE: parsing do comando, registros de transferencia, montagem do arquivo | Alta | sim |
-| `dm3270.plugins` | API exposta a plugins externos (`PluginData`, `PluginField`, `ScreenLocation`) | Alta | sim |
-| `dm3270.streams` | Sockets, TLS, negociacao (`TelnetState`, `TerminalServer`, `TelnetSocket`) | Alta | sim |
-| `dm3270.database` | Cache SQLite de datasets e membros | Media | sim |
-| `dm3270.session` | Gravacao e replay de sessoes | Media | parcial (`SessionReader`) |
-| `dm3270.display` | Modelo da tela: `Screen`, `Field`, `FieldManager`, `Cursor`, `Pen`, `ScreenPacker` | **Critica** | **nao** |
-| `dm3270.console` | Log de console | Baixa | nao |
-| `dm3270.assistant` | Abas de datasets, jobs e transferencias (JavaFX) | Baixa | nao |
-| `dm3270.application` | Janelas, teclado, ciclo de vida (JavaFX) | Baixa | nao |
-| `reporter.record` | Divisao de um dataset em registros: FB, VB, RDW, LF, CR, CR/LF, NVB, Ravel | Alta | sim |
-| `reporter.text` | Interpretacao dos bytes como EBCDIC ou ASCII, e deteccao do formato | Alta | sim |
-| `reporter.file` | Pontuacao e escolha automatica do formato de um arquivo | Media | parcial |
-| `reporter.reports` | Geracao de relatorios (texto, hex, ASA, natload) | Media | parcial |
-| `reporter.application` | UI do visualizador (JavaFX) | Baixa | nao |
+**Remedido no Passo 10.** A coluna que importa para esta refatoracao e a ultima: **headless**
+quer dizer que o pacote nao nomeia JavaFX e roda sem toolkit grafico, com garantia imposta por
+regra de ArchUnit que quebra a build. Quatro pacotes foram **criados** pela refatoracao e estao
+marcados com †.
+
+| Pacote | Arq. | Linhas | Responsabilidade | Headless |
+|---|---:|---:|---|:---:|
+| `dm3270.utilities` | 8 | 880 | Conversao EBCDIC/ASCII, empacotamento de bytes, dump hex, a porta `Site` | parcial |
+| `dm3270.orders` | 15 | 1.024 | Orders do data stream (SBA, SF, SFE, RA, IC, PT, EUA, GE, FCO, MF) | sim |
+| `dm3270.attributes` | 8 | 558 | Atributo de inicio de campo e atributos estendidos | sim |
+| `dm3270.commands` | 12 | 1.804 | Comandos 3270: Write, Erase Write, Read, EAU, WSF, RSF, resposta AID | sim |
+| `dm3270.buffers` | 8 | 291 | Bloco de bytes: escape de `0xFF`, terminador `IAC EOR` | sim |
+| `dm3270.telnet` | 7 | 985 | Comandos telnet e subcomandos TN3270E | sim |
+| `dm3270.extended` | 7 | 690 | TN3270E: cabecalho de comando, imagem BIND, protocolos de LU | sim |
+| `dm3270.structuredfields` | 7 | 417 | Structured fields (Outbound3270DS, ReadPartition, SetReplyMode) | sim |
+| `dm3270.replyfield` | 16 | 1.372 | Query replies que declaram as capacidades do terminal | sim |
+| `dm3270.filetransfer` | 17 | 1.855 | IND$FILE. **13 classes de protocolo headless + 4 dialogos JavaFX** | parcial |
+| `dm3270.streams` | 13 | 1.915 | Sockets, TLS, negociacao (`TelnetState`, `TerminalServer`) | **sim, desde o Passo 5** |
+| `dm3270.session` | 5 | 894 | Gravacao e replay de sessoes | **sim, desde o Passo 5** |
+| `dm3270.screen` † | 21 | 2.137 | **O modelo de tela e as portas** por onde o protocolo fala com ela | sim |
+| `dm3270.watch` † | 17 | 1.570 | **O observador de tela** e os sete layouts de lista do ISPF | sim |
+| `dm3270.datasets` † | 5 | 1.078 | **Dominio de dataset** e a porta `DatasetStore` | sim |
+| `dm3270.runtime` † | 2 | 55 | **Dados neutros de execucao**: o modo e o lado da conversa | sim |
+| `dm3270.database` | 16 | 1.677 | Persistencia SQLite, atras da porta `DatasetStore` | sim |
+| `dm3270.plugins` | 8 | 1.635 | API de plugins. `PluginsStage` (750 linhas) e JavaFX | parcial |
+| `dm3270.display` | 13 | 2.794 | **So a view**: `Screen` (1.094), `FieldManager`, `ScreenPacker`, fontes | nao |
+| `dm3270.console` | 6 | 531 | Log de console. Tem parser de mensagem dentro (`ConsoleMessage`) | nao |
+| `dm3270.assistant` | 19 | 2.045 | Abas de dataset, job e transferencia | nao |
+| `dm3270.application` | 17 | 3.272 | Janelas, teclado, ciclo de vida. **O composition root de fato** | nao |
+| `reporter.record` | 12 | 923 | Divisao de um dataset em registros: FB, VB, RDW, LF, CR, NVB, Ravel | sim |
+| `reporter.text` | 3 | 267 | Interpretacao dos bytes como EBCDIC ou ASCII | sim |
+| `reporter.file` | 6 | 742 | Pontuacao e escolha automatica do formato | **sim, desde o Passo 4** |
+| `reporter.reports` | 8 | 834 | Geracao de relatorios (texto, hex, ASA, natload) | sim |
+| `reporter.application` | 9 | 1.503 | UI do visualizador | nao |
+
+**Os cinco pacotes de baixo — `display`, `console`, `assistant`, `application` e
+`reporter.application` — sao os unicos que a regra congelada `uiIsTheOnlyPlaceThatKnowsJavaFx`
+autoriza a conhecer JavaFX.** Todo o resto e vigiado por regra que quebra a build.
 
 ### `dm3270-plugins` — 12 arquivos, 5 plugins
 
@@ -339,8 +381,10 @@ executar comandos 3270 num teste comum e verificar o texto que sobra na tela —
 
 O que ainda falta, e por que:
 
-- **`Screen`** continua com 1.010 linhas e oito responsabilidades. E o que mantem
-  `dm3270.display` em 10%: o modelo tem teste, a classe que o hospeda nao.
+- **`Screen`** continua com 1.094 linhas e oito responsabilidades. E o que mantem
+  `dm3270.display` em 12%: o modelo tem teste, a classe que o hospeda nao. **Decompo-la deixou
+  de ser prioridade na Onda 3**, que mediu e descobriu que os ciclos vinham dos `import` dela,
+  nao do tamanho - seis cairam sem quebrar uma classe sequer.
 - **`FieldManager`** ainda exige a `Screen` concreta no construtor, onde sobe uma thread
   SQLite. Por isso o `HeadlessScreenTarget` devolve zero campos, e os ramos de
   `WriteCommand.process` que dependem de haver campos nao sao percorridos. Esta escrito no
@@ -356,40 +400,75 @@ classes que sao genuinamente visuais, como `Site`, cujos campos sao widgets.
 
 ## Cobertura atual
 
-### `dm3270`
+### `dm3270` — 51 classes de teste, 1.452 testes
 
-| Area | Classe de teste | Testes |
-|---|---|---:|
-| Conversao e empacotamento | `Dm3270UtilityTest` | 26 |
-| Enderecamento de buffer | `BufferAddressTest` | 26 |
-| Orders do data stream | `OrderTest` + `ExtendedOrderTest` | 74 |
-| Atributos | `AttributeTest` + `StartFieldAttributeTest` | 47 |
-| Encapsulamento telnet | `BufferTest` | 11 |
-| Stream telnet | `TelnetProcessorTest` | 16 |
-| Comandos telnet | `TelnetCommandTest` | 48 |
-| Subcomandos TN3270E | `TN3270ExtendedSubcommandTest` | 32 |
-| Comandos 3270 | `CommandTest` + `WriteControlCharacterTest` | 34 |
-| Resposta AID | `AIDCommandTest` | 35 |
-| Resposta de capacidades | `ReadStructuredFieldCommandTest` | 22 |
-| Cabecalho TN3270E | `CommandHeaderTest` | 22 |
-| Imagem BIND | `BindCommandTest` | 79 |
-| Campos estruturados | `StructuredFieldTest` | 44 |
-| Query replies | `QueryReplyFieldTest` + `QueryReplyParsingTest` | 78 |
-| IND$FILE | `IndFileCommandTest` | 31 |
-| Registros de transferencia | `TransferRecordTest` | 62 |
-| Estado da transferencia | `TransferTest` | 36 |
-| Ciclo da transferencia | `TransferManagerTest` | 27 |
-| API de plugins | `PluginApiTest` | 27 |
-| Dimensoes de tela | `ScreenDimensionsTest` | 7 |
-| Estado da sessao telnet | `TelnetStateTest` | 44 |
-| Socket do mainframe | `TerminalServerTest` + `TelnetSocketTest` | 25 |
-| Arquivos de replay | `SessionReaderTest` | 21 |
-| Cache SQLite | `DatabaseTest` | 61 |
-| Registros (reporter) | `RecordMakerTest` + `RecordMakerExtraTest` | 75 |
-| Texto EBCDIC/ASCII (reporter) | `TextMakerTest` | 23 |
-| Formatos de relatorio (reporter) | `ReportMakerTest` | 43 |
-| Escolha do formato (reporter) | `ReportTesterTest` | 34 |
-| **Total** | | **1.110** |
+**Remedida no Passo 10**, contando elementos `<testcase>` nos relatorios do Surefire, que e a
+unica contagem que fecha (ver "Ler o resultado da suite", no `RELATORIO-REFATORACAO.md` §5.18):
+
+```bash
+grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.452
+```
+
+| Classe de teste | Testes |
+|---|---:|
+| `dm3270.extended.BindCommandTest` | 79 |
+| `dm3270.database.DatabaseTest` | 74 |
+| `dm3270.filetransfer.TransferRecordTest` | 62 |
+| `dm3270.display.PaletteFidelityTest` | 59 |
+| `dm3270.display.ScreenWatcherTest` | 57 |
+| `dm3270.replyfield.QueryReplyParsingTest` | 54 |
+| `reporter.record.RecordMakerExtraTest` | 53 |
+| `dm3270.telnet.TelnetCommandTest` | 48 |
+| `dm3270.streams.TelnetStateTest` | 44 |
+| `dm3270.structuredfields.StructuredFieldTest` | 44 |
+| `reporter.reports.ReportMakerTest` | 43 |
+| `dm3270.orders.OrderTest` | 41 |
+| `dm3270.filetransfer.TransferTest` | 36 |
+| `dm3270.application.SiteFormTest` | 35 |
+| `dm3270.commands.AIDCommandTest` | 35 |
+| `reporter.file.ReportTesterTest` | 34 |
+| `dm3270.orders.ExtendedOrderTest` | 33 |
+| `dm3270.screen.CursorTest` | 32 |
+| `dm3270.telnet.TN3270ExtendedSubcommandTest` | 32 |
+| `dm3270.filetransfer.IndFileCommandTest` | 31 |
+| `dm3270.session.SessionTest` | 28 |
+| `dm3270.attributes.AttributeTest` | 27 |
+| `dm3270.filetransfer.TransferManagerTest` | 27 |
+| `dm3270.plugins.PluginApiTest` | 27 |
+| `dm3270.commands.CommandTest` | 26 |
+| `dm3270.orders.BufferAddressTest` | 26 |
+| `dm3270.utilities.Dm3270UtilityTest` | 26 |
+| `dm3270.replyfield.QueryReplyFieldTest` | 24 |
+| `reporter.text.TextMakerTest` | 23 |
+| `dm3270.commands.ReadStructuredFieldCommandTest` | 22 |
+| `dm3270.extended.CommandHeaderTest` | 22 |
+| `reporter.record.RecordMakerTest` | 22 |
+| `dm3270.session.SessionReaderTest` | 21 |
+| `dm3270.attributes.StartFieldAttributeTest` | 20 |
+| `dm3270.display.HeadlessProcessingTest` | 19 |
+| `dm3270.session.SessionRecordTest` | 19 |
+| `reporter.file.ReportScoreTest` | 17 |
+| `dm3270.telnet.TelnetProcessorTest` | 16 |
+| `dm3270.streams.TerminalServerTest` | 15 |
+| `dm3270.architecture.LayeringTest` | 14 |
+| `dm3270.display.ScreenPositionDrawingTest` | 14 |
+| `dm3270.streams.TelnetSocketTest` | 14 |
+| `dm3270.buffers.BufferTest` | 11 |
+| `dm3270.display.ScreenContextPoolingTest` | 10 |
+| `dm3270.commands.WriteControlCharacterTest` | 8 |
+| `dm3270.display.ScreenDimensionsTest` | 7 |
+| `reporter.application.ReportScoreViewTest` | 7 |
+| `dm3270.utilities.SiteValueTest` | 6 |
+| `dm3270.application.SessionRowTest` | 4 |
+| `dm3270.streams.TelnetListenerHeadlessTest` | 3 |
+| `dm3270.session.ParserGoldenMasterTest` | 1 |
+
+**O `ParserGoldenMasterTest` aparece com 1 teste e e a prova central da refatoracao inteira:**
+ele reprocessa uma sessao gravada e compara a saida byte a byte com um snapshot de 1.688
+linhas. Um teste, e o que impede qualquer commit de mudar o que o parser produz.
+
+**O `LayeringTest` aparece com 14** — sao as treze regras de camada mais o placar de ciclos
+mutuos. E o outro lado da rede: ele nao verifica comportamento, verifica arquitetura.
 
 ### `dm3270-plugins`
 
@@ -536,10 +615,21 @@ O que continua aberto, em ordem de retorno medido:
    mas **nao e mais o unico caminho, e esta lista ja disse que era**. Ela afirmava que "seis
    dos doze ciclos restantes esperam por ele"; o Passo 6 derrubou tres desses seis sem
    toca-lo, medindo aresta por aresta. Hoje sao **nove ciclos**, dos quais cinco sao inerentes
-   ao 3270, um e do `reporter` e foi descartado com o usuario, e **tres sao acidentais**: dois
-   de `getTransferManager ()` no `ScreenTarget` e `streams <-> telnet`, o unico dos tres que e
-   mesmo estrutural. Antes de aceitar que um ciclo depende de um refactor grande, rode os dois
-   `grep` de import entre os dois pacotes e veja quais tipos sustentam cada direcao.
+   ao 3270, um e do `reporter` e foi descartado com o usuario, e **tres sao acidentais**:
+
+   - `filetransfer <-> screen`, que espera `getTransferManager ()` sair do `ScreenTarget`;
+   - `commands <-> filetransfer`, que **nao** espera isso - este arquivo, o `LayeringTest` e o
+     proprio `TODO` da `ScreenTarget` diziam que sim ate o Passo 10, e a medicao desmentiu: sao
+     quatro construcoes que nunca tocam a tela;
+   - `streams <-> telnet`, o unico dos tres que e mesmo estrutural - e por `TelnetState`
+     atravessando as duas pontas, nao pelo enum `Function`, cujos "~30 call sites" sao **tres
+     linhas**.
+
+   Antes de aceitar que um ciclo depende de um refactor grande, rode os dois `grep` de import
+   entre os dois pacotes e veja quais tipos sustentam cada direcao. **Cuidado com um detalhe
+   que so apareceu no Passo 10:** um `grep` de import conta **11** ciclos e o ArchUnit conta 9,
+   porque `AIDCommand.AID_ENTER` e `StructuredField.QUERY_REPLY` sao constantes de compilacao,
+   que o javac embute no chamador e somem do bytecode.
 2. **`TransferManager`** — o resto do fluxo de IND$FILE depende de `Screen`; extrair a
    parte de estado tornaria testavel o ciclo abrir/transferir/fechar.
 3. **O caminho de lancamento**: `Console`, `OptionStage` e `ConsoleKeyPress` **nao tem teste
@@ -550,6 +640,17 @@ O que continua aberto, em ordem de retorno medido:
    historia no Passo 5, mas ficou de fora da lista pelo mesmo criterio do `ScreenWatcher`:
    uma classe grande com dois caminhos cobertos entra com sobreviventes demais para o numero
    significar alguma coisa. Entra quando o tratamento de subcomandos telnet tiver rede.
-5. Corrigir os defeitos do [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md) e trocar os testes que
+5. **Os quatro pacotes de pior mutacao**, pela tabela de cobertura acima:
+   `reporter.reports` (34%), `streams` (38%), `commands` (50%) e `screen` (50%). Nao sao alvo de
+   refatoracao - sao alvo de teste.
+6. Corrigir os defeitos do [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md) e trocar os testes que
    documentam o comportamento atual por testes que exigem o comportamento correto. **Isso e
    decisao do time, nao tarefa aprovada**, e nao pertence a branch da refatoracao (Regra 1).
+
+**E um alvo que saiu desta lista no Passo 10:** a limpeza do codigo provadamente morto (Onda 6
+do diagnostico) foi feita - oito blocos `if (false)`, quatro `if (true)`, o enum
+`BuildInstruction`, quatro membros sem chamador do `FieldManager` e o `application/Terminal.java`
+inteiro. Sobraram de proposito **o `DatasetCache`** (provadamente morto, mas remove-lo levaria a
+suite de 1.452 para 1.445 e encolheria o denominador do PIT) e **as ~356 a 459 linhas de codigo
+comentado**, cuja maior concentracao e `telnet/TelnetProcessor.java`, que e coberto pelo golden
+master.
