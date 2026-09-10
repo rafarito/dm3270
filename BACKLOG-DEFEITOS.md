@@ -119,10 +119,21 @@ implementar uma `ReadOnlyScreen` (subconjunto sem `insertCursor`/`clearScreen`),
 
 ---
 
-## 5. 103 `assert` como validação
+## 5. 94 `assert` ativos como validação
 
 `assert` está **desligado por padrão na JVM**. Em produção estas verificações não existem —
 o `dm3270` roda com o `java -jar` normal, sem `-ea`.
+
+**A contagem foi corrigida no Passo 10.** Este item dizia 103, que é o número do diagnóstico
+original e conta as ocorrências do texto `assert` no `src/`. Medido:
+
+```bash
+grep -rn '^\s*assert ' src/ --include=*.java | wc -l        # 94, ativos
+grep -rn '^\s*//\s*assert ' src/ --include=*.java | wc -l    # 9, comentados
+```
+
+São **94 ativos**; os outros 9 estão comentados e não fazem nada. A decisão pendente é sobre
+os 94.
 
 Exemplos em [plugins/PluginsStage.java](src/com/bytezone/dm3270/plugins/PluginsStage.java#L322):
 
@@ -272,8 +283,16 @@ deliberada, e nao um efeito colateral da decomposicao em Strategy.
 private final Map<String, CacheEntry> cache = new TreeMap<> ();
 ```
 
-São **treze escritas e nenhuma leitura**. Todo `cache.get` existe apenas para decidir entre
-`put`, `replace` e `putMember` — nenhuma requisição é respondida a partir do cache.
+São **onze escritas e nenhuma leitura**, medidas no Passo 10 e espalhadas por cinco classes
+(`DatabaseCommands`, `DatasetCommands`, `DatasetRepository`, `MemberCommands`,
+`MemberRepository`). O "treze" que este item trazia era o número de trechos dentro do
+`DatabaseThread` **antes** da decomposição do Passo 2. Todo `cache.get` existe apenas para
+decidir entre `put`, `replace` e `putMember` — nenhuma requisição é respondida a partir do
+cache.
+
+A prova de que é só escrita é estrutural, e não estatística: os **sete** métodos do
+`DatasetCache` são **todos `void`**, e o `Map<String, CacheEntry> entries` é `private` e não
+tem *getter*. Não existe caminho pelo qual um valor saia dali.
 `findDataset` e `findMember` vão ao banco todas as vezes, mesmo quando a entrada está lá; o
 valor devolvido por `CacheEntry.addMember` é descartado no único lugar que o chama.
 
@@ -286,10 +305,18 @@ ninguém pergunta. Se a intenção original era evitar ida ao banco, o que falta
 consultá-lo antes do `select` — e aí passaria a haver invalidação a pensar, o que é outra
 conversa.
 
-**Nota:** a remoção pertence à onda de limpeza, não a esta. Ela arrasta o `CacheEntry` e os sete
-testes que o cobrem em isolamento. O que a decomposição do `DatabaseThread` fez foi juntar as
-treze escritas num colaborador só, para que a decisão seja de uma linha em vez de uma
-investigação.
+**Nota:** a remoção pertencia à onda de limpeza, e o **Passo 10 a mediu e o usuário decidiu
+deixar o cache onde está.** O motivo é o preço, e ele é real: remover arrasta o `CacheEntry` e
+os **sete testes** da classe aninhada `Cache` do `DatabaseTest` (99 linhas), levando a suíte de
+1.452 para 1.445 e encolhendo o denominador do PIT em `database.*`. Perder denominador é a
+forma mais silenciosa de afrouxar a rede, e a Regra 5 existe justamente contra isso.
+
+Ou seja: **este item continua sendo uma decisão pendente do time, e agora com o custo
+medido.** O que a decomposição do `DatabaseThread` fez foi juntar as onze escritas num
+colaborador só, para que a decisão seja de uma linha em vez de uma investigação.
+
+Para o PIT, o `DatasetCache` entra com **5 mutantes e 0 mortos**, e isso **não é para
+consertar**: não há o que asseverar sobre um cache que ninguém lê.
 
 ---
 
