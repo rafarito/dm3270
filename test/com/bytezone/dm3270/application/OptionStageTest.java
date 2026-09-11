@@ -2,6 +2,7 @@ package com.bytezone.dm3270.application;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -23,7 +24,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.testing.JavaFxToolkit;
+import com.bytezone.dm3270.utilities.Site;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -594,6 +597,105 @@ class OptionStageTest
       assertEquals (List.of ("prod"), List.copyOf (combo (stage, "Server").getItems ()));
       assertEquals ("prod",
           combo (stage, "Server").getSelectionModel ().getSelectedItem ());
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("o pedido de lancamento")
+  class TheLaunchRequest
+  // ---------------------------------------------------------------------------------//
+  {
+    @ParameterizedTest
+    @CsvSource ({ "Spy, SPY", "Replay, REPLAY", "Terminal, TERMINAL", "Test, TEST" })
+    @DisplayName ("cada opcao produz a funcao correspondente")
+    void eachOptionProducesItsFunction (String option, TerminalFunction function)
+    {
+      assertEquals (function, debugStage (option).getLaunchRequest ().function ());
+    }
+
+    @Test
+    @DisplayName ("sem sites gravados os dois Optional vem vazios")
+    void noSitesMeansTwoEmptyOptionals ()
+    {
+      LaunchRequest request = debugStage ("Terminal").getLaunchRequest ();
+
+      assertTrue (request.serverSite ().isEmpty ());
+      assertTrue (request.clientSite ().isEmpty ());
+    }
+
+    @Test
+    @DisplayName ("a pasta e o arquivo de replay vem crus, como os widgets os tem")
+    void theFolderAndFileComeRaw () throws Exception
+    {
+      Path folder = Files.createTempDirectory ("dm3270-launch-request");
+      try
+      {
+        Files.createFile (folder.resolve ("spy0007.txt"));
+        prefs.put ("SpyFolder", folder.toString ());
+        prefs.put ("ReplayFile", "spy0007.txt");
+
+        LaunchRequest request = debugStage ("Replay").getLaunchRequest ();
+
+        assertEquals (folder.toString (), request.spyFolder ());
+        assertEquals ("spy0007.txt", request.replayFile ());
+      }
+      finally
+      {
+        Files.deleteIfExists (folder.resolve ("spy0007.txt"));
+        Files.deleteIfExists (folder);
+      }
+    }
+
+    @Test
+    @DisplayName ("sem arquivo escolhido o pedido leva a string vazia, e nao null")
+    void noFileMeansTheEmptyString ()
+    {
+      assertEquals ("", debugStage ("Replay").getLaunchRequest ().replayFile ());
+    }
+
+    /*
+     * A afirmacao que protege a decisao central do desenho. O pedido tem de entregar o
+     * SiteForm VIVO - o objeto feito de widgets -, e nao uma copia dos seus valores: o
+     * getPort () dele corrige o campo quando acha valor invalido, e e o valor corrigido que
+     * o SiteListStage grava nas Preferences. Uma copia congelaria a porta antes da correcao
+     * e mudaria o que vai para o disco.
+     */
+    @Test
+    @DisplayName ("o Site entregue e o formulario vivo, o mesmo objeto a cada chamada")
+    void theSiteIsTheLiveFormAndAlwaysTheSameObject ()
+    {
+      prefs.put ("Server00Name", "prod");
+      prefs.put ("Server00URL", "mvs.example.com");
+      prefs.put ("Server00Port", "992");
+      prefs.put ("ServerName", "prod");
+
+      OptionStage stage = debugStage ("Terminal");
+      Site first = stage.getLaunchRequest ().serverSite ().orElseThrow ();
+      Site second = stage.getLaunchRequest ().serverSite ().orElseThrow ();
+
+      assertInstanceOf (SiteForm.class, first);
+      assertSame (first, second);
+      assertEquals (992, first.getPort ());
+    }
+
+    /*
+     * A consulta tardia, que o ramo do replay usa depois de descobrir na sessao gravada de
+     * que servidor ela veio. Ela nao olha o combo: casa so pelo nome.
+     */
+    @Test
+    @DisplayName ("findServerSite acha pelo nome, mesmo sem nada selecionado no combo")
+    void findServerSiteMatchesByNameAlone ()
+    {
+      prefs.put ("Server00Name", "prod");
+      prefs.put ("Server00URL", "mvs.example.com");
+      prefs.put ("Server01Name", "homolog");
+      prefs.put ("Server01URL", "test.example.com");
+
+      OptionStage stage = debugStage ("Replay");
+
+      assertEquals ("homolog", stage.findServerSite ("homolog").orElseThrow ().getName ());
+      assertTrue (stage.findServerSite ("nao-existe").isEmpty ());
     }
   }
 }
