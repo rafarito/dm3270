@@ -27,10 +27,13 @@ em paralelo sem antes isolar esses casos.
 Este documento acompanha a refatoracao estrutural da branch `refactor/solid-architecture`, e
 ficou defasado entre a Onda 1 e o Passo 5.
 
-**Remedido no Passo 10, e portanto confiavel:** "Situacao atual", "Cobertura por pacote —
-`dm3270`", "Mapa de modulos", "Uma falha intermitente que nao e sua", "Testes que exigem
-JavaFX", "Rede de seguranca" e "Proximos alvos". Todos os numeros dessas secoes foram medidos
-de novo com `mvn clean test` e `mvn test-compile pitest:mutationCoverage`.
+**Remedido no Passo 7, e portanto confiavel:** "Situacao atual", "Rede de seguranca", "Testes
+que exigem JavaFX", "Cobertura atual" e "Proximos alvos". Os numeros dessas secoes foram
+medidos de novo com `mvn clean test` e `mvn clean test-compile pitest:mutationCoverage`.
+
+**Remedido no Passo 10, e ainda confiavel:** "Cobertura por pacote — `dm3270`", "Mapa de
+modulos" e "Uma falha intermitente que nao e sua". O Passo 7 tocou tres arquivos de `src/`
+num pacote que nao entra no relatorio de mutacao, entao essas secoes nao mudaram.
 
 **Ainda sao instantaneos antigos** — ordens de grandeza valem, numeros exatos nao: "Cobertura
 por modulo — `dm3270-plugins`", a secao "Cobertura atual" (que duplica a de cima com dados mais
@@ -90,19 +93,29 @@ e o que diz se os testes escritos valem alguma coisa.
 
 ### Situacao atual
 
-Medido ao fim do Passo 10.
+Medido ao fim do Passo 7.
 
 | | `dm3270` | `dm3270-plugins` |
 |---|---:|---:|
-| Testes | 1.452 | 248 (63 no `UploadDataset`) |
-| Cobertura de instrucoes (projeto todo) | 51% | — |
-| Cobertura de ramos | 48% | — |
+| Testes | 1.492 | 248 (63 no `UploadDataset`) |
+| Cobertura de instrucoes (projeto todo) | 54% | — |
+| Cobertura de ramos | 50% | — |
 | Mutantes gerados | 4.019 | — |
 | Mutation coverage | 66% (2.642/4.019) | — |
 | **Test strength** | **86%** (2.642/3.087) | — |
 | Classes no `targetClasses` | 162 | — |
 
-**Os numeros sao praticamente os mesmos do Passo 6, e isso e o esperado nos dois passos.** O
+**O Passo 7 moveu a cobertura e NAO moveu o PIT, e as duas coisas sao esperadas.** Ele
+acrescentou 40 testes sobre o `OptionStage`, que ate entao nao tinha nenhum: a cobertura de
+instrucoes subiu de 51% para 54% e a de ramos de 48% para 50%. Os tres numeros do PIT ficaram
+iguais - 4.019 mutantes, 66%, test strength 86% - porque **`application` nao esta no
+`<targetClasses>`**, entao nem o `LaunchRequest` nem o `OptionStage` produzem mutante.
+**Isso foi avaliado e mantido:** um `record` so geraria mutantes nos acessores gerados, quase
+todos equivalentes, e o `OptionStage` e classe de widget - entraria com centenas de
+sobreviventes e afogaria o sinal, pela mesma razao que deixa `SiteForm` e `Screen` de fora. O
+`SessionRow` e o precedente: tem teste desde o Passo 5 e tambem nao esta na lista.
+
+**Os numeros dos Passos 6 e 10 eram praticamente os mesmos entre si, e isso era esperado.** O
 Passo 6 so cortou acoplamento; o Passo 10 so removeu codigo morto. Nenhum dos dois acrescentou
 teste de comportamento. **A unica variacao e um mutante a menos** — 4.020 para 4.019 —, e ele
 tem nome: era a chamada `void` de `ScreenWatcher.checkMenu`, que o mutator `VOID_METHOD_CALLS`
@@ -141,7 +154,7 @@ sustentam essa promessa, e todos rodam no `mvn test`:
 | Golden master do parser | `ParserGoldenMasterTest` + `test/golden/mf-parse.txt` | Reprocessa uma sessao TN3270 real e congela tudo que o parser monta: registros, comandos, orders, respostas telnet. Cobre `telnet`, `buffers`, `commands`, `orders`, `extended`, `structuredfields` e `replyfield` de uma vez |
 | Regras de camada | `LayeringTest` + `test/archunit-baseline/` | **Treze** regras de dependencia com ArchUnit. **Doze chegaram a zero e NAO sao congeladas** - uma violacao nova quebra a build sem baseline para absorve-la. So `uiIsTheOnlyPlaceThatKnowsJavaFx` segue congelada, em 240 violacoes, e o baseline versionado e o placar: ele so encolhe |
 | Placar de ciclos | `LayeringTest.MAX_MUTUAL_CYCLES`, hoje **9** | Conta os pares de pacotes com dependencia mutua. Falha se subir **e** se cair sem atualizar o limite, para que todo ganho seja registrado no commit que o produziu |
-| Caracterizacao | `SiteFormTest`, `ScreenContextPoolingTest`, `ReportScoreTest`, `SessionRecordTest`, `SessionTest`, e outros | Congela o comportamento atual das classes que serao desmontadas, **incluindo os defeitos** — ver [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md) |
+| Caracterizacao | `SiteFormTest`, `OptionStageTest`, `ScreenContextPoolingTest`, `ReportScoreTest`, `SessionRecordTest`, `SessionTest`, e outros | Congela o comportamento atual das classes que serao desmontadas, **incluindo os defeitos** — ver [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md) |
 
 **Uma regra que chegou a zero e trocada pela regra nua**, com o baseline e a entrada dele no
 `stored.rules` apagados. E isso que separa "hoje nao ha violacao" de "nao pode haver
@@ -155,14 +168,29 @@ reaprovado — o que exige justificativa no commit, nunca um `rm` silencioso.
 
 ### Testes que exigem JavaFX
 
-`SiteForm` e `Screen` so podem ser instanciadas com o toolkit ativo. A extensao
-`JavaFxToolkit` liga o toolkit uma vez por JVM; use com `@ExtendWith (JavaFxToolkit.class)`.
+`SiteForm`, `OptionStage` e `Screen` so podem ser instanciadas com o toolkit ativo - as duas
+primeiras tem teste hoje. A extensao `JavaFxToolkit` liga o toolkit uma vez por JVM; use com
+`@ExtendWith (JavaFxToolkit.class)`.
 
 **A lista encolheu, e o encolhimento e o resultado da refatoracao.** `ScreenPosition` e `Pen`
 sairam na Onda 1; `Site` virou uma porta com implementacao headless (`SiteValue`) no Passo 3;
 `ReportScore` saiu no Passo 4; `Session` e `SessionRecord` sairam no Passo 5. Nos tres ultimos
 casos **a ausencia da anotacao no teste e a assercao principal**, e esta dita no cabecalho de
 cada classe de teste.
+
+**O Passo 7 acrescentou uma classe a lista, e nao ha como evitar:** o `OptionStageTest`
+constroi uma `Stage`, e o construtor de `Stage` exige a thread do JavaFX -
+`JavaFxToolkit.onFxThread (...)` existe para isso. Duas coisas dele valem copiar:
+
+- ele **nao le os campos da classe sob teste**. Acha as linhas do formulario pelo texto do
+  `Label`, os radios pelo `userData` e o menu pela `MenuBar`, tudo pelo grafo de cena. Por
+  isso atravessou intacto o commit que fechou os dez campos do `OptionStage` - uma rede presa
+  aos campos teria de ser reescrita justo no commit que ela deveria vigiar;
+- ele **isola as `Preferences`**. Cada caso recebe um no proprio sob `userRoot`, com nome
+  aleatorio, removido no `@AfterEach`. O `OptionStage` le seis chaves ja no construtor e
+  grava as mesmas seis; sem o isolamento a suite escreveria nas preferencias reais de quem a
+  roda. **E o primeiro teste do projeto a fazer isso** - se voce precisar de `Preferences`
+  num teste novo, copie daqui.
 
 Duas notas praticas sobre a extensao:
 
@@ -200,7 +228,7 @@ quando o JUnit tenta apaga-lo, e a exclusao falha. **O sintoma que identifica o 
 de resultado sair como
 
 ```
-Tests run: 1452, Failures: 0, Errors: 1
+Tests run: 1492, Failures: 0, Errors: 1
 ```
 
 ou seja, **zero falhas de assercao**: o teste passou e a infraestrutura tropecou depois dele.
@@ -400,13 +428,13 @@ classes que sao genuinamente visuais, como `Site`, cujos campos sao widgets.
 
 ## Cobertura atual
 
-### `dm3270` — 51 classes de teste, 1.452 testes
+### `dm3270` — 52 classes de teste, 1.492 testes
 
-**Remedida no Passo 10**, contando elementos `<testcase>` nos relatorios do Surefire, que e a
+**Remedida no Passo 7**, contando elementos `<testcase>` nos relatorios do Surefire, que e a
 unica contagem que fecha (ver "Ler o resultado da suite", no `RELATORIO-REFATORACAO.md` §5.18):
 
 ```bash
-grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.452
+grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.492
 ```
 
 | Classe de teste | Testes |
@@ -423,6 +451,7 @@ grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.452
 | `dm3270.structuredfields.StructuredFieldTest` | 44 |
 | `reporter.reports.ReportMakerTest` | 43 |
 | `dm3270.orders.OrderTest` | 41 |
+| `dm3270.application.OptionStageTest` | 38 |
 | `dm3270.filetransfer.TransferTest` | 36 |
 | `dm3270.application.SiteFormTest` | 35 |
 | `dm3270.commands.AIDCommandTest` | 35 |
@@ -609,6 +638,11 @@ porque a ordem em que cairam e o argumento de que o metodo funciona:
 4. ~~**`SessionRecord` e `Session`.**~~ Feito no Passo 5, e tambem rendeu mais: desfez o ciclo
    `session <-> streams`, que o relatorio dizia depender do composition root.
 
+5. ~~**`OptionStage` e o caminho de lancamento.**~~ Feito no Passo 7, e ele nao estava nesta
+   lista - o caminho inteiro (`Console`, `OptionStage`, `ConsoleKeyPress`) tinha **zero**
+   testes, o que e a maior lacuna que esta secao deixou de registrar. Hoje o `OptionStage`
+   tem 38, e `Console` e `ConsoleKeyPress` continuam com nenhum.
+
 O que continua aberto, em ordem de retorno medido:
 
 1. **O composition root.** Continua sendo o maior item estrutural que sobra, e o mais caro -
@@ -632,10 +666,15 @@ O que continua aberto, em ordem de retorno medido:
    que o javac embute no chamador e somem do bytecode.
 2. **`TransferManager`** — o resto do fluxo de IND$FILE depende de `Screen`; extrair a
    parte de estado tornaria testavel o ciclo abrir/transferir/fechar.
-3. **O caminho de lancamento**: `Console`, `OptionStage` e `ConsoleKeyPress` **nao tem teste
-   nenhum**. Sao o ultimo item da Onda 2 e a Onda 4 do diagnostico, e caracterizar vem antes
-   de qualquer coisa. Medido: o `Console` alcanca **dez campos package-private de widgets** do
-   `OptionStage`, que e 100% da superficie de pacote daquela classe.
+3. **O caminho de lancamento, o que sobrou dele**: `Console` e `ConsoleKeyPress` continuam
+   **sem teste nenhum**. O `OptionStage` saiu desta linha no Passo 7 - ganhou 38 casos, e os
+   dez campos que o `Console` alcancava fecharam. Sobra a Onda 4 do diagnostico, e o alvo e o
+   `ConsoleKeyPress.handle`: 213 linhas, quatro `switch` e **nenhum** teste, com quatro acoes
+   aparecendo em mais de um binding (`home` em tres, `newLine`, `eraseEOL` e
+   `toggleInsertMode` em dois cada). Caracterizar vem antes de qualquer coisa, e ele e
+   testavel sem o `Console`: e um `EventHandler<KeyEvent>`, e basta montar o evento a mao.
+   O `Console` em si continua intestavel enquanto for uma `Application` que constroi o grafo
+   inteiro dentro de `start ()` - isso e o composition root, o item 1 desta lista.
 4. **`TelnetListener` no `targetClasses` do PIT.** Ele ganhou os tres primeiros testes da sua
    historia no Passo 5, mas ficou de fora da lista pelo mesmo criterio do `ScreenWatcher`:
    uma classe grande com dois caminhos cobertos entra com sobreviventes demais para o numero
