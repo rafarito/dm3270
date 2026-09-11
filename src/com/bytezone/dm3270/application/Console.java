@@ -87,18 +87,14 @@ public class Console extends Application
     optionStage.hide ();
     String errorMessage = "";
 
-    Optional<Site> optionalServerSite =
-        optionStage.serverSitesListStage.getSelectedSite ();
-    Optional<Site> optionalClientSite =
-        optionStage.clientSitesListStage.getSelectedSite ();
+    LaunchRequest request = optionStage.getLaunchRequest ();
+    Optional<Site> optionalServerSite = request.serverSite ();
+    Optional<Site> optionalClientSite = request.clientSite ();
 
-    String optionText =
-        (String) optionStage.functionsGroup.getSelectedToggle ().getUserData ();
-    switch (optionText)
+    switch (request.function ())
     {
-      case "Replay":
-        Path path = Paths
-            .get (optionStage.spyFolder + "/" + optionStage.fileComboBox.getValue ());
+      case REPLAY:
+        Path path = Paths.get (request.spyFolder () + "/" + request.replayFile ());
         if (!Files.exists (path))
           errorMessage = path + " does not exist";
         else
@@ -109,8 +105,8 @@ public class Console extends Application
                 SessionLoader.replay (telnetState, path, Platform::runLater);
             alternateScreenDimensions = session.getScreenDimensions ();
 
-            Optional<Site> serverSite = optionStage.serverSitesListStage
-                .getSelectedSite (session.getServerName ());
+            Optional<Site> serverSite =
+                optionStage.findServerSite (session.getServerName ());
             if (serverSite.isPresent ())
             {
               Site site = serverSite.get ();
@@ -134,7 +130,7 @@ public class Console extends Application
 
         break;
 
-      case "Terminal":
+      case TERMINAL:
         if (optionalServerSite.isPresent ())
         {
           Site serverSite = optionalServerSite.get ();
@@ -147,7 +143,7 @@ public class Console extends Application
 
         break;
 
-      case "Spy":
+      case SPY:
         if (!optionalServerSite.isPresent ())
           errorMessage = "No server selected";
         else if (!optionalClientSite.isPresent ())
@@ -161,7 +157,7 @@ public class Console extends Application
 
         break;
 
-      case "Test":
+      case TEST:
         if (!optionalClientSite.isPresent ())
           errorMessage = "No client selected";
         else

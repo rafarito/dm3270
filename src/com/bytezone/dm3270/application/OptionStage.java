@@ -7,11 +7,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.bytezone.dm3270.runtime.TerminalFunction;
+import com.bytezone.dm3270.utilities.Site;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -183,6 +187,54 @@ public class OptionStage extends Stage
     okButton.requestFocus ();
   }
 
+  /*
+   * O pedido de lancamento, lido dos widgets num so lugar.
+   *
+   * Substitui as leituras que o Console fazia direto nos campos desta classe. O metodo e
+   * chamado uma vez por lancamento, e e ele que congela o instante: os dois Optional<Site>
+   * sao resolvidos aqui, ansiosamente, como ja eram antes do switch do Console.
+   */
+  // ---------------------------------------------------------------------------------//
+  LaunchRequest getLaunchRequest ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return new LaunchRequest (selectedFunction (), serverSitesListStage.getSelectedSite (),
+        clientSitesListStage.getSelectedSite (), spyFolder, fileComboBox.getValue ());
+  }
+
+  /*
+   * A busca tardia por nome, que o ramo do replay so consegue fazer depois de carregar a
+   * sessao gravada e descobrir de que servidor ela veio.
+   */
+  // ---------------------------------------------------------------------------------//
+  Optional<Site> findServerSite (String siteName)
+  // ---------------------------------------------------------------------------------//
+  {
+    return serverSitesListStage.getSelectedSite (siteName);
+  }
+
+  /*
+   * O userData de cada RadioButton e a propria string de optionList, posta em options (),
+   * e o ToggleGroup so tem esses quatro. O ramo default e portanto inalcancavel, e quem o
+   * mantem assim e o OptionStageTest, que afirma os quatro userData na ordem.
+   */
+  // ---------------------------------------------------------------------------------//
+  private TerminalFunction selectedFunction ()
+  // ---------------------------------------------------------------------------------//
+  {
+    String option = (String) functionsGroup.getSelectedToggle ().getUserData ();
+
+    return switch (option)
+    {
+      case "Spy" -> TerminalFunction.SPY;
+      case "Replay" -> TerminalFunction.REPLAY;
+      case "Terminal" -> TerminalFunction.TERMINAL;
+      case "Test" -> TerminalFunction.TEST;
+      default -> throw new IllegalStateException ("opcao desconhecida: " + option);
+    };
+  }
+
+  // ---------------------------------------------------------------------------------//
   private void switchMode (ActionEvent e)
   {
     CheckMenuItem menuItem = (CheckMenuItem) e.getSource ();
