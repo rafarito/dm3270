@@ -459,6 +459,47 @@ A correção é decidir onde o `runLater` entra — provavelmente em `SessionRow
 
 ---
 
+## 15. `SiteListStage` ignora o parâmetro `show3270e`, e a coluna aparece onde não devia
+
+**Arquivo:** [application/SiteListStage.java](src/com/bytezone/dm3270/application/SiteListStage.java)
+
+```java
+public SiteListStage (Preferences prefs, String key, int max, boolean show3270e)
+{
+  ...
+  fields.add (new PreferenceField ("Ext", 50, Type.BOOLEAN));    // sempre, sem olhar o flag
+```
+
+O quarto parâmetro do construtor **não é lido em lugar nenhum do corpo** — foi conferido por
+*grep* em `src/`, `test/` e nos seis módulos de plugin: a palavra `show3270e` aparece uma
+única vez no projeto inteiro, na própria assinatura.
+
+**Não é só um parâmetro morto, e é por isso que está nesta lista.** Os dois únicos
+chamadores passam valores *diferentes*, e de propósito:
+
+```java
+serverSitesListStage = new SiteListStage (prefs, "Server", 10, true);
+clientSitesListStage = new SiteListStage (prefs, "Client", 6, false);
+```
+
+A intenção era não mostrar a coluna `Ext` — o TN3270E — na lista de **clientes**, e ela é
+mostrada. Um site de cliente é o lado que o modo Spy escuta; não há negociação TN3270E a
+declarar ali. O resultado é uma caixa de seleção visível, editável e **persistida** (a chave
+`Client00Extended` é lida e gravada como as outras) num formulário onde ela não significa
+nada.
+
+**Por que não foi corrigido aqui.** Há duas correções possíveis e elas divergem no
+comportamento: honrar o flag esconde uma coluna que hoje aparece — mudança visível na janela
+Site Manager —, e remover o parâmetro assume que a coluna deve mesmo aparecer para os dois.
+Escolher entre as duas é decisão de produto, não de refatoração, e a Regra 1 proíbe
+qualquer das duas nesta branch.
+
+Descoberto na medição que precedeu o Passo 7, e escapou da varredura de código morto do
+Passo 10 porque um parâmetro sem uso não é um bloco `if (false)` nem um membro sem chamador
+— ele *tem* chamador, e dois.
+
+---
+
 ## Onde estão os defeitos que a refatoração *vai* resolver
 
 Estes não estão nesta lista porque não são mudança de comportamento:
