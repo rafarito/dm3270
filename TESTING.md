@@ -669,10 +669,22 @@ O que continua aberto, em ordem de retorno medido:
 3. **O caminho de lancamento, o que sobrou dele**: `Console` e `ConsoleKeyPress` continuam
    **sem teste nenhum**. O `OptionStage` saiu desta linha no Passo 7 - ganhou 38 casos, e os
    dez campos que o `Console` alcancava fecharam. Sobra a Onda 4 do diagnostico, e o alvo e o
-   `ConsoleKeyPress.handle`: 213 linhas, quatro `switch` e **nenhum** teste, com quatro acoes
-   aparecendo em mais de um binding (`home` em tres, `newLine`, `eraseEOL` e
-   `toggleInsertMode` em dois cada). Caracterizar vem antes de qualquer coisa, e ele e
-   testavel sem o `Console`: e um `EventHandler<KeyEvent>`, e basta montar o evento a mao.
+   `ConsoleKeyPress.handle`: 213 linhas, quatro `switch` e **nenhum** teste.
+
+   **Quatro acoes aparecem em mais de um binding**, e um `Map` precisa preserva-las sem
+   fundir: `home` em tres (Meta+H, Ctrl+H, HOME), `eraseEOL` em **tres** (Meta+BACK_SPACE,
+   Meta+DELETE, END), `newLine` em dois e `toggleInsertMode` em dois. **Cuidado com a
+   armadilha que a medicao do fim do Passo 7 achou:** sem modificador, `BACK_SPACE` chama
+   `backspace ()` e `DELETE` chama `delete ()` - so `END` chama `eraseEOL ()`. Tratar as tres
+   como a mesma acao trocaria "apagar um caractere" por "apagar ate o fim da linha", e nao ha
+   teste que pegue.
+
+   Caracterizar vem antes de qualquer coisa, e ele e testavel sem o `Console`: e um
+   `EventHandler<KeyEvent>`, e basta montar o evento a mao. Antes disso, vale estreitar os
+   dois colaboradores - `screen.AidSender` e `screen.KeyboardState` ja cobrem dois dos onze
+   metodos que ele usa -, porque hoje a rede exigiria uma `Screen` de 1.094 linhas e um
+   `ConsolePane` de 442.
+
    O `Console` em si continua intestavel enquanto for uma `Application` que constroi o grafo
    inteiro dentro de `start ()` - isso e o composition root, o item 1 desta lista.
 4. **`TelnetListener` no `targetClasses` do PIT.** Ele ganhou os tres primeiros testes da sua
