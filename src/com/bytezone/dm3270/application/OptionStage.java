@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
-import com.bytezone.dm3270.plugins.PluginsStage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,7 +86,13 @@ public class OptionStage extends Stage
     DEBUG, RELEASE
   }
 
-  public OptionStage (Preferences prefs, PluginsStage pluginsStage)
+  /*
+   * Recebe o item de menu, e nao o PluginsStage inteiro. O unico uso que esta classe
+   * fazia dele era getEditMenuItem (), e construir um PluginsStage monta um
+   * URLClassLoader, varre a pasta de plugins e GRAVA preferencias - efeito colateral
+   * que nenhum teste desta janela pode pagar. Nao volte a passar o stage.
+   */
+  public OptionStage (Preferences prefs, MenuItem pluginsEditMenuItem)
   {
     this.prefs = prefs;
 
@@ -154,7 +159,7 @@ public class OptionStage extends Stage
     outerPane.setTop (menuBar);
 
     toggleModeMenuItem = new CheckMenuItem ("Release mode");
-    menuCommands.getItems ().addAll (toggleModeMenuItem, pluginsStage.getEditMenuItem ());
+    menuCommands.getItems ().addAll (toggleModeMenuItem, pluginsEditMenuItem);
 
     toggleModeMenuItem.setSelected (runMode.equals ("Release"));
     toggleModeMenuItem.setOnAction (e -> switchMode (e));

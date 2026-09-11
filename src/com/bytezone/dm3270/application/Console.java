@@ -73,7 +73,7 @@ public class Console extends Application
     primaryStage.setResizable (true);
 
     pluginsStage = new PluginsStage (prefs);
-    optionStage = new OptionStage (prefs, pluginsStage);
+    optionStage = new OptionStage (prefs, pluginsStage.getEditMenuItem ());
 
     primaryScreenBounds = javafx.stage.Screen.getPrimary ().getVisualBounds ();
 
