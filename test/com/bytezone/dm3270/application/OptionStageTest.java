@@ -3,6 +3,7 @@ package com.bytezone.dm3270.application;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,6 +13,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.prefs.Preferences;
 
 import org.junit.jupiter.api.AfterEach;
@@ -480,6 +482,31 @@ class OptionStageTest
     void notResizable ()
     {
       assertFalse (debugStage ("Terminal").isResizable ());
+    }
+
+    @Test
+    @DisplayName ("setOnConnect e o que o botao Connect dispara")
+    void connectRunsTheGivenAction ()
+    {
+      OptionStage stage = debugStage ("Terminal");
+      AtomicInteger runs = new AtomicInteger ();
+
+      stage.setOnConnect (runs::incrementAndGet);
+      onFx ( () -> button (stage, "Connect").fire ());
+
+      assertEquals (1, runs.get ());
+    }
+
+    /*
+     * O Cancel nao precisa mais do Console: a acao e sempre esconder a janela, e a janela
+     * ja sabe faze-lo. Afirmar o handler, e nao o efeito, porque provar o hide () exigiria
+     * mostrar a janela - uma janela de verdade abrindo no meio da suite.
+     */
+    @Test
+    @DisplayName ("o Cancel ja vem ligado, sem ajuda do Console")
+    void cancelIsWiredByTheWindowItself ()
+    {
+      assertNotNull (button (debugStage ("Terminal"), "Cancel").getOnAction ());
     }
 
     @Test

@@ -77,8 +77,7 @@ public class Console extends Application
 
     primaryScreenBounds = javafx.stage.Screen.getPrimary ().getVisualBounds ();
 
-    optionStage.okButton.setOnAction (e -> startSelectedFunction ());
-    optionStage.cancelButton.setOnAction (e -> optionStage.hide ());
+    optionStage.setOnConnect (this::startSelectedFunction);
     optionStage.show ();
   }
 

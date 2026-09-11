@@ -203,6 +203,20 @@ public class OptionStage extends Stage
   }
 
   /*
+   * O que fazer quando o usuario aciona o Connect.
+   *
+   * O Console ligava os dois botoes daqui por fora. O Cancel sempre foi assunto interno -
+   * a acao e esconder a janela, e nada mais -, e passou para o buttons (). Sobra este, que
+   * e a unica coisa que a janela nao tem como decidir sozinha.
+   */
+  // ---------------------------------------------------------------------------------//
+  void setOnConnect (Runnable action)
+  // ---------------------------------------------------------------------------------//
+  {
+    okButton.setOnAction (e -> action.run ());
+  }
+
+  /*
    * Grava as seis preferencias que esta janela possui.
    *
    * Elas sempre foram desta classe - o construtor le "Function" e "Mode", e buildComboBoxes
@@ -424,6 +438,7 @@ public class OptionStage extends Stage
 
     cancelButton.setCancelButton (true);
     cancelButton.setPrefWidth (80);
+    cancelButton.setOnAction (e -> hide ());
 
     hbox.getChildren ().addAll (cancelButton, okButton);
     hbox.setPadding (new Insets (10, 10, 10, 10));
