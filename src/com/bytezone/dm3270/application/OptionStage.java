@@ -203,6 +203,37 @@ public class OptionStage extends Stage
   }
 
   /*
+   * Grava as seis preferencias que esta janela possui.
+   *
+   * Elas sempre foram desta classe - o construtor le "Function" e "Mode", e buildComboBoxes
+   * le "SpyFolder", "ReplayFile", "ServerName" e "ClientName" -, mas quem as gravava era o
+   * Console, alcancando seis widgets daqui para isso. Ler e escrever a mesma chave em
+   * classes diferentes e o que fazia uma troca de controle quebrar a outra classe.
+   *
+   * O Console continua gravando "FontName" e "FontSize", que sao da Screen e nao daqui. A
+   * ordem das chamadas mudou - as duas da fonte passaram para depois destas seis -, e isso
+   * nao e observavel: sao chaves distintas no mesmo no de Preferences.
+   *
+   * A guarda de null no ReplayFile e preservada como estava.
+   */
+  // ---------------------------------------------------------------------------------//
+  void savePreferences ()
+  // ---------------------------------------------------------------------------------//
+  {
+    prefs.put ("Function",
+               (String) functionsGroup.getSelectedToggle ().getUserData ());
+    prefs.put ("Mode", toggleModeMenuItem.isSelected () ? "Release" : "Debug");
+
+    String filename = fileComboBox.getValue ();
+    if (filename != null)
+      prefs.put ("ReplayFile", filename);
+
+    prefs.put ("SpyFolder", spyFolder);
+    prefs.put ("ServerName", serverComboBox.getSelectionModel ().getSelectedItem ());
+    prefs.put ("ClientName", clientComboBox.getSelectionModel ().getSelectedItem ());
+  }
+
+  /*
    * A busca tardia por nome, que o ramo do replay so consegue fazer depois de carregar a
    * sessao gravada e descobrir de que servidor ela veio.
    */

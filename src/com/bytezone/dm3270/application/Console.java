@@ -301,27 +301,13 @@ public class Console extends Application
 
   private void savePreferences ()
   {
-    prefs.put ("Function",
-               (String) optionStage.functionsGroup.getSelectedToggle ().getUserData ());
+    optionStage.savePreferences ();
 
     if (screen != null)
     {
       prefs.put ("FontName", screen.getFontManager ().getFontName ());
       prefs.put ("FontSize", "" + screen.getFontManager ().getFontSize ());
     }
-
-    prefs.put ("Mode",
-               optionStage.toggleModeMenuItem.isSelected () ? "Release" : "Debug");
-
-    String filename = optionStage.fileComboBox.getValue ();
-    if (filename != null)
-      prefs.put ("ReplayFile", filename);
-
-    prefs.put ("SpyFolder", optionStage.spyFolder);
-    prefs.put ("ServerName",
-               optionStage.serverComboBox.getSelectionModel ().getSelectedItem ());
-    prefs.put ("ClientName",
-               optionStage.clientComboBox.getSelectionModel ().getSelectedItem ());
   }
 
   private Screen createScreen (TerminalFunction function, Site site)
