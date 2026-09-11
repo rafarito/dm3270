@@ -201,13 +201,6 @@ public class Console extends Application
     }
   }
 
-  //  private Optional<Site> findSite (String serverName)
-  //  {
-  //    Optional<Site> optionalServerSite =
-  //        optionStage.serverSitesListStage.getSelectedSite (serverName);
-  //    return optionalServerSite;
-  //  }
-
   private void setConsolePane (Screen screen, Site serverSite)
   {
     consolePane = new ConsolePane (screen, serverSite, pluginsStage);

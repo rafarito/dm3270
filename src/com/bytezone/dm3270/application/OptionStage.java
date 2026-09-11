@@ -44,7 +44,25 @@ import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
-public class OptionStage extends Stage
+/*
+ * A janela de abertura: escolhe o modo, o servidor, o cliente e o arquivo de replay.
+ *
+ * A classe e os dez campos abaixo eram alcancaveis de fora ate o passo 7. O Console lia
+ * TODOS os dez - o ToggleGroup, os tres ComboBox, os dois SiteListStage, a pasta de spy,
+ * o item de menu do modo e os dois botoes -, o que era 100% da superficie de pacote de uma
+ * classe sem acessor nenhum: trocar um ComboBox por outro controle quebrava o Console.
+ *
+ * Hoje ele pede getLaunchRequest (), findServerSite (), savePreferences () e
+ * setOnConnect (), e nao ve widget nenhum. Quem impede a volta nao e uma regra de
+ * arquitetura: e o compilador.
+ *
+ * O que ficou de fora deste fechamento, e e honesto dizer: esta classe ainda ESTENDE Stage,
+ * entao o Console continua acoplado a show () e hide (). Tirar a heranca e trabalho do
+ * composition root, nao deste passo.
+ */
+// -----------------------------------------------------------------------------------//
+class OptionStage extends Stage
+// -----------------------------------------------------------------------------------//
 {
   private static final Logger logger = LoggerFactory.getLogger (OptionStage.class);
   private static final int COMBO_BOX_WIDTH = 150;
@@ -55,24 +73,24 @@ public class OptionStage extends Stage
 
   private final boolean release;
 
-  ComboBox<String> fileComboBox;
-  ComboBox<String> serverComboBox;
-  ComboBox<String> clientComboBox;
+  private ComboBox<String> fileComboBox;
+  private ComboBox<String> serverComboBox;
+  private ComboBox<String> clientComboBox;
 
   private Button editServersButton;
   private Button editClientsButton;
   private Button editLocationButton;
 
-  final SiteListStage serverSitesListStage;
-  final SiteListStage clientSitesListStage;
+  private final SiteListStage serverSitesListStage;
+  private final SiteListStage clientSitesListStage;
 
-  final Button okButton = new Button ("Connect");
-  final Button cancelButton = new Button ("Cancel");
+  private final Button okButton = new Button ("Connect");
+  private final Button cancelButton = new Button ("Cancel");
 
   private final Preferences prefs;
-  String spyFolder;
+  private String spyFolder;
 
-  final ToggleGroup functionsGroup = new ToggleGroup ();
+  private final ToggleGroup functionsGroup = new ToggleGroup ();
   private final String[] optionList = { "Spy", "Replay", "Terminal", "Test" };
 
   private final BorderPane innerPane = new BorderPane ();
@@ -82,7 +100,7 @@ public class OptionStage extends Stage
   private final VBox clientSpyBox = new VBox (10);
   private HBox buttonsBox = new HBox (10);
 
-  CheckMenuItem toggleModeMenuItem;
+  private CheckMenuItem toggleModeMenuItem;
   private final MenuBar menuBar = new MenuBar ();
 
   private enum Mode
@@ -96,7 +114,7 @@ public class OptionStage extends Stage
    * URLClassLoader, varre a pasta de plugins e GRAVA preferencias - efeito colateral
    * que nenhum teste desta janela pode pagar. Nao volte a passar o stage.
    */
-  public OptionStage (Preferences prefs, MenuItem pluginsEditMenuItem)
+  OptionStage (Preferences prefs, MenuItem pluginsEditMenuItem)
   {
     this.prefs = prefs;
 
