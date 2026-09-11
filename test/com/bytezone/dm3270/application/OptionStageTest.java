@@ -3,6 +3,7 @@ package com.bytezone.dm3270.application;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -696,6 +697,95 @@ class OptionStageTest
 
       assertEquals ("homolog", stage.findServerSite ("homolog").orElseThrow ().getName ());
       assertTrue (stage.findServerSite ("nao-existe").isEmpty ());
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("as preferencias que a janela grava")
+  class SavingPreferences
+  // ---------------------------------------------------------------------------------//
+  {
+    @Test
+    @DisplayName ("grava as seis chaves, e nenhuma das duas da fonte")
+    void writesItsSixKeys ()
+    {
+      debugStage ("Spy").savePreferences ();
+
+      assertEquals ("Spy", prefs.get ("Function", "?"));
+      assertEquals ("Debug", prefs.get ("Mode", "?"));
+      assertEquals ("", prefs.get ("SpyFolder", "?"));
+      assertEquals ("", prefs.get ("ReplayFile", "?"));
+      assertEquals ("", prefs.get ("ServerName", "?"));
+      assertEquals ("", prefs.get ("ClientName", "?"));
+
+      assertNull (prefs.get ("FontName", null));
+      assertNull (prefs.get ("FontSize", null));
+    }
+
+    @Test
+    @DisplayName ("grava a opcao marcada agora, nao a que veio das preferencias")
+    void writesTheCurrentSelection ()
+    {
+      OptionStage stage = debugStage ("Terminal");
+
+      onFx ( () -> radio (stage, "Test").setSelected (true));
+      stage.savePreferences ();
+
+      assertEquals ("Test", prefs.get ("Function", "?"));
+    }
+
+    @Test
+    @DisplayName ("grava Release depois de alternar o modo pelo menu")
+    void writesReleaseAfterToggling ()
+    {
+      OptionStage stage = debugStage ("Terminal");
+
+      clickModeMenuItem (stage);
+      stage.savePreferences ();
+
+      assertEquals ("Release", prefs.get ("Mode", "?"));
+    }
+
+    /*
+     * A ida e volta inteira, que e o que o roteiro manual chama de "fechar, reabrir e
+     * conferir que tudo voltou". A segunda janela nasce so das preferencias que a primeira
+     * gravou.
+     */
+    @Test
+    @DisplayName ("uma janela nova nasce no estado que a anterior gravou")
+    void reopeningRestoresTheSavedState () throws Exception
+    {
+      Path folder = Files.createTempDirectory ("dm3270-save-prefs");
+      try
+      {
+        Files.createFile (folder.resolve ("spy0009.txt"));
+        prefs.put ("Server00Name", "prod");
+        prefs.put ("Server00URL", "mvs.example.com");
+        prefs.put ("SpyFolder", folder.toString ());
+
+        OptionStage first = debugStage ("Terminal");
+        onFx ( () ->
+        {
+          radio (first, "Replay").setSelected (true);
+          combo (first, "Replay").getSelectionModel ().select ("spy0009.txt");
+          combo (first, "Server").getSelectionModel ().select ("prod");
+        });
+        first.savePreferences ();
+
+        OptionStage second = stage ();
+
+        assertTrue (radio (second, "Replay").isSelected ());
+        assertEquals ("spy0009.txt", combo (second, "Replay").getValue ());
+        assertEquals ("prod",
+            combo (second, "Server").getSelectionModel ().getSelectedItem ());
+        assertRowDisabled (second, "Replay", false);
+      }
+      finally
+      {
+        Files.deleteIfExists (folder.resolve ("spy0009.txt"));
+        Files.deleteIfExists (folder);
+      }
     }
   }
 }
