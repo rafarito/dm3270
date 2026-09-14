@@ -15,7 +15,7 @@ time, num commit `fix(...)` próprio, com teste que falha antes e passa depois.
 
 ## 1. `Console.setModel` — `case 5` sem `break`
 
-**Arquivo:** [application/Console.java:210-214](src/com/bytezone/dm3270/application/Console.java#L210-L214)
+**Arquivo:** [application/Console.java:196-200](src/com/bytezone/dm3270/application/Console.java#L196-L200)
 
 ```java
 case 5:
@@ -34,8 +34,15 @@ seguida** loga `"Invalid model number: 5"`.
 **Por que importa:** se alguém adicionar tratamento ao `default` — um alerta, um fallback,
 um `return` — o modelo 5 passa a quebrar de verdade. O defeito está armado.
 
-**Congelado por:** `ScreenDimensionsTest` e a caracterização de `setModel`, que verificam as
-quatro dimensões **e** a presença do log extra no `case 5`.
+**NÃO está congelado, ao contrário do que esta linha afirmava.** Até o Passo 8 ela dizia
+"Congelado por `ScreenDimensionsTest` e a caracterização de `setModel`". Medido com o arquivo
+aberto: `grep -rn setModel test/` não devolve nada, e o `ScreenDimensionsTest` nunca constrói
+um `Console` — ele cobre a classe `ScreenDimensions`, que é outra coisa. Não havia, e não há
+até o commit que extrai o `runtime.TerminalModel`, nenhum teste sobre este `switch`.
+
+**A congelar** pelo `TerminalModelTest` e pelo `setModel` reescrito, ainda neste passo: o
+modelo 5 configura 27x132 **e então** reclama, e o caminho inválido não atribui
+`alternateScreenDimensions`.
 
 ---
 
@@ -497,6 +504,96 @@ qualquer das duas nesta branch.
 Descoberto na medição que precedeu o Passo 7, e escapou da varredura de código morto do
 Passo 10 porque um parâmetro sem uso não é um bloco `if (false)` nem um membro sem chamador
 — ele *tem* chamador, e dois.
+
+---
+
+## 16. As setas do teclado numérico não movem o cursor, e logam um `WARN` a cada tecla
+
+**Arquivo:** [application/ConsoleKeyPress.java:154-180](src/com/bytezone/dm3270/application/ConsoleKeyPress.java#L154-L180)
+
+O bloco das setas é uma guarda `isArrowKey ()` com um `switch` de quatro casos e um `default`
+que avisa o impossível:
+
+```java
+if (keyCodePressed.isArrowKey ())
+  switch (keyCodePressed)
+  {
+    case LEFT:  ...  case RIGHT: ...  case UP: ...  case DOWN: ...
+
+    default:
+      logger.warn ("Impossible arrow key");
+      break;
+  }
+```
+
+**Não é impossível.** Medido com `javap` no `javafx-graphics-21.0.7`: `KeyCode.isArrowKey ()`
+é `(mask & 4) != 0`, `UP` é construído com máscara **6** e `KP_UP` com máscara **70** — os dois
+com o bit 4 ligado. Logo `KP_LEFT`, `KP_RIGHT`, `KP_UP` e `KP_DOWN`, que são as setas do
+teclado numérico com **NumLock desligado**, passam pela guarda, erram os quatro `case` e caem
+no `default`.
+
+**Efeito hoje:** a seta do teclado numérico não move o cursor, o evento **não é consumido** —
+segue para quem estiver ouvindo depois — e sai uma linha `WARN` por tecla. O `logback.xml` põe
+`application` em INFO, então o aviso aparece.
+
+**Por que a mensagem mente:** "Impossible" descreve o que o autor supôs, não o que acontece. O
+aviso é a prova de que a suposição está errada, e nunca foi lido porque ninguém o associou ao
+teclado numérico.
+
+**Correção possível:** acrescentar as quatro constantes `KP_` aos `case` existentes, cada uma
+para a mesma `Direction`. Muda comportamento nas três plataformas — a tecla passaria a mover o
+cursor e a consumir o evento —, e por isso não foi feita nesta branch.
+
+**A congelar** pelo `ConsoleKeyPressTest`, escrito adiante no Passo 8: ele afirma que `KP_LEFT`
+produz o aviso, **não** move o cursor e **não** consome o evento.
+
+---
+
+## 17. Metade dos atalhos de teclado está morta, e qual metade depende da plataforma
+
+**Arquivo:** [application/ConsoleKeyPress.java:42-152](src/com/bytezone/dm3270/application/ConsoleKeyPress.java#L42-L152)
+
+`KeyEvent.isShortcutDown ()` devolve `controlDown` no Windows e no Linux, e `metaDown` no
+macOS — é o `com.sun.javafx.tk.Toolkit.getPlatformShortcutKey ()` que decide. A guarda de
+copiar e colar roda **antes** da guarda de `isMetaDown ()` (86-130) e da de `isControlDown ()`
+(139-152), e **retorna para toda tecla que não seja `C` ou `V`**:
+
+```java
+if (keyEvent.isShortcutDown ())
+{
+  if (keyCodePressed.isModifierKey ()) return;
+  if (keyCodePressed == KeyCode.C) { ... return; }
+  if (keyCodePressed == KeyCode.V) { ... return; }
+
+  // For other shortcut combos, clear selection
+  screen.getScreenSelection ().clearSelection ();
+  return;                                          // <-- engole o resto da cadeia
+}
+```
+
+**Efeito hoje, no macOS:** o bloco `isMetaDown ()` inteiro é inalcançável. `Cmd+ENTER`
+(`newLine`), `Cmd+BACK_SPACE` e `Cmd+DELETE` (`eraseEOL`), `Cmd+H` (`home`), `Cmd+I`
+(`toggleInsertMode`) e **`Cmd+F1`, `Cmd+F2`, `Cmd+F3` — que são as teclas PA1, PA2 e PA3 do
+3270** — apenas limpam a seleção e somem.
+
+**Efeito hoje, no Windows e no Linux:** `Ctrl+H` (`home`) é inalcançável pelo mesmo motivo.
+
+**Que os dois foram escritos para funcionar** está nos comentários do próprio arquivo: a linha
+101 diz `// OSX ctrl-h conflicts with Hide Windows command`, justificando o `Cmd+H`, e a 139
+diz `// OSX has to share ctrl-h`, justificando o `Ctrl+H`. A guarda de copiar e colar, que o
+comentário da linha 41 mostra ter sido acrescentada depois
+(`// Handle copy/paste shortcuts before clearing selection`), engoliu a metade do macOS.
+
+**Autorizado para correção**, excepcionalmente, pelo usuário — é a segunda dispensa da Regra 1
+nesta branch, e a primeira está no §4.13 do relatório. A correção é a remoção das três linhas
+do `return` final da guarda: `C` e `V` continuam retornando, e o resto volta a cair na cadeia,
+que já limpa a seleção de toda tecla não-modificadora na linha 67. Sai num commit `fix`
+próprio, ao fim do Passo 8, com o delta completo no corpo do commit.
+
+**Cuidado ao ler o delta:** a correção também faz `atalho+LEFT`/`atalho+RIGHT` navegarem o
+histórico quando o teclado está travado, e `atalho+Shift+ENTER` virar `newLine`. São
+consequência de a cadeia voltar a rodar, não da intenção original, e estão afirmadas no
+`ConsoleKeyPressTest`.
 
 ---
 
