@@ -3,7 +3,7 @@ package com.bytezone.dm3270.application;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.screen.Cursor;
 import com.bytezone.dm3270.screen.Cursor.Direction;
-import com.bytezone.dm3270.display.Screen;
+import com.bytezone.dm3270.screen.KeyboardTarget;
 
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
@@ -19,11 +19,11 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
       { KeyCode.F1, KeyCode.F2, KeyCode.F3, KeyCode.F4, KeyCode.F5, KeyCode.F6,
         KeyCode.F7, KeyCode.F8, KeyCode.F9, KeyCode.F10, KeyCode.F11, KeyCode.F12 };
 
-  private final Screen screen;
+  private final KeyboardTarget screen;
   private final ConsolePane consolePane;
   private final Cursor cursor;
 
-  public ConsoleKeyPress (ConsolePane consolePane, Screen screen)
+  public ConsoleKeyPress (ConsolePane consolePane, KeyboardTarget screen)
   {
     this.consolePane = consolePane;
     this.screen = screen;
@@ -53,19 +53,19 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
       }
       if (keyCodePressed == KeyCode.V)
       {
-        screen.getScreenSelection ().clearSelection ();
+        screen.clearSelection ();
         screen.pasteText ();
         keyEvent.consume ();
         return;
       }
       // For other shortcut combos, clear selection
-      screen.getScreenSelection ().clearSelection ();
+      screen.clearSelection ();
       return;
     }
 
     // Clear selection for all other non-modifier key presses
     if (!keyCodePressed.isModifierKey ())
-      screen.getScreenSelection ().clearSelection ();
+      screen.clearSelection ();
 
     if (screen.isKeyboardLocked ())           // could be in screen history mode
     {

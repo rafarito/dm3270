@@ -41,6 +41,7 @@ import com.bytezone.dm3270.screen.Cursor;
 import com.bytezone.dm3270.screen.CursorHost;
 import com.bytezone.dm3270.screen.Field;
 import com.bytezone.dm3270.screen.FieldHost;
+import com.bytezone.dm3270.screen.KeyboardTarget;
 import com.bytezone.dm3270.screen.Pen;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.screen.ScreenOption;
@@ -71,7 +72,8 @@ import javafx.util.Duration;
 
 // -----------------------------------------------------------------------------------//
 public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHost,
-    SystemMessageView, TransferListener, TelnetStateListener, PluginHost, SessionDisplay
+    SystemMessageView, TransferListener, TelnetStateListener, PluginHost, SessionDisplay,
+    KeyboardTarget
 // -----------------------------------------------------------------------------------//
 {
   private static final Logger logger = LoggerFactory.getLogger (Screen.class);
@@ -296,6 +298,19 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
       if (text != null && !text.isEmpty ())
         cursor.typeText (text);
     }
+  }
+
+  /*
+   * Delega para a ScreenSelection, que e o que os tres sitios do ConsoleKeyPress e o do
+   * ConsoleKeyEvent faziam a mao. Existe para que a porta KeyboardTarget nao precise devolver
+   * a ScreenSelection, que e do pacote display e arrasta JavaFX atras.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Override
+  public void clearSelection ()
+  // ---------------------------------------------------------------------------------//
+  {
+    screenSelection.clearSelection ();
   }
 
   // ---------------------------------------------------------------------------------//
