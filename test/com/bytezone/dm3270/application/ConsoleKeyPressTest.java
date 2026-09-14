@@ -47,12 +47,15 @@ import javafx.scene.input.KeyEvent;
  * arquivo passa por ela, entao a extensao nao e opcional.
  *
  * A PLATAFORMA E CARGA UTIL. isShortcutDown () e controlDown no Windows e no Linux, e metaDown
- * no macOS. Como a guarda de copiar e colar roda antes das de Meta e de Control e retorna para
- * toda tecla que nao seja C ou V, em cada plataforma um dos dois blocos e inalcancavel: o Meta
- * inteiro no macOS, o Ctrl+H no Windows e no Linux. E o item 17 do BACKLOG-DEFEITOS.md, e este
- * arquivo o CONGELA em vez de esconde-lo - as asserticoes ramificam por SHORTCUT_IS_META, que e
- * medido do proprio toolkit. Um teste que fixasse um dos dois passaria numa plataforma e
- * quebraria na outra.
+ * no macOS, e por isso a tecla de atalho COLIDE com um dos dois blocos de modificador, conforme
+ * a plataforma. Ate a correcao do item 17 do BACKLOG-DEFEITOS.md a colisao matava o bloco
+ * inteiro - o Meta no macOS, inclusive as teclas PA1 a PA3, e o Ctrl+H no Windows e no Linux -,
+ * e este arquivo nasceu congelando isso, com as asserticoes ramificando por SHORTCUT_IS_META.
+ *
+ * Depois da correcao os dois blocos valem nas duas plataformas, e as asserticoes voltaram a ser
+ * unicas. O SHORTCUT_IS_META continua, medido do proprio toolkit, porque os casos de copiar e
+ * colar precisam apertar a tecla certa - e porque e ele que permite a este arquivo afirmar, nas
+ * duas plataformas, que o atalho nao engole mais a cadeia.
  */
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
@@ -166,26 +169,25 @@ class ConsoleKeyPressTest
     assertFalse (event.isConsumed (), "este caminho NAO consome - ver o mapa do handle");
   }
 
-  // No macOS a guarda de atalho engole o bloco Meta inteiro. Item 17 do backlog.
+  /*
+   * Os dois helpers abaixo RAMIFICAVAM por plataforma ate a correcao do item 17: num Windows o
+   * assertControlBinding afirmava que o Ctrl+H nao chegava ao cursor, e num macOS era o bloco
+   * Meta inteiro que nao chegava. Hoje os dois blocos valem nas duas plataformas, e a
+   * asserticao e unica - e e por isso que eles continuam existindo como helper: se alguem
+   * reintroduzir o return na guarda de atalho, quebram os dez casos de uma vez.
+   */
   // ---------------------------------------------------------------------------------//
   private void assertMetaBinding (KeyCode code, String expected)
   // ---------------------------------------------------------------------------------//
   {
-    if (SHORTCUT_IS_META)
-      assertNotConsumed (withMeta (code), "clearSelection");
-    else
-      assertConsumed (withMeta (code), "clearSelection", expected);
+    assertConsumed (withMeta (code), "clearSelection", expected);
   }
 
-  // No Windows e no Linux a guarda de atalho engole o Ctrl+H. Item 17 do backlog.
   // ---------------------------------------------------------------------------------//
   private void assertControlBinding (KeyCode code, String expected)
   // ---------------------------------------------------------------------------------//
   {
-    if (SHORTCUT_IS_META)
-      assertConsumed (withControl (code), "clearSelection", expected);
-    else
-      assertNotConsumed (withControl (code), "clearSelection");
+    assertConsumed (withControl (code), "clearSelection", expected);
   }
 
   // ---------------------------------------------------------------------------------//
@@ -268,6 +270,9 @@ class ConsoleKeyPressTest
     /*
      * Correcao 2 do mapa do handle: este caminho muda estado e NAO consome. Um despacho por
      * tabela que consumisse tudo o quebraria, e o atalho deixaria de chegar a quem ouve depois.
+     *
+     * Note que ele passou INALTERADO pela correcao do item 17: o X nao tem binding em bloco
+     * nenhum, entao cair na cadeia ou ser engolido pela guarda da no mesmo.
      */
     // -------------------------------------------------------------------------------//
     @Test
@@ -276,6 +281,51 @@ class ConsoleKeyPressTest
     // -------------------------------------------------------------------------------//
     {
       assertNotConsumed (withShortcut (KeyCode.X), "clearSelection");
+    }
+
+    /*
+     * A CORRECAO DO ITEM 17, afirmada nas duas plataformas de uma vez. A tecla de atalho e a
+     * mesma que um dos dois blocos de modificador usa - Ctrl no Windows e no Linux, Cmd no
+     * macOS -, e o H tem binding nos dois. Antes da correcao a guarda de atalho retornava aqui
+     * e o home nunca acontecia; hoje a cadeia segue e ele acontece, seja qual for a plataforma.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("um atalho com binding no bloco de modificador segue a cadeia")
+    void oAtalhoNaoEngoleMaisACadeia ()
+    // -------------------------------------------------------------------------------//
+    {
+      assertConsumed (withShortcut (KeyCode.H), "clearSelection", "home");
+    }
+
+    /*
+     * Efeito colateral da correcao, dito em vez de escondido: com a cadeia voltando a rodar, a
+     * guarda do teclado travado - que sempre foi a primeira depois do atalho - passa a ver o
+     * atalho+seta. E coerente com a intencao, e nao com a implementacao anterior.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("atalho+seta navega o historico quando o teclado esta travado")
+    void atalhoComSetaNoModoHistorico ()
+    // -------------------------------------------------------------------------------//
+    {
+      screen.locked = true;
+      assertConsumed (withShortcut (KeyCode.LEFT), "clearSelection", "back");
+    }
+
+    // segundo efeito colateral: o shift+ENTER passa a ser alcancavel com a tecla de atalho
+    // presa. No macOS quem atende e o bloco Meta, no resto e a guarda do shift+ENTER, e as
+    // duas fazem newLine - o resultado e o mesmo nas duas plataformas.
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("atalho+shift+ENTER insere uma linha")
+    void atalhoComShiftEnter ()
+    // -------------------------------------------------------------------------------//
+    {
+      KeyEvent event = SHORTCUT_IS_META ? press (KeyCode.ENTER, true, false, false, true)
+                                        : press (KeyCode.ENTER, true, true, false, false);
+
+      assertConsumed (event, "clearSelection", "newLine");
     }
   }
 
@@ -337,7 +387,7 @@ class ConsoleKeyPressTest
 
   // ---------------------------------------------------------------------------------//
   @Nested
-  @DisplayName ("o bloco Meta - inalcancavel no macOS, item 17 do backlog")
+  @DisplayName ("o bloco Meta")
   class Meta
   // ---------------------------------------------------------------------------------//
   {
@@ -426,7 +476,7 @@ class ConsoleKeyPressTest
 
   // ---------------------------------------------------------------------------------//
   @Nested
-  @DisplayName ("o bloco Control - inalcancavel no Windows e no Linux, item 17 do backlog")
+  @DisplayName ("o bloco Control")
   class Control
   // ---------------------------------------------------------------------------------//
   {
@@ -633,8 +683,9 @@ class ConsoleKeyPressTest
    * tabela precisa preservar sem fundir. Cada caso abaixo dispara TODAS as combinacoes e conta
    * quantas vezes a acao saiu - se alguem fundir dois bindings num so, a conta muda.
    *
-   * As contas sao MENORES do que os bindings escritos no arquivo, e isso e o item 17: em cada
-   * plataforma uma das combinacoes de modificador esta morta.
+   * Desde a correcao do item 17 as contas batem com os bindings escritos no arquivo. Antes
+   * dela uma das combinacoes de modificador estava morta em cada plataforma, e estes quatro
+   * casos eram o lugar onde isso aparecia como numero.
    */
   // ---------------------------------------------------------------------------------//
   @Nested
@@ -652,15 +703,14 @@ class ConsoleKeyPressTest
       return log.stream ().filter (action::equals).count ();
     }
 
-    // meta+H, ctrl+H e HOME - e um dos dois primeiros esta morto, conforme a plataforma
     // -------------------------------------------------------------------------------//
     @Test
-    @DisplayName ("home sai de tres combinacoes, das quais uma morre na plataforma")
+    @DisplayName ("home sai de tres combinacoes: meta+H, ctrl+H e HOME")
     void home ()
     // -------------------------------------------------------------------------------//
     {
-      assertEquals (2, count ("home", withMeta (KeyCode.H), withControl (KeyCode.H),
-          plain (KeyCode.HOME)), "o item 17 mata uma das tres, e sempre a mesma por plataforma");
+      assertEquals (3, count ("home", withMeta (KeyCode.H), withControl (KeyCode.H),
+          plain (KeyCode.HOME)), "as tres valem, nas duas plataformas, desde o item 17");
     }
 
     // -------------------------------------------------------------------------------//
@@ -669,8 +719,7 @@ class ConsoleKeyPressTest
     void eraseEOL ()
     // -------------------------------------------------------------------------------//
     {
-      long expected = SHORTCUT_IS_META ? 1 : 3;
-      assertEquals (expected, count ("eraseEOL", withMeta (KeyCode.BACK_SPACE),
+      assertEquals (3, count ("eraseEOL", withMeta (KeyCode.BACK_SPACE),
           withMeta (KeyCode.DELETE), plain (KeyCode.END)));
     }
 
@@ -680,8 +729,7 @@ class ConsoleKeyPressTest
     void newLine ()
     // -------------------------------------------------------------------------------//
     {
-      long expected = SHORTCUT_IS_META ? 1 : 2;
-      assertEquals (expected,
+      assertEquals (2,
           count ("newLine", withMeta (KeyCode.ENTER), withShift (KeyCode.ENTER)));
     }
 
@@ -691,8 +739,7 @@ class ConsoleKeyPressTest
     void toggleInsertMode ()
     // -------------------------------------------------------------------------------//
     {
-      long expected = SHORTCUT_IS_META ? 1 : 2;
-      assertEquals (expected,
+      assertEquals (2,
           count ("toggleInsertMode", withMeta (KeyCode.I), plain (KeyCode.INSERT)));
     }
   }

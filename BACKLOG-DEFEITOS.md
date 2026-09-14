@@ -549,7 +549,7 @@ produz o aviso, **não** move o cursor e **não** consome o evento.
 
 ---
 
-## 17. Metade dos atalhos de teclado está morta, e qual metade depende da plataforma
+## 17. Metade dos atalhos de teclado estava morta, e qual metade dependia da plataforma — **CORRIGIDO**
 
 **Arquivo:** [application/ConsoleKeyPress.java:42-152](src/com/bytezone/dm3270/application/ConsoleKeyPress.java#L42-L152)
 
@@ -584,16 +584,39 @@ diz `// OSX has to share ctrl-h`, justificando o `Ctrl+H`. A guarda de copiar e 
 comentário da linha 41 mostra ter sido acrescentada depois
 (`// Handle copy/paste shortcuts before clearing selection`), engoliu a metade do macOS.
 
-**Autorizado para correção**, excepcionalmente, pelo usuário — é a segunda dispensa da Regra 1
-nesta branch, e a primeira está no §4.13 do relatório. A correção é a remoção das três linhas
-do `return` final da guarda: `C` e `V` continuam retornando, e o resto volta a cair na cadeia,
-que já limpa a seleção de toda tecla não-modificadora na linha 67. Sai num commit `fix`
-próprio, ao fim do Passo 8, com o delta completo no corpo do commit.
+**CORRIGIDO no Passo 8**, excepcionalmente e a pedido do usuário — é a segunda dispensa da
+Regra 1 nesta branch, e a primeira está no §4.13 do relatório. Este item fica na lista, e não
+sai dela, porque a numeração é citada pelos comentários do `ConsoleKeyPressTest` e do próprio
+`ConsoleKeyPress`.
 
-**Cuidado ao ler o delta:** a correção também faz `atalho+LEFT`/`atalho+RIGHT` navegarem o
-histórico quando o teclado está travado, e `atalho+Shift+ENTER` virar `newLine`. São
-consequência de a cadeia voltar a rodar, não da intenção original, e estão afirmadas no
-`ConsoleKeyPressTest`.
+A correção foi tirar o `return` do fim da guarda: `handleShortcut` passou a devolver `boolean`,
+`C` e `V` continuam encerrando o tratamento, e todo o resto devolve `false` e volta a cair na
+cadeia — que já limpava a seleção de toda tecla não-modificadora na linha seguinte. A limpeza
+que estava dentro da guarda saiu junto, porque passou a ser feita duas vezes.
+
+**O delta, medido caso a caso** — o que não está aqui não mudou:
+
+| Combinação | Antes | Depois |
+|---|---|---|
+| `Cmd+ENTER` (macOS) | limpava a seleção | `newLine` + consome |
+| `Cmd+BACK_SPACE` / `Cmd+DELETE` (macOS) | limpava a seleção | `eraseEOL` + consome |
+| `Cmd+H` (macOS) | limpava a seleção | `home` + consome |
+| `Cmd+I` (macOS) | limpava a seleção | `toggleInsertMode` + consome |
+| `Cmd+F1` / `F2` / `F3` (macOS) | limpava a seleção | PA1 / PA2 / PA3 + consome |
+| `Ctrl+H` (Windows, Linux) | limpava a seleção | `home` + consome |
+| atalho+`LEFT` / `RIGHT`, teclado travado | limpava a seleção | `back` / `forward` + consome |
+| atalho+`Shift+ENTER` | limpava a seleção | `newLine` + consome |
+| `Ctrl/Cmd+C`, `+V`, modificador sozinho | — | inalterados |
+| qualquer outro atalho | limpa, não consome | limpa, não consome |
+
+**As duas últimas linhas de mudança são efeito colateral**, não intenção original: são
+consequência de a cadeia voltar a rodar, e a guarda do teclado travado sempre foi a primeira
+depois do atalho. Estão afirmadas no `ConsoleKeyPressTest`, com comentário dizendo isso.
+
+**Validação manual pendente, e é honesto dizer:** o efeito mais visível desta correção é no
+macOS, e ela foi feita numa máquina Windows. Aqui dá para exercitar `Ctrl+H` e
+`Ctrl+LEFT`/`Ctrl+RIGHT` no modo histórico; as seis restaurações do macOS — inclusive PA1, PA2
+e PA3 — não têm validação manual.
 
 ---
 

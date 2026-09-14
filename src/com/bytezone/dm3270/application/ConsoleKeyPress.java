@@ -132,11 +132,8 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
     KeyCode keyCodePressed = keyEvent.getCode ();
 
     // Handle copy/paste shortcuts before clearing selection
-    if (keyEvent.isShortcutDown ())
-    {
-      handleShortcut (keyEvent, keyCodePressed);
+    if (keyEvent.isShortcutDown () && handleShortcut (keyEvent, keyCodePressed))
       return;
-    }
 
     // Clear selection for all other non-modifier key presses
     if (!keyCodePressed.isModifierKey ())
@@ -190,20 +187,28 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
   }
 
   // ---------------------------------------------------------------------------------//
-  //  Os tres modos que tem fallback com comportamento proprio
+  //  Os modos que tem fallback com comportamento proprio
   // ---------------------------------------------------------------------------------//
 
-  private void handleShortcut (KeyEvent keyEvent, KeyCode keyCodePressed)
+  /*
+   * Copiar e colar, e nada mais: devolve false para todo o resto, e a cadeia segue decidindo.
+   *
+   * Ate o passo 8 este bloco retornava para QUALQUER tecla e engolia o resto da cadeia. Como
+   * isShortcutDown () e controlDown no Windows e no Linux e metaDown no macOS, isso matava um
+   * bloco inteiro por plataforma: o Meta no macOS - inclusive as teclas PA1, PA2 e PA3 - e o
+   * Ctrl+H no Windows e no Linux. Era o item 17 do BACKLOG-DEFEITOS.md, corrigido a pedido do
+   * usuario.
+   *
+   * A limpeza de selecao que ficava aqui saiu junto: quem a faz agora, para todo atalho que nao
+   * seja C nem V, e a mesma linha que ja a fazia para toda tecla nao-modificadora.
+   */
+  private boolean handleShortcut (KeyEvent keyEvent, KeyCode keyCodePressed)
   {
     // Ignore modifier keys pressed alone (Ctrl, Meta, etc.)
     if (keyCodePressed.isModifierKey ())
-      return;
+      return true;
 
-    if (dispatch (shortcutBindings, keyEvent, keyCodePressed))
-      return;
-
-    // For other shortcut combos, clear selection - e NAO consome, o evento segue adiante
-    screen.clearSelection ();
+    return dispatch (shortcutBindings, keyEvent, keyCodePressed);
   }
 
   /*
