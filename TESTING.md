@@ -93,17 +93,37 @@ e o que diz se os testes escritos valem alguma coisa.
 
 ### Situacao atual
 
-Medido ao fim do Passo 7.
+Medido ao fim do Passo 8.
 
 | | `dm3270` | `dm3270-plugins` |
 |---|---:|---:|
-| Testes | 1.492 | 248 (63 no `UploadDataset`) |
+| Testes | 1.582 | 248 (63 no `UploadDataset`) |
 | Cobertura de instrucoes (projeto todo) | 54% | — |
 | Cobertura de ramos | 50% | — |
-| Mutantes gerados | 4.019 | — |
-| Mutation coverage | 66% (2.642/4.019) | — |
-| **Test strength** | **86%** (2.642/3.087) | — |
-| Classes no `targetClasses` | 162 | — |
+| Mutantes gerados | 4.024 | — |
+| Mutation coverage | 66% (2.647/4.024) | — |
+| **Test strength** | **86%** | — |
+| Classes no `targetClasses` | 163 | — |
+
+**O Passo 8 acrescentou 90 testes e NAO moveu nenhuma das duas coberturas, e isso tambem e
+esperado.** Ele cobriu o `ConsoleKeyPress` (69 casos) e o novo `runtime.TerminalModel` (18), e
+corrigiu um defeito (3). A cobertura de instrucoes e a de ramos ficaram em 54% e 50%: as ~250
+linhas do tratador de teclado nao movem o arredondamento de um projeto com 59 mil instrucoes.
+O PIT ganhou **cinco mutantes** — 4.019 para 4.024 —, todos do `TerminalModel`, e **todos os
+cinco morreram**: o pacote `runtime` entra no relatorio com 100% de linha e 100% de mutacao.
+A porcentagem global ficou em 66% e o test strength em 86%.
+
+**`ConsoleKeyPress` nao produz mutante, e isso foi dito antes do primeiro commit do passo:**
+`application` continua fora do `<targetClasses>`, pela mesma razao de sempre - e classe de
+widget e entraria com centenas de sobreviventes. Um passo pode acrescentar 69 testes a uma
+classe e nao mover o PIT em nada; reconhecer isso antes e o que impede de procurar um ganho
+que nao existe.
+
+**O `TerminalModel` entrou ACRESCENTANDO denominador**, pelo criterio ja usado com o `SiteValue`
+no Passo 3 e o `ReportScore` no Passo 4: classe nova, sem JavaFX, com teste proprio. Quando a
+classe entra com 100%, a porcentagem global pode ate subir uma fracao; quando entra com
+sobreviventes, ela desce - e nos dois casos e a direcao honesta, porque o que muda e o que esta
+sendo medido.
 
 **O Passo 7 moveu a cobertura e NAO moveu o PIT, e as duas coisas sao esperadas.** Ele
 acrescentou 40 testes sobre o `OptionStage`, que ate entao nao tinha nenhum: a cobertura de
@@ -171,6 +191,18 @@ reaprovado — o que exige justificativa no commit, nunca um `rm` silencioso.
 `SiteForm`, `OptionStage` e `Screen` so podem ser instanciadas com o toolkit ativo - as duas
 primeiras tem teste hoje. A extensao `JavaFxToolkit` liga o toolkit uma vez por JVM; use com
 `@ExtendWith (JavaFxToolkit.class)`.
+
+**Sao QUATRO as classes de teste que usam a extensao desde o Passo 8**, e a quarta nao e por
+instanciar widget nenhum: o `ConsoleKeyPressTest` monta `KeyEvent` a mao, e montar um evento
+realmente nao exige toolkit. O que exige e **le-lo**. `KeyEvent.isShortcutDown ()` chama
+`com.sun.javafx.tk.Toolkit.getToolkit ()` para saber qual e o modificador de atalho da
+plataforma - conferido com `javap` no `javafx-graphics-21.0.7` -, e ela e a **primeira** guarda
+de `ConsoleKeyPress.handle`. Todo caso do arquivo passa por ela.
+
+**E dai sai uma armadilha de portabilidade que vale para qualquer teste de teclado:**
+`isShortcutDown ()` e `controlDown` no Windows e no Linux e `metaDown` no macOS. Um teste que
+fixe um dos dois passa numa plataforma e quebra na outra. O `ConsoleKeyPressTest` mede o valor
+do proprio toolkit, num helper `shortcutIsMeta ()`, e aperta a tecla certa em cada uma.
 
 **A lista encolheu, e o encolhimento e o resultado da refatoracao.** `ScreenPosition` e `Pen`
 sairam na Onda 1; `Site` virou uma porta com implementacao headless (`SiteValue`) no Passo 3;
@@ -428,13 +460,13 @@ classes que sao genuinamente visuais, como `Site`, cujos campos sao widgets.
 
 ## Cobertura atual
 
-### `dm3270` — 52 classes de teste, 1.492 testes
+### `dm3270` — 54 classes de teste, 1.582 testes
 
-**Remedida no Passo 7**, contando elementos `<testcase>` nos relatorios do Surefire, que e a
+**Remedida no Passo 8**, contando elementos `<testcase>` nos relatorios do Surefire, que e a
 unica contagem que fecha (ver "Ler o resultado da suite", no `RELATORIO-REFATORACAO.md` §5.18):
 
 ```bash
-grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.492
+grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.582
 ```
 
 | Classe de teste | Testes |
@@ -451,6 +483,7 @@ grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.492
 | `dm3270.structuredfields.StructuredFieldTest` | 44 |
 | `reporter.reports.ReportMakerTest` | 43 |
 | `dm3270.orders.OrderTest` | 41 |
+| `dm3270.application.ConsoleKeyPressTest` | 69 |
 | `dm3270.application.OptionStageTest` | 38 |
 | `dm3270.filetransfer.TransferTest` | 36 |
 | `dm3270.application.SiteFormTest` | 35 |
@@ -476,6 +509,7 @@ grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.492
 | `dm3270.attributes.StartFieldAttributeTest` | 20 |
 | `dm3270.display.HeadlessProcessingTest` | 19 |
 | `dm3270.session.SessionRecordTest` | 19 |
+| `dm3270.runtime.TerminalModelTest` | 18 |
 | `reporter.file.ReportScoreTest` | 17 |
 | `dm3270.telnet.TelnetProcessorTest` | 16 |
 | `dm3270.streams.TerminalServerTest` | 15 |
@@ -641,7 +675,13 @@ porque a ordem em que cairam e o argumento de que o metodo funciona:
 5. ~~**`OptionStage` e o caminho de lancamento.**~~ Feito no Passo 7, e ele nao estava nesta
    lista - o caminho inteiro (`Console`, `OptionStage`, `ConsoleKeyPress`) tinha **zero**
    testes, o que e a maior lacuna que esta secao deixou de registrar. Hoje o `OptionStage`
-   tem 38, e `Console` e `ConsoleKeyPress` continuam com nenhum.
+   tem 38.
+6. ~~**`ConsoleKeyPress` e o `setModel`.**~~ Feito no Passo 8, e rendeu mais do que testes: a
+   medicao achou **dois defeitos novos** que nenhum documento registrava, e que so apareceram
+   porque a rede foi escrita antes do refactor. Sao os itens 16 e 17 do
+   [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md). O `ConsoleKeyPress` tem 69 casos, e o
+   `Console.setModel` virou `runtime.TerminalModel`, com 18. **O `Console` continua sem teste
+   proprio** - o que sobra nele e construcao, e isso e o composition root.
 
 O que continua aberto, em ordem de retorno medido:
 
@@ -666,18 +706,20 @@ O que continua aberto, em ordem de retorno medido:
    que o javac embute no chamador e somem do bytecode.
 2. **`TransferManager`** — o resto do fluxo de IND$FILE depende de `Screen`; extrair a
    parte de estado tornaria testavel o ciclo abrir/transferir/fechar.
-3. **O caminho de lancamento, o que sobrou dele**: `Console` e `ConsoleKeyPress` continuam
-   **sem teste nenhum**. O `OptionStage` saiu desta linha no Passo 7 - ganhou 38 casos, e os
-   dez campos que o `Console` alcancava fecharam. Sobra a Onda 4 do diagnostico, e o alvo e o
-   `ConsoleKeyPress.handle`: 213 linhas, quatro `switch` e **nenhum** teste.
+3. **O caminho de lancamento, o que sobrou dele**: **so o `Console`**. O `OptionStage` saiu
+   desta linha no Passo 7, com 38 casos, e o `ConsoleKeyPress` saiu no Passo 8, com 69. A Onda
+   4 do diagnostico fechou.
 
-   **Quatro acoes aparecem em mais de um binding**, e um `Map` precisa preserva-las sem
-   fundir: `home` em tres (Meta+H, Ctrl+H, HOME), `eraseEOL` em **tres** (Meta+BACK_SPACE,
-   Meta+DELETE, END), `newLine` em dois e `toggleInsertMode` em dois. **Cuidado com a
-   armadilha que a medicao do fim do Passo 7 achou:** sem modificador, `BACK_SPACE` chama
-   `backspace ()` e `DELETE` chama `delete ()` - so `END` chama `eraseEOL ()`. Tratar as tres
-   como a mesma acao trocaria "apagar um caractere" por "apagar ate o fim da linha", e nao ha
-   teste que pegue.
+   O que sobra no `Console` nao e despacho, e **construcao** - `Screen`, `ConsolePane`,
+   `SpyPane`, `MainframeStage` e `ReplayStage` dentro dos ramos de um `switch`. Isso e o
+   composition root, que e o item 1 desta lista, e nao se testa sem desmontar a fiacao.
+
+   **A armadilha das tres teclas continua valendo, e agora tem teste:** sem modificador,
+   `BACK_SPACE` chama `backspace ()` e `DELETE` chama `delete ()` - so `END` chama
+   `eraseEOL ()`. Tratar as tres como a mesma acao trocaria "apagar um caractere" por "apagar
+   ate o fim da linha". O `ConsoleKeyPressTest` tem um caso para cada uma, e as quatro acoes
+   que aparecem em mais de um binding tem um caso que **conta** quantas combinacoes as
+   alcancam - e onde um `Map` que fundisse bindings apareceria como numero errado.
 
    Caracterizar vem antes de qualquer coisa, e ele e testavel sem o `Console`: e um
    `EventHandler<KeyEvent>`, e basta montar o evento a mao. Antes disso, vale estreitar os
