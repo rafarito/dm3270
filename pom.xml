@@ -250,6 +250,15 @@
               Cursor entrou agora que tem o CursorTest: 20 testes que congelam movimento,
               volta na tela, avisos aos ouvintes, navegacao por campo e visibilidade.
             -->
+            <!--
+              O TerminalModel, que saiu do switch do Console.setModel no passo 8. Entra junto
+              com o TerminalModelTest, pelo mesmo criterio do SiteValue no passo 3 e do
+              ReportScore no passo 4: classe nova, sem JavaFX e com teste proprio. Entra
+              ACRESCENTANDO denominador - o pacote runtime nao era medido -, entao a
+              porcentagem global pode nao subir, e essa e a direcao honesta. O TerminalFunction
+              fica de fora: e um enum de quatro constantes sem metodo, e nao gera mutante.
+            -->
+            <param>com.bytezone.dm3270.runtime.TerminalModel</param>
             <param>com.bytezone.dm3270.screen.ScreenDimensions</param>
             <param>com.bytezone.dm3270.screen.ScreenPosition</param>
             <param>com.bytezone.dm3270.screen.ScreenContext</param>

@@ -9,6 +9,7 @@ import java.util.prefs.Preferences;
 import com.bytezone.dm3270.datasets.DatasetStore;
 import com.bytezone.dm3270.database.QueuedDatasetStore;
 import com.bytezone.dm3270.runtime.TerminalFunction;
+import com.bytezone.dm3270.runtime.TerminalModel;
 import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.plugins.PluginsStage;
@@ -175,30 +176,32 @@ public class Console extends Application
       optionStage.show ();
   }
 
+  /*
+   * DOIS DEFEITOS PRESERVADOS DE PROPOSITO AQUI, e os dois sao o item 1 do
+   * BACKLOG-DEFEITOS.md. O switch original nao tinha break no case 5, entao um modelo 5 - que
+   * e valido, 27x132 - configurava-se corretamente e SO ENTAO caia no default e reclamava de
+   * si mesmo. E o default nao atribui alternateScreenDimensions, que e campo de instancia
+   * reaproveitado entre lancamentos na mesma JVM: um modelo invalido herda o valor do
+   * lancamento anterior.
+   *
+   * A ordem importa e esta preservada: configura primeiro, reclama depois.
+   */
   private void setModel (Site serverSite)
   {
     int model = serverSite.getModel ();
     logger.debug ("model: {}", model);
-    switch (model)
+
+    Optional<TerminalModel> terminalModel = TerminalModel.forNumber (model);
+
+    if (terminalModel.isPresent ())
     {
-      case 2:
-        alternateScreenDimensions = new ScreenDimensions (24, 80);
-        telnetState.setDoDeviceType (2);
-        break;
-      case 3:
-        alternateScreenDimensions = new ScreenDimensions (32, 80);
-        telnetState.setDoDeviceType (3);
-        break;
-      case 4:
-        alternateScreenDimensions = new ScreenDimensions (43, 80);
-        telnetState.setDoDeviceType (4);
-        break;
-      case 5:
-        alternateScreenDimensions = new ScreenDimensions (27, 132);
-        telnetState.setDoDeviceType (5);
-      default:
-        logger.warn ("Invalid model number: {}", model);
+      TerminalModel found = terminalModel.get ();
+      alternateScreenDimensions = new ScreenDimensions (found.rows (), found.columns ());
+      telnetState.setDoDeviceType (model);
     }
+
+    if (terminalModel.isEmpty () || model == 5)         // o case 5 sem break, item 1 do backlog
+      logger.warn ("Invalid model number: {}", model);
   }
 
   private void setConsolePane (Screen screen, Site serverSite)
