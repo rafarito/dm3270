@@ -30,6 +30,11 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
     this.cursor = screen.getScreenCursor ();
   }
 
+  /*
+   * A cadeia de guardas, na ordem em que elas decidem - e a ordem e comportamento observavel: o
+   * atalho vem antes dos dois blocos de modificador, o teclado travado antes de todo o resto, e
+   * o shift+ENTER antes do bloco Control.
+   */
   @Override
   public void handle (KeyEvent keyEvent)
   {
@@ -41,25 +46,7 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
     // Handle copy/paste shortcuts before clearing selection
     if (keyEvent.isShortcutDown ())
     {
-      // Ignore modifier keys pressed alone (Ctrl, Meta, etc.)
-      if (keyCodePressed.isModifierKey ())
-        return;
-
-      if (keyCodePressed == KeyCode.C)
-      {
-        screen.copySelection ();
-        keyEvent.consume ();
-        return;
-      }
-      if (keyCodePressed == KeyCode.V)
-      {
-        screen.clearSelection ();
-        screen.pasteText ();
-        keyEvent.consume ();
-        return;
-      }
-      // For other shortcut combos, clear selection
-      screen.clearSelection ();
+      handleShortcut (keyEvent, keyCodePressed);
       return;
     }
 
@@ -69,63 +56,13 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
 
     if (screen.isKeyboardLocked ())           // could be in screen history mode
     {
-      if (keyCodePressed == KeyCode.LEFT)
-      {
-        consolePane.back ();
-        keyEvent.consume ();
-      }
-      else if (keyCodePressed == KeyCode.RIGHT)
-      {
-        consolePane.forward ();
-        keyEvent.consume ();
-      }
-
+      handleScreenHistory (keyEvent, keyCodePressed);
       return;
     }
 
     if (keyEvent.isMetaDown ())
     {
-      switch (keyCodePressed)
-      {
-        case ENTER:
-          cursor.newLine ();
-          keyEvent.consume ();
-          break;
-
-        case BACK_SPACE:
-        case DELETE:
-          cursor.eraseEOL ();
-          keyEvent.consume ();
-          break;
-
-        case H:                   // OSX ctrl-h conflicts with Hide Windows command
-          cursor.home ();
-          keyEvent.consume ();
-          break;
-
-        case I:
-          screen.toggleInsertMode ();
-          keyEvent.consume ();
-          break;
-
-        case F1:
-          consolePane.sendAID (AIDCommand.AID_PA1, "PA1");
-          keyEvent.consume ();
-          break;
-
-        case F2:
-          consolePane.sendAID (AIDCommand.AID_PA2, "PA2");
-          keyEvent.consume ();
-          break;
-
-        case F3:
-          consolePane.sendAID (AIDCommand.AID_PA3, "PA3");
-          keyEvent.consume ();
-          break;
-
-        default:
-          break;
-      }
+      handleMeta (keyEvent, keyCodePressed);
       return;
     }
 
@@ -138,110 +75,212 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
 
     if (keyEvent.isControlDown ())              // OSX has to share ctrl-h
     {
-      switch (keyCodePressed)
-      {
-        case H:
-          cursor.home ();
-          keyEvent.consume ();
-          break;
-
-        default:
-          break;
-      }
+      handleControl (keyEvent, keyCodePressed);
       return;
     }
 
     if (keyCodePressed.isArrowKey ())
-      switch (keyCodePressed)
-      {
-        case LEFT:
-          cursor.move (Direction.LEFT);
-          keyEvent.consume ();
-          break;
-
-        case RIGHT:
-          cursor.move (Direction.RIGHT);
-          keyEvent.consume ();
-          break;
-
-        case UP:
-          cursor.move (Direction.UP);
-          keyEvent.consume ();
-          break;
-
-        case DOWN:
-          cursor.move (Direction.DOWN);
-          keyEvent.consume ();
-          break;
-
-        default:
-          logger.warn ("Impossible arrow key");
-          break;
-      }
+      handleArrowKey (keyEvent, keyCodePressed);
     else
-      switch (keyCodePressed)
-      {
-        case ENTER:
-          consolePane.sendAID (AIDCommand.AID_ENTER, "ENTR");
-          keyEvent.consume ();
-          break;
+      handlePlainKey (keyEvent, keyCodePressed);
+  }
 
-        case TAB:
-          cursor.tab (keyEvent.isShiftDown ());
-          keyEvent.consume ();
-          break;
+  /*
+   * Copiar e colar. Todo OUTRO atalho limpa a selecao e NAO consome: o evento segue para quem
+   * estiver ouvindo depois.
+   */
+  private void handleShortcut (KeyEvent keyEvent, KeyCode keyCodePressed)
+  {
+    // Ignore modifier keys pressed alone (Ctrl, Meta, etc.)
+    if (keyCodePressed.isModifierKey ())
+      return;
 
-        case BACK_SPACE:
-          cursor.backspace ();
-          keyEvent.consume ();
-          break;
+    if (keyCodePressed == KeyCode.C)
+    {
+      screen.copySelection ();
+      keyEvent.consume ();
+      return;
+    }
+    if (keyCodePressed == KeyCode.V)
+    {
+      screen.clearSelection ();
+      screen.pasteText ();
+      keyEvent.consume ();
+      return;
+    }
+    // For other shortcut combos, clear selection
+    screen.clearSelection ();
+  }
 
-        case DELETE:
-          cursor.delete ();
-          keyEvent.consume ();
-          break;
+  // Com o teclado travado so as duas setas valem; todo o resto e engolido sem ser consumido.
+  private void handleScreenHistory (KeyEvent keyEvent, KeyCode keyCodePressed)
+  {
+    if (keyCodePressed == KeyCode.LEFT)
+    {
+      consolePane.back ();
+      keyEvent.consume ();
+    }
+    else if (keyCodePressed == KeyCode.RIGHT)
+    {
+      consolePane.forward ();
+      keyEvent.consume ();
+    }
+  }
 
-        case END:
-          cursor.eraseEOL ();
-          keyEvent.consume ();
-          break;
+  private void handleMeta (KeyEvent keyEvent, KeyCode keyCodePressed)
+  {
+    switch (keyCodePressed)
+    {
+      case ENTER:
+        cursor.newLine ();
+        keyEvent.consume ();
+        break;
 
-        case INSERT:
-          screen.toggleInsertMode ();
-          keyEvent.consume ();
-          break;
+      case BACK_SPACE:
+      case DELETE:
+        cursor.eraseEOL ();
+        keyEvent.consume ();
+        break;
 
-        case HOME:
-          cursor.home ();
-          keyEvent.consume ();
-          break;
+      case H:                   // OSX ctrl-h conflicts with Hide Windows command
+        cursor.home ();
+        keyEvent.consume ();
+        break;
 
-        case ESCAPE:
-          logger.debug ("escape");                      // CLR key?
-          keyEvent.consume ();
-          break;
+      case I:
+        screen.toggleInsertMode ();
+        keyEvent.consume ();
+        break;
 
-        default:
-          boolean found = false;
-          int pfKey = 1;
-          for (KeyCode keyCode : PFKeyCodes)
+      case F1:
+        consolePane.sendAID (AIDCommand.AID_PA1, "PA1");
+        keyEvent.consume ();
+        break;
+
+      case F2:
+        consolePane.sendAID (AIDCommand.AID_PA2, "PA2");
+        keyEvent.consume ();
+        break;
+
+      case F3:
+        consolePane.sendAID (AIDCommand.AID_PA3, "PA3");
+        keyEvent.consume ();
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  private void handleControl (KeyEvent keyEvent, KeyCode keyCodePressed)
+  {
+    switch (keyCodePressed)
+    {
+      case H:
+        cursor.home ();
+        keyEvent.consume ();
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  private void handleArrowKey (KeyEvent keyEvent, KeyCode keyCodePressed)
+  {
+    switch (keyCodePressed)
+    {
+      case LEFT:
+        cursor.move (Direction.LEFT);
+        keyEvent.consume ();
+        break;
+
+      case RIGHT:
+        cursor.move (Direction.RIGHT);
+        keyEvent.consume ();
+        break;
+
+      case UP:
+        cursor.move (Direction.UP);
+        keyEvent.consume ();
+        break;
+
+      case DOWN:
+        cursor.move (Direction.DOWN);
+        keyEvent.consume ();
+        break;
+
+      default:
+        logger.warn ("Impossible arrow key");
+        break;
+    }
+  }
+
+  private void handlePlainKey (KeyEvent keyEvent, KeyCode keyCodePressed)
+  {
+    switch (keyCodePressed)
+    {
+      case ENTER:
+        consolePane.sendAID (AIDCommand.AID_ENTER, "ENTR");
+        keyEvent.consume ();
+        break;
+
+      case TAB:
+        cursor.tab (keyEvent.isShiftDown ());
+        keyEvent.consume ();
+        break;
+
+      case BACK_SPACE:
+        cursor.backspace ();
+        keyEvent.consume ();
+        break;
+
+      case DELETE:
+        cursor.delete ();
+        keyEvent.consume ();
+        break;
+
+      case END:
+        cursor.eraseEOL ();
+        keyEvent.consume ();
+        break;
+
+      case INSERT:
+        screen.toggleInsertMode ();
+        keyEvent.consume ();
+        break;
+
+      case HOME:
+        cursor.home ();
+        keyEvent.consume ();
+        break;
+
+      case ESCAPE:
+        logger.debug ("escape");                      // CLR key?
+        keyEvent.consume ();
+        break;
+
+      default:
+        boolean found = false;
+        int pfKey = 1;
+        for (KeyCode keyCode : PFKeyCodes)
+        {
+          if (keyCode == keyCodePressed)
           {
-            if (keyCode == keyCodePressed)
-            {
-              found = true;
-              break;
-            }
-            ++pfKey;
+            found = true;
+            break;
           }
-          if (found)
-          {
-            if (keyEvent.isShiftDown ())
-              pfKey += 12;
-            String keyName = "PF" + pfKey;
-            consolePane.sendAID (AIDCommand.getKey (keyName), keyName);
-            keyEvent.consume ();
-          }
-          break;
-      }
+          ++pfKey;
+        }
+        if (found)
+        {
+          if (keyEvent.isShiftDown ())
+            pfKey += 12;
+          String keyName = "PF" + pfKey;
+          consolePane.sendAID (AIDCommand.getKey (keyName), keyName);
+          keyEvent.consume ();
+        }
+        break;
+    }
   }
 }
