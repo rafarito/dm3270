@@ -11,6 +11,21 @@ duas decisões que não deveriam se misturar: *reorganizar* e *mudar o que o pro
 Cada item abaixo é uma decisão pendente, não uma tarefa aprovada. Corrigir é uma escolha do
 time, num commit `fix(...)` próprio, com teste que falha antes e passa depois.
 
+**Como um item sai desta lista, e quem decide.** Já aconteceu duas vezes, e nas duas a
+autorização foi do usuário, pedida explicitamente antes de tocar no código:
+
+1. **medir** e registrar o item aqui, com o efeito de hoje e o delta que a correção causaria;
+2. **escrever a rede que congela o comportamento atual** — inclusive o defeito;
+3. **perguntar ao usuário.** Se a resposta for não, o item fica e a rede o mantém congelado;
+4. se for sim, um commit `fix` próprio, com o delta completo no corpo e a menção de que a
+   Regra 1 foi dispensada a pedido dele.
+
+O item corrigido **continua nesta lista**, marcado, e não é renumerado: os comentários do código
+e dos testes citam o número. Hoje só o **item 17** está nessa situação.
+
+**Os dois commits `fix` da branch são `cfc95f18` e `da0e89a8`** — são os únicos pontos em que um
+`git bisect` procurando mudança de comportamento pode parar.
+
 ---
 
 ## 1. `Console.setModel` — `case 5` sem `break`
@@ -40,9 +55,20 @@ aberto: `grep -rn setModel test/` não devolve nada, e o `ScreenDimensionsTest` 
 um `Console` — ele cobre a classe `ScreenDimensions`, que é outra coisa. Não havia, e não há
 até o commit que extrai o `runtime.TerminalModel`, nenhum teste sobre este `switch`.
 
-**A congelar** pelo `TerminalModelTest` e pelo `setModel` reescrito, ainda neste passo: o
-modelo 5 configura 27x132 **e então** reclama, e o caminho inválido não atribui
-`alternateScreenDimensions`.
+**Congelado desde o Passo 8** pelo `TerminalModelTest` (18 casos, e um deles existe só para
+dizer que o modelo 5 **é** válido) e pelo `setModel` reescrito, onde a condição que reproduz o
+defeito está escrita e comentada em vez de escondida num `break` que falta:
+
+```java
+if (terminalModel.isEmpty () || model == 5)         // o case 5 sem break, item 1 do backlog
+  logger.warn ("Invalid model number: {}", model);
+```
+
+As duas armadilhas continuam de pé: o modelo 5 configura 27x132 **e então** reclama, e o caminho
+inválido **não** atribui `alternateScreenDimensions` — que é campo de instância reaproveitado
+entre lançamentos na mesma JVM, então um modelo inválido herda o valor do lançamento anterior.
+Um `TerminalModel` que devolvesse sempre um valor mudaria isso, e é por isso que `forNumber`
+devolve `Optional`.
 
 ---
 
@@ -314,8 +340,9 @@ conversa.
 
 **Nota:** a remoção pertencia à onda de limpeza, e o **Passo 10 a mediu e o usuário decidiu
 deixar o cache onde está.** O motivo é o preço, e ele é real: remover arrasta o `CacheEntry` e
-os **sete testes** da classe aninhada `Cache` do `DatabaseTest` (99 linhas), levando a suíte de
-1.452 para 1.445 e encolhendo o denominador do PIT em `database.*`. Perder denominador é a
+os **sete testes** da classe aninhada `Cache` do `DatabaseTest` (99 linhas), encolhendo a suíte
+em sete casos e o denominador do PIT em `database.*` (a conta foi medida no Passo 10, quando a
+suíte tinha 1.452; hoje tem **1.582**, e a subtração é a mesma). Perder denominador é a
 forma mais silenciosa de afrouxar a rede, e a Regra 5 existe justamente contra isso.
 
 Ou seja: **este item continua sendo uma decisão pendente do time, e agora com o custo
@@ -544,8 +571,14 @@ teclado numérico.
 para a mesma `Direction`. Muda comportamento nas três plataformas — a tecla passaria a mover o
 cursor e a consumir o evento —, e por isso não foi feita nesta branch.
 
-**A congelar** pelo `ConsoleKeyPressTest`, escrito adiante no Passo 8: ele afirma que `KP_LEFT`
-produz o aviso, **não** move o cursor e **não** consome o evento.
+**Congelado por** `ConsoleKeyPressTest`, escrito no Passo 8: quatro casos parametrizados —
+`KP_LEFT`, `KP_RIGHT`, `KP_UP` e `KP_DOWN` — afirmam que a tecla **não** move o cursor e
+**não** consome o evento. O aviso no log é o terceiro efeito e não está afirmado ali; se alguém
+quiser congelá-lo também, precisa de um *appender* de teste no logback.
+
+**Como isto foi achado**, porque o método vale mais que o item: `javap -c` na própria JavaFX.
+Nenhuma leitura do `ConsoleKeyPress` revelaria — a guarda parece exaustiva, o `default` parece
+defensivo, e o nome da mensagem afirma que é impossível.
 
 ---
 

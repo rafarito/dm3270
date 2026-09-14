@@ -27,13 +27,14 @@ em paralelo sem antes isolar esses casos.
 Este documento acompanha a refatoracao estrutural da branch `refactor/solid-architecture`, e
 ficou defasado entre a Onda 1 e o Passo 5.
 
-**Remedido no Passo 7, e portanto confiavel:** "Situacao atual", "Rede de seguranca", "Testes
+**Remedido no Passo 8, e portanto confiavel:** "Situacao atual", "Rede de seguranca", "Testes
 que exigem JavaFX", "Cobertura atual" e "Proximos alvos". Os numeros dessas secoes foram
 medidos de novo com `mvn clean test` e `mvn clean test-compile pitest:mutationCoverage`.
 
-**Remedido no Passo 10, e ainda confiavel:** "Cobertura por pacote — `dm3270`", "Mapa de
-modulos" e "Uma falha intermitente que nao e sua". O Passo 7 tocou tres arquivos de `src/`
-num pacote que nao entra no relatorio de mutacao, entao essas secoes nao mudaram.
+**Remedido no Passo 10, e ainda confiavel na ordem de grandeza:** "Cobertura por pacote —
+`dm3270`", "Mapa de modulos" e "Uma falha intermitente que nao e sua". O unico pacote que mudou
+desde entao e o `runtime`, que entrou no relatorio de mutacao no Passo 8 com **5 mutantes e 5
+mortos (100%)** e nao aparece naquela tabela.
 
 **Ainda sao instantaneos antigos** — ordens de grandeza valem, numeros exatos nao: "Cobertura
 por modulo — `dm3270-plugins`", a secao "Cobertura atual" (que duplica a de cima com dados mais
@@ -174,7 +175,21 @@ sustentam essa promessa, e todos rodam no `mvn test`:
 | Golden master do parser | `ParserGoldenMasterTest` + `test/golden/mf-parse.txt` | Reprocessa uma sessao TN3270 real e congela tudo que o parser monta: registros, comandos, orders, respostas telnet. Cobre `telnet`, `buffers`, `commands`, `orders`, `extended`, `structuredfields` e `replyfield` de uma vez |
 | Regras de camada | `LayeringTest` + `test/archunit-baseline/` | **Treze** regras de dependencia com ArchUnit. **Doze chegaram a zero e NAO sao congeladas** - uma violacao nova quebra a build sem baseline para absorve-la. So `uiIsTheOnlyPlaceThatKnowsJavaFx` segue congelada, em 240 violacoes, e o baseline versionado e o placar: ele so encolhe |
 | Placar de ciclos | `LayeringTest.MAX_MUTUAL_CYCLES`, hoje **9** | Conta os pares de pacotes com dependencia mutua. Falha se subir **e** se cair sem atualizar o limite, para que todo ganho seja registrado no commit que o produziu |
-| Caracterizacao | `SiteFormTest`, `OptionStageTest`, `ScreenContextPoolingTest`, `ReportScoreTest`, `SessionRecordTest`, `SessionTest`, e outros | Congela o comportamento atual das classes que serao desmontadas, **incluindo os defeitos** — ver [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md) |
+| Caracterizacao | `SiteFormTest`, `OptionStageTest`, `ConsoleKeyPressTest`, `ScreenContextPoolingTest`, `ReportScoreTest`, `SessionRecordTest`, `SessionTest`, e outros | Congela o comportamento atual das classes que serao desmontadas, **incluindo os defeitos** — ver [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md) |
+
+**O teclado nao tem golden master, e o `ConsoleKeyPressTest` e o que existe no lugar.** Ele e a
+unica rede sobre o despacho de tecla: 69 casos, um por binding, mais os dez caminhos que **nao**
+consomem o evento. Dois deles congelam defeitos de proposito (itens 16 e 17 do backlog), e a
+historia desse arquivo e o melhor argumento da branch a favor de escrever a rede ANTES do
+refactor - **os dois defeitos so apareceram quando as asserticoes foram escritas**, e nenhuma
+leitura de codigo os teria pegado.
+
+**Como ele alcanca a classe, e por que isso importa para quem for escrever o proximo:** pelos
+dubles das duas portas, nunca pelos campos. Os tres dubles escrevem na **mesma** lista, entao
+cada caso afirma tambem a ordem *entre* colaboradores. Ele atravessou os tres commits de
+refactor do Passo 8 sem uma linha mudada - e e exatamente isso que prova que aqueles commits
+preservaram comportamento. Um teste que precisa ser ajustado pelo refactor que ele deveria
+vigiar nao prova nada.
 
 **Uma regra que chegou a zero e trocada pela regra nua**, com o baseline e a entrada dele no
 `stored.rules` apagados. E isso que separa "hoje nao ha violacao" de "nao pode haver
@@ -439,6 +454,26 @@ O resultado pratico e o `HeadlessScreenTarget`, em `test/`: uma tela com `Pen` e
 executar comandos 3270 num teste comum e verificar o texto que sobra na tela — ver
 `HeadlessProcessingTest`. Antes isso era impossivel.
 
+**E os cortes continuaram depois daquela onda, sempre pelo mesmo padrao: uma porta estreita no
+lugar da classe concreta.** As duas mais recentes sao do Passo 8, e valem como modelo porque
+mostram a regra que decide ONDE a porta mora:
+
+| Porta | Mora em | Implementada por | Por que ali |
+|---|---|---|---|
+| `application.ConsoleKeyTarget` | `application` | `ConsolePane` | consumidor **e** implementador estao no mesmo pacote — `ConsolePane` e de `application`, nao de `display`. E o caso mais simples, sem risco de camada |
+| `screen.KeyboardTarget` | `screen` | `display.Screen` | **nao pode** morar em `application`: quem implementa e `display.Screen`, e `displayDoesNotDependOnApplication` vale integralmente, em zero |
+
+**A regra geral, que o `CLAUDE.md` enuncia e que estas duas ilustram:** a porta e declarada no
+pacote que CONSOME — exceto quando o implementador nao puder depender desse pacote, e ai ela
+desce para um pacote que os dois possam ver. `screen` e esse pacote na maioria dos casos, e e
+por isso que `AidSender` e `KeyboardState` moram la.
+
+**Uma consequencia de desenho que aparece nas duas:** a porta expoe a ACAO, nao o objeto.
+`KeyboardTarget` declara `clearSelection ()` e nao `getScreenSelection ()`, porque
+`ScreenSelection` e de `display`, importa JavaFX e guarda uma `Screen` — devolve-la poria a view
+dentro do modelo de tela e quebraria `screenModelDoesNotDependOnTheView`. Os tres sitios que a
+chamavam faziam todos a mesma coisa.
+
 O que ainda falta, e por que:
 
 - **`Screen`** continua com 1.094 linhas e oito responsabilidades. E o que mantem
@@ -658,8 +693,10 @@ testes seguem lá, agora descrevendo a regra em vez de alertar sobre ela:
 
 ## Proximos alvos
 
-**Quatro dos seis alvos que esta lista trazia foram feitos.** Ficam registrados riscados,
-porque a ordem em que cairam e o argumento de que o metodo funciona:
+**Os SEIS alvos desta lista foram feitos** - os quatro originais mais dois que ela nem
+registrava, e essa e a parte que importa: a maior lacuna de teste do projeto (o caminho de
+lancamento inteiro, com zero casos) nao estava escrita aqui. Ficam riscados, porque a ordem em
+que cairam e o argumento de que o metodo funciona:
 
 1. ~~**Fake de `Pen` e `DisplayScreen`.**~~ Feito na Onda 1 e ampliado depois: hoje e o
    `HeadlessScreenTarget`, que usa um `Pen` e um vetor de `ScreenPosition` **reais** e monta
@@ -721,11 +758,11 @@ O que continua aberto, em ordem de retorno medido:
    que aparecem em mais de um binding tem um caso que **conta** quantas combinacoes as
    alcancam - e onde um `Map` que fundisse bindings apareceria como numero errado.
 
-   Caracterizar vem antes de qualquer coisa, e ele e testavel sem o `Console`: e um
-   `EventHandler<KeyEvent>`, e basta montar o evento a mao. Antes disso, vale estreitar os
-   dois colaboradores - `screen.AidSender` e `screen.KeyboardState` ja cobrem dois dos onze
-   metodos que ele usa -, porque hoje a rede exigiria uma `Screen` de 1.094 linhas e um
-   `ConsolePane` de 442.
+   **A receita que funcionou, para quem for fazer o mesmo com outra classe presa a widget:**
+   estreitar os colaboradores PRIMEIRO, escrever a rede DEPOIS, decompor por ultimo. As duas
+   portas do Passo 8 cobriram os onze metodos que o `ConsoleKeyPress` usava, e so entao a rede
+   ficou barata - antes delas ela exigiria uma `Screen` de 1.094 linhas e um `ConsolePane` de
+   442, nenhum dos dois instanciavel num teste.
 
    O `Console` em si continua intestavel enquanto for uma `Application` que constroi o grafo
    inteiro dentro de `start ()` - isso e o composition root, o item 1 desta lista.
