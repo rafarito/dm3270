@@ -45,8 +45,8 @@ import javafx.scene.text.Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConsolePane extends BorderPane
-    implements FieldChangeListener, CursorMoveListener, KeyboardStatusListener, ConsoleView
+public class ConsolePane extends BorderPane implements FieldChangeListener,
+    CursorMoveListener, KeyboardStatusListener, ConsoleView, ConsoleKeyTarget
 {
   private static final Logger logger = LoggerFactory.getLogger (ConsolePane.class);
   private final static int MARGIN = 4;
@@ -271,13 +271,17 @@ public class ConsolePane extends BorderPane
     }
   }
 
-  void back ()
+  // called from ConsoleKeyPress.handle (KeyEvent e), via ConsoleKeyTarget
+  @Override
+  public void back ()
   {
     if (screenHistory != null && screenHistory.hasPrevious ())
       changeScreen (screenHistory.previous ());
   }
 
-  void forward ()
+  // called from ConsoleKeyPress.handle (KeyEvent e), via ConsoleKeyTarget
+  @Override
+  public void forward ()
   {
     if (screenHistory != null && screenHistory.hasNext ())
       changeScreen (screenHistory.next ());

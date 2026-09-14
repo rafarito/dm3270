@@ -20,10 +20,10 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
         KeyCode.F7, KeyCode.F8, KeyCode.F9, KeyCode.F10, KeyCode.F11, KeyCode.F12 };
 
   private final KeyboardTarget screen;
-  private final ConsolePane consolePane;
+  private final ConsoleKeyTarget consolePane;
   private final Cursor cursor;
 
-  public ConsoleKeyPress (ConsolePane consolePane, KeyboardTarget screen)
+  public ConsoleKeyPress (ConsoleKeyTarget consolePane, KeyboardTarget screen)
   {
     this.consolePane = consolePane;
     this.screen = screen;
