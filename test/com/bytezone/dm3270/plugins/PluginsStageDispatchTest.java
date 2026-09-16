@@ -1,6 +1,7 @@
 package com.bytezone.dm3270.plugins;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
@@ -390,6 +391,68 @@ class PluginsStageDispatchTest
 
       assertEquals (List.of ("ScriptedPlugin.activate",            // select (), :470
                              "ScriptedPlugin.doesRequest->true"),  // setMenu (), :250
+                    PluginProbe.calls ());
+    }
+  }
+
+  /*
+   * O ISOLAMENTO DO processAll, e o que ele NAO isola.
+   *
+   * O laco de processAll envolve cada plugin num try/catch e loga "Error processing auto",
+   * entao um plugin que quebra nao impede os seguintes. Mas o catch e de Exception, nao de
+   * Throwable: um Error escapa do laco, cancela os plugins que faltavam e sobe ate
+   * WriteCommand.process (), que e quem chama processPluginAuto () depois de destravar o
+   * teclado.
+   *
+   * Os dois casos estao aqui juntos de proposito - o que se esta congelando e a FRONTEIRA
+   * entre o que e isolado e o que nao e. O bloco 1 mexe neste laco.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("O isolamento do processAll")
+  class AutoIsolation
+  // ---------------------------------------------------------------------------------//
+  {
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("um plugin que lanca Exception nao impede os seguintes")
+    void umaExceptionNaoImpedeOsSeguintes ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginProbe.scriptAuto ("ThrowingAutoPlugin", true);
+      PluginProbe.scriptAuto ("ScriptedPlugin", true);
+      register (0, "Throwing", ThrowingAutoPlugin.class, true);
+      register (1, "Scripted", ScriptedPlugin.class, true);
+      buildMenu ();
+
+      stage.processAll (data (3));
+
+      assertEquals (List.of ("ThrowingAutoPlugin.doesAuto->true",
+                             "ThrowingAutoPlugin.processAuto:3",
+                             "ScriptedPlugin.doesAuto->true", "ScriptedPlugin.processAuto:3"),
+                    PluginProbe.calls ());
+    }
+
+    /*
+     * A assimetria. Nao ha nada a corrigir aqui sob a Regra 1 - o defeito vai para o
+     * BACKLOG-DEFEITOS.md e o teste o congela como esta.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("um Error escapa do laco e cancela os plugins seguintes")
+    void umErrorEscapaEAbortaOsSeguintes ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginProbe.scriptAuto ("ErroringAutoPlugin", true);
+      PluginProbe.scriptAuto ("ScriptedPlugin", true);
+      register (0, "Erroring", ErroringAutoPlugin.class, true);
+      register (1, "Scripted", ScriptedPlugin.class, true);
+      buildMenu ();
+
+      assertThrows (ErroringAutoPlugin.DubleError.class, () -> stage.processAll (data (4)));
+
+      assertEquals (List.of ("ErroringAutoPlugin.doesAuto->true",
+                             "ErroringAutoPlugin.processAuto:4"),
                     PluginProbe.calls ());
     }
   }
