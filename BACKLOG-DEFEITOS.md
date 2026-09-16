@@ -803,6 +803,67 @@ na montagem da barra de menus. Nada o chama de novo.
 
 ---
 
+## 22. `Console.stop ()` guarda seis colaboradores contra nulo, e não guarda o sétimo
+
+**Arquivo:** [application/Console.java](src/com/bytezone/dm3270/application/Console.java)
+
+O `stop ()` é defensivo de forma quase sistemática — `mainframeStage`, `spyPane`,
+`consolePane`, `replayStage`, os dois `WindowSaver` e a `screen` são todos testados contra
+nulo antes de serem usados. **O `optionStage` não é**: `savePreferences ()` o desreferencia
+direto, na primeira linha, e um `Console` que nunca chegou ao fim do `start (Stage)` estoura
+`NullPointerException` ao ser parado.
+
+A assimetria é o que chama atenção: sete campos na mesma situação, seis protegidos e um não.
+
+**Isto não é teórico.** `Application.stop ()` é chamado pelo runtime do JavaFX no fechamento,
+e `start (Stage)` declara `throws Exception`. Qualquer falha antes de o `OptionStage` nascer
+deixa o objeto exatamente nesse estado — e o candidato mais realista é o `PluginsStage`, que
+é construído na linha imediatamente anterior e que varre a pasta de plugins, monta um class
+loader por JAR e grava preferências.
+
+**Correção sugerida:** uma guarda de nulo, como nos outros seis. Ou, melhor, que o
+`savePreferences ()` só rode quando houver o que salvar.
+
+**Por que não foi corrigido:** Regra 1. O caso `stoppingAConsoleThatNeverStartedThrows` do
+`ConsoleShutdownTest` congela o comportamento atual.
+
+---
+
+## 23. O construtor da `Screen` dimensiona o canvas com uma geometria e a reporta com outra
+
+**Arquivo:** [display/Screen.java](src/com/bytezone/dm3270/display/Screen.java)
+
+Duas regras diferentes de "qual é a dimensão corrente" convivem dentro do **mesmo**
+construtor:
+
+| Quem pergunta | Qual regra | Com `alternate = 27×132` |
+|---|---|---|
+| `fontChanged`, que dimensiona o `Canvas` | `alternate ?? default` | **132 colunas** |
+| `getScreenDimensions ()` | o `currentScreen`, fixado em `DEFAULT` | **80 colunas** |
+
+O construtor escolhe `alternate ?? default` para dimensionar cursor, campos, histórico e o
+vetor de `ScreenPosition`, e o `fontChanged` disparado pelo `FontManager` usa a mesma regra
+para calcular a largura do canvas. Mas a última coisa que o construtor faz antes de entregar
+o objeto é `setCurrentScreen (ScreenOption.DEFAULT)` — e `getScreenDimensions ()` responde
+pelo `currentScreen`, não pelo campo.
+
+O resultado é uma tela recém-construída cujo canvas tem largura de 132 colunas e que
+responde "80" a quem lhe pergunta o tamanho.
+
+**Hoje é latente** porque o host manda um Erase Write Alternate antes de usar a geometria
+alternativa, e aí `setCurrentScreen (ALTERNATE)` alinha as duas respostas. O desalinhamento
+existe só na janela entre a construção e o primeiro comando.
+
+**Correção sugerida:** decidir a geometria corrente **uma vez**, e fazer o dimensionamento do
+canvas e o acessor lerem a mesma decisão.
+
+**Por que não foi corrigido:** Regra 1, e porque mexer nisso é mexer na ordem do construtor —
+que é exatamente o alvo do composition root. O caso
+`theCanvasIsSizedByTheAlternateWhileTheAccessorReportsTheDefault` do `ScreenConstructionTest`
+congela as duas respostas.
+
+---
+
 ## Onde estão os defeitos que a refatoração *vai* resolver
 
 Estes não estão nesta lista porque não são mudança de comportamento:
