@@ -69,11 +69,25 @@ public class PluginsStage extends PreferencesStage
   private AidSender consolePane;
   private URLClassLoader pluginClassLoader;
 
+  // A pasta onde os JARs de plugin moram. Em producao e sempre
+  // Paths.get (PLUGINS_DIR).toAbsolutePath (), que era a expressao repetida nos tres
+  // sitios abaixo; entra pelo construtor so para que o teste possa apontar para um
+  // @TempDir em vez da pasta real do desenvolvedor.
+  private final Path pluginsDirectory;
+
   // ---------------------------------------------------------------------------------//
   public PluginsStage (Preferences prefs)
   // ---------------------------------------------------------------------------------//
   {
+    this (prefs, Paths.get (PLUGINS_DIR).toAbsolutePath ());
+  }
+
+  // ---------------------------------------------------------------------------------//
+  PluginsStage (Preferences prefs, Path pluginsDirectory)
+  // ---------------------------------------------------------------------------------//
+  {
     super (prefs);
+    this.pluginsDirectory = pluginsDirectory;
     setTitle ("Plugin Manager");
 
     buildPluginClassLoader ();
@@ -578,7 +592,7 @@ public class PluginsStage extends PreferencesStage
   private void buildPluginClassLoader ()
   // ---------------------------------------------------------------------------------//
   {
-    Path pluginsPath = Paths.get (PLUGINS_DIR).toAbsolutePath ();
+    Path pluginsPath = pluginsDirectory;
 
     if (!Files.isDirectory (pluginsPath))
     {
@@ -632,7 +646,7 @@ public class PluginsStage extends PreferencesStage
     if (pluginClassLoader == null)
       return discovered;
 
-    Path pluginsPath = Paths.get (PLUGINS_DIR).toAbsolutePath ();
+    Path pluginsPath = pluginsDirectory;
     File[] jarFiles = pluginsPath.toFile ().listFiles (
         (dir, name) -> name.toLowerCase ().endsWith (".jar"));
 
@@ -746,6 +760,6 @@ public class PluginsStage extends PreferencesStage
   public Path getPluginsDirectory ()
   // ---------------------------------------------------------------------------------//
   {
-    return Paths.get (PLUGINS_DIR).toAbsolutePath ();
+    return pluginsDirectory;
   }
 }
