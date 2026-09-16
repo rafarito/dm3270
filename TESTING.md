@@ -27,9 +27,12 @@ em paralelo sem antes isolar esses casos.
 Este documento acompanha a refatoracao estrutural da branch `refactor/solid-architecture`, e
 ficou defasado entre a Onda 1 e o Passo 5.
 
-**Remedido no Passo 9, e portanto confiavel:** "Situacao atual", "Rede de seguranca",
-"Testes que exigem JavaFX", "JARs sinteticos" e "Uma falha intermitente que nao e sua". A
-contagem de testes foi medida com `mvn clean test`.
+**Remedido no Passo 11, e portanto confiavel:** "Testes que exigem JavaFX" e a secao nova
+"Mostrar uma janela num teste desliga o toolkit". A suite esta em **1.680** casos e **66**
+classes, medidos com `mvn clean test`.
+
+**Remedido no Passo 9, e ainda confiavel:** "Situacao atual", "Rede de seguranca", "JARs
+sinteticos" e "Uma falha intermitente que nao e sua".
 
 **COM UMA RESSALVA SOBRE O PIT, e ela importa:** o passo 9 NAO conseguiu rodar a passada de
 mutacao completa - a maquina ficou sem memoria e a matou duas vezes. O que rodou foi escopado
@@ -257,13 +260,34 @@ reaprovado — o que exige justificativa no commit, nunca um `rm` silencioso.
 
 ### Testes que exigem JavaFX
 
-`SiteForm`, `OptionStage` e `Screen` so podem ser instanciadas com o toolkit ativo - as duas
-primeiras tem teste hoje. A extensao `JavaFxToolkit` liga o toolkit uma vez por JVM; use com
-`@ExtendWith (JavaFxToolkit.class)`.
+`SiteForm`, `OptionStage` e `Screen` so podem ser instanciadas com o toolkit ativo, e **as
+tres tem teste desde o Passo 11**. A extensao `JavaFxToolkit` liga o toolkit uma vez por JVM;
+use com `@ExtendWith (JavaFxToolkit.class)`.
 
-**Sao SETE as classes de teste que usam a extensao desde o Passo 9** - eram quatro. As tres
-novas sao do Plugin Manager (`PluginsStageDispatchTest`, `LegacyPluginCompatibilityTest` e
-`PluginClassLoadingTest`), e nao ha como evitar: `PluginsStage` estende `Stage`.
+**Sao ONZE as classes de teste que usam a extensao desde o Passo 11** - eram sete. As quatro
+novas sao a do construtor da `Screen` (`ScreenConstructionTest`) e as tres do caminho de
+lancamento (`ConsoleStartTest`, `ConsoleLaunchErrorsTest`, `ConsoleShutdownTest`).
+
+**E a `Screen` deixou de ser o caso impossivel.** Este arquivo dizia, e o `CLAUDE.md` tambem,
+que ela "nao se instancia num teste hoje". Instancia, **sem costura nenhuma**: o construtor e
+publico, e um teste fornece os oito argumentos - as duas `ScreenDimensions`, um no de
+`Preferences` descartavel, o `TerminalFunction`, o `PluginsStage` pelo construtor de pacote
+que o Passo 9 abriu, um `Site` que pode ser nulo, um `TelnetState` headless e um
+`DatasetStore`. Nenhuma linha de `src/` mudou para o `ScreenConstructionTest` existir.
+
+**O que construir uma `Screen` CUSTA, e nao esta em mais lugar nenhum:** ela toca o diretorio
+pessoal de quem roda a suite. A cadeia e `Screen` -> `TransfersStage` -> `FilesTab` ->
+`new ReporterNode (prefs)` -> `TreePanel.getTree (path)`, com
+`Paths.get (System.getProperty ("user.home"), "dm3270", "files")` **hard-coded** em
+`ReporterNode:61` - nao vem de preferencia, entao **um no descartavel nao o isola**. E o
+`getTree` **cria** o diretorio se faltar e o percorre recursiva e avidamente. Numa maquina com
+muitos arquivos baixados essa classe fica lenta, e o resultado passa a depender do disco.
+
+**E a `ConsoleModelTest` NAO usa a extensao, o que e a assercao dela.** `Console` estende
+`javafx.application.Application`, mas `new Console ()` nao toca o toolkit: os inicializadores
+estaticos sao um `Logger`, um `int` e um `SiteValue` - classe sem um unico `import` desde o
+Passo 3 -, e os de instancia sao `new ScreenDimensions (24, 80)` e `new TelnetState ()`. A
+classe inteira roda em 1,4 s.
 
 **E uma classe do Passo 9 deliberadamente NAO usa a extensao, o que e a assercao dela.** O
 `PluginJarsTest` exercita o carregamento de JARs de plugin inteiro - pasta criada, descoberta,
@@ -320,6 +344,46 @@ xvfb-run --auto-servernum mvn test
 
 Sem isso, `Platform.startup` falha e a extensao diz exatamente esse motivo na mensagem de
 erro.
+
+### Mostrar uma janela num teste desliga o toolkit
+
+**Esta e a armadilha mais cara do Passo 11, e o sintoma nao aponta para a causa.**
+
+O `implicitExit` do JavaFX e `true` por default: quando a **ultima janela e fechada**, o
+runtime se desliga sozinho. E o toolkit **nao religa na mesma JVM**. Logo o primeiro teste que
+mostrar e fechar uma janela mata todos os seguintes - e eles falham em
+
+```
+o trecho na thread do JavaFX nao terminou em 30s
+```
+
+num `@BeforeEach` que nao tem nada de errado, porque o `Platform.runLater` deles entra numa
+fila que ninguem mais atende. Medido numa classe de seis casos: **um passa, cinco estouram em
+60 s cada** - 30 no `@BeforeEach` mais 30 no `@AfterEach`. Total: 306 s contra 7,3 depois da
+correcao.
+
+A correcao e uma linha, e esta no proprio `JavaFxToolkit`:
+
+```java
+Platform.setImplicitExit (false);
+```
+
+**E isso explica, retroativamente, uma disciplina que o projeto seguia sem registrar o
+motivo:** nenhum teste de `Stage` desta suite jamais chamou `show ()`. O `OptionStageTest` e o
+`PluginsStageDispatchTest` tem **zero** chamadas, e o cabecalho dos dois justifica isso por
+"alcance pelo grafo de cena" - que e verdade, mas nao e a razao. A razao e esta, e ate o Passo
+11 ninguem precisou descobri-la porque ninguem mostrou janela.
+
+**E `javafx.stage.Stage.show ()` e `final`** - conferido com `javap` no
+`javafx-graphics-21.0.7`. `Window.hide ()` nao e. Ou seja: um duble **nao consegue** suprimir
+a exibicao, so observa-la. Quem precisar disso tem duas saidas, e as duas estao em uso:
+
+- observar pela `showingProperty ()`, que dispara de forma **sincrona** dentro do proprio
+  `show ()` - entao a ordem numa lista compartilhada continua sendo a ordem real das chamadas;
+- **fechar a janela no `@AfterEach`**, obrigatoriamente, senao a suite acumula janelas abertas.
+
+`Console.start (Stage)` termina em `optionStage.show ()`, entao as tres classes do caminho de
+lancamento mostram janela de verdade enquanto rodam. Num ambiente headless, `xvfb-run`.
 
 ### JARs sinteticos: compilar um plugin dentro do teste
 
@@ -430,7 +494,7 @@ for escrever teste. Um traco em "Mutacao" significa que o pacote **nao esta** no
 | `dm3270.console` | 0% | 0% | — | UI, mas com parser de mensagem dentro (`ConsoleMessage`) |
 | `reporter.application` | 4% | 3% | — | UI do visualizador |
 | `dm3270.application` | 6% | 5% | — | UI: janelas, teclado, ciclo de vida |
-| `dm3270.display` | 12% | 14% | 50% | so `FxPalette` esta no PIT; `Screen` (**1.109** linhas) e as janelas nao tem teste |
+| `dm3270.display` | 12% | 14% | 50% | so `FxPalette` esta no PIT; a `Screen` (**1.109** linhas) ganhou o `ScreenConstructionTest` no Passo 11, mas continua fora do PIT por ser widget |
 | `dm3270.plugins` | 20% | 23% | 60% | **instantaneo do Passo 10.** Desde o Passo 9 entraram `PluginDigest` e `PluginJars` no PIT, e o `PluginsStage` - hoje **665** linhas - continua fora, por ser widget |
 | `reporter.reports` | 34% | 40% | **34%** | a pior mutacao do projeto |
 | `dm3270.streams` | 53% | 46% | **38%** | `TelnetListener` e `MainframeServer` rodam headless desde o Passo 5, mas so 4 classes estao no PIT |
@@ -603,10 +667,14 @@ chamavam faziam todos a mesma coisa.
 
 O que ainda falta, e por que:
 
-- **`Screen`** continua com **1.109** linhas e oito responsabilidades. E o que mantem
-  `dm3270.display` em 12%: o modelo tem teste, a classe que o hospeda nao. **Decompo-la deixou
-  de ser prioridade na Onda 3**, que mediu e descobriu que os ciclos vinham dos `import` dela,
-  nao do tamanho - seis cairam sem quebrar uma classe sequer.
+- **`Screen`** continua com **1.109** linhas e oito responsabilidades - mas **deixou de nao
+  ter teste no Passo 11**: o `ScreenConstructionTest` congela o construtor, que e o motivo
+  real para mexer nela. **Decompo-la deixou de ser prioridade na Onda 3**, que mediu e
+  descobriu que os ciclos vinham dos `import` dela, nao do tamanho - seis cairam sem quebrar
+  uma classe sequer. O que a rede nova congela e a ORDEM dentro do construtor, e em especial
+  que a tela **nao e desenhada durante a construcao** - `eraseScreen ()` e `draw ()` ficam
+  atras de `if (screenPositions != null)`, e o vetor so nasce depois da chamada reentrante do
+  `FontManager`. Reordenar essas linhas muda comportamento observavel.
 - **`FieldManager`** ainda exige a `Screen` concreta no construtor, onde sobe uma thread
   SQLite. Por isso o `HeadlessScreenTarget` devolve zero campos, e os ramos de
   `WriteCommand.process` que dependem de haver campos nao sao percorridos. Esta escrito no
@@ -622,9 +690,9 @@ classes que sao genuinamente visuais, como `Site`, cujos campos sao widgets.
 
 ## Cobertura atual
 
-### `dm3270` — 61 classes de teste, 1.640 testes
+### `dm3270` — 66 classes de teste, 1.680 testes
 
-**A TABELA ABAIXO E UM INSTANTANEO DO PASSO 8 e lista 54 classes, nao 61.** Faltam as sete que
+**A TABELA ABAIXO E UM INSTANTANEO DO PASSO 8 e lista 54 classes, nao 66.** Faltam as sete que
 o Passo 9 acrescentou, todas em `test/com/bytezone/dm3270/plugins/`: `PluginsStageDispatchTest`
 (20 casos), `PluginJarsTest` (8), `LegacyPluginCompatibilityTest` (3), `PluginClassLoadingTest`
 (2), `PluginApiShapeTest` (9), `DefaultPluginTest` (10) e `PluginDigestTest` (4). O total de
@@ -634,7 +702,7 @@ o Passo 9 acrescentou, todas em `test/com/bytezone/dm3270/plugins/`: `PluginsSta
 unica contagem que fecha (ver "Ler o resultado da suite", no `RELATORIO-REFATORACAO.md` §5.18):
 
 ```bash
-grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.640
+grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.680
 ```
 
 | Classe de teste | Testes |
@@ -933,8 +1001,16 @@ O que continua aberto, em ordem de retorno medido:
    ficou barata - antes delas ela exigiria uma `Screen` de 1.109 linhas e um `ConsolePane` de
    442, nenhum dos dois instanciavel num teste.
 
-   O `Console` em si continua intestavel enquanto for uma `Application` que constroi o grafo
-   inteiro dentro de `start ()` - isso e o composition root, o item 1 desta lista.
+   **O `Console` deixou de ser intestavel no Passo 11**, e por menos do que se supunha: `new
+   Console ()` nao toca o toolkit, e `startSelectedFunction` - embora privado - ja e injetado
+   como `Runnable` em `optionStage.setOnConnect (this::startSelectedFunction)`. Quem tem o
+   `OptionStage` tem o gatilho. Com tres metodos de pacote (as duas fabricas de `Stage` e o
+   alerta) a rede alcanca o `start`, os quatro ramos que RECUSAM o lancamento e o `stop`.
+
+   O que continua fora de alcance sao os caminhos FELIZES do `switch`: eles constroem
+   `Screen`, abrem arquivo SQLite no diretorio corrente, mostram janela e abrem socket. Isso
+   e o composition root, o item 1 desta lista - e o que falta agora e tirar a construcao de
+   dentro dos ramos, nao dar rede ao `Console`.
 4. **`TelnetListener` no `targetClasses` do PIT.** Ele ganhou os tres primeiros testes da sua
    historia no Passo 5, mas ficou de fora da lista pelo mesmo criterio do `ScreenWatcher`:
    uma classe grande com dois caminhos cobertos entra com sobreviventes demais para o numero
