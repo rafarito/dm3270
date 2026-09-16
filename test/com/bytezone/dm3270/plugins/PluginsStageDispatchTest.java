@@ -1,6 +1,7 @@
 package com.bytezone.dm3270.plugins;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.testing.JavaFxToolkit;
 
 import javafx.scene.control.CheckMenuItem;
@@ -457,6 +459,135 @@ class PluginsStageDispatchTest
     }
   }
 
+  /*
+   * O CAMINHO DE REQUEST, e as duas coisas que ele NAO faz.
+   *
+   * processPluginRequest (Plugin) e simetrico ao processAll so na aparencia. Ele:
+   *
+   *   NAO pergunta doesRequest () antes de chamar processRequest. Quem aciona e o item de
+   *   menu, e a decisao de existir item ja foi tomada la atras, na trava; o plugin e chamado
+   *   sem que ninguem confira se ele ainda quer ser chamado - e doesRequest muda durante a
+   *   execucao em cinco dos seis plugins reais;
+   *
+   *   NAO tem try/catch. O processAll envolve cada plugin e loga; aqui a excecao sobe para
+   *   quem acionou o item de menu.
+   *
+   * E a resposta tem forma diferente da do caminho automatico: processPluginAuto () DEVOLVE
+   * o AIDCommand para o WriteCommand usar como reply e so trava o teclado; processPluginRequest
+   * trava o teclado E envia, pelo ConsolePane. Uma extracao que "unificasse" os dois caminhos
+   * apagaria essa diferenca sem que nada acusasse - por isso ela esta congelada aqui.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("O caminho de request")
+  class RequestPath
+  // ---------------------------------------------------------------------------------//
+  {
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("processRequest roda sem que ninguem pergunte doesRequest")
+    void processRequestRodaSemGuarda ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginProbe.scriptRequest ("ScriptedPlugin", false);
+      wireHost ();
+
+      stage.processPluginRequest (new ScriptedPlugin ());
+
+      assertEquals (List.of ("ScriptedPlugin.processRequest:0", "cursor.moveTo:0"),
+                    PluginProbe.calls ());
+    }
+
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("uma excecao no processRequest sobe, porque nao ha try/catch")
+    void excecaoNoRequestSobe ()
+    // -------------------------------------------------------------------------------//
+    {
+      wireHost ();
+
+      assertThrows (IllegalStateException.class,
+                    () -> stage.processPluginRequest (new ThrowingRequestPlugin ()));
+    }
+
+    /*
+     * Sem tecla marcada pelo plugin, processReply devolve null: nao ha setAID, nao ha
+     * readModifiedFields, nao se trava o teclado e nada e enviado.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("sem tecla marcada, nao trava o teclado nem envia nada")
+    void semTeclaNaoEnviaNada ()
+    // -------------------------------------------------------------------------------//
+    {
+      wireHost ();
+
+      stage.processPluginRequest (new QuietPlugin ());
+
+      assertEquals (List.of ("QuietPlugin.processRequest:0", "cursor.moveTo:0"),
+                    PluginProbe.calls ());
+    }
+
+    /*
+     * Com tecla marcada, a ordem e: setAID, readModifiedFields, e so entao - e so se a
+     * leitura devolveu comando - lockKeyboard seguido de sendAID. As quatro numa lista so,
+     * que e o que prova a ordem ENTRE a tela e o ConsolePane.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("com tecla marcada: setAID, leitura, trava e envio, nesta ordem")
+    void comTeclaTravaEEnvia ()
+    // -------------------------------------------------------------------------------//
+    {
+      RecordingPluginHost host = wireHost ();
+      host.setReply (enterCommand ());
+
+      stage.processPluginRequest (new EnterKeyPlugin ());
+
+      assertEquals (List.of ("EnterKeyPlugin.processRequest:0", "cursor.moveTo:0",
+                             "host.setAID:125", "host.readModifiedFields",
+                             // "ENTR", e nao "ENTER": e o nome que o proprio AIDCommand da
+                             // a tecla, e ele aparece na barra de status do usuario
+                             "host.lockKeyboard:ENTR", "consolePane.sendAID:ENTR"),
+                    PluginProbe.calls ());
+    }
+
+    /*
+     * E se a leitura devolver null, para nele: sem trava e sem envio, ainda que a tecla
+     * tenha sido marcada.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("com tecla marcada mas leitura vazia, nao trava nem envia")
+    void comTeclaELeituraVaziaParaAntesDaTrava ()
+    // -------------------------------------------------------------------------------//
+    {
+      wireHost ();
+
+      stage.processPluginRequest (new EnterKeyPlugin ());
+
+      assertEquals (List.of ("EnterKeyPlugin.processRequest:0", "cursor.moveTo:0",
+                             "host.setAID:125", "host.readModifiedFields"),
+                    PluginProbe.calls ());
+    }
+
+    /*
+     * O contraste com o caminho automatico: sem plugin ativo nenhum, processPluginAuto ()
+     * devolve null sem construir PluginData e sem tocar na tela.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("processPluginAuto devolve null quando nao ha plugin ativo")
+    void processPluginAutoSemPluginAtivoDevolveNull ()
+    // -------------------------------------------------------------------------------//
+    {
+      wireHost ();
+
+      assertNull (stage.processPluginAuto ());
+      assertEquals (List.of (), PluginProbe.calls ());
+    }
+  }
+
   // ---------------------------------------------------------------------------------//
   //  Apoio
   // ---------------------------------------------------------------------------------//
@@ -574,6 +705,34 @@ class PluginsStageDispatchTest
         .filter (item -> !(item instanceof CheckMenuItem))
         .filter (item -> text.equals (item.getText ())).findFirst ()
         .orElseThrow ( () -> new AssertionError ("nao achei o item de request " + text));
+  }
+
+  /*
+   * Liga a tela e o ConsolePane dublados. O processPluginRequest abre com
+   * assert consolePane != null e o Surefire roda com -ea, entao os dois sao obrigatorios.
+   */
+  // ---------------------------------------------------------------------------------//
+  private RecordingPluginHost wireHost ()
+  // ---------------------------------------------------------------------------------//
+  {
+    stage ();
+    RecordingPluginHost host = new RecordingPluginHost ();
+    stage.setScreen (host);
+    stage.setConsolePane (new RecordingAidSender ());
+    PluginProbe.clearCalls ();
+    return host;
+  }
+
+  /*
+   * Um AIDCommand de ENTER montado dos bytes crus, que e como o protocolo o produz: o AID no
+   * primeiro byte e o endereco do cursor nos dois seguintes.
+   */
+  // ---------------------------------------------------------------------------------//
+  private static AIDCommand enterCommand ()
+  // ---------------------------------------------------------------------------------//
+  {
+    byte[] buffer = { AIDCommand.AID_ENTER, 0x40, 0x40 };
+    return new AIDCommand (buffer, 0, buffer.length);
   }
 
   // ---------------------------------------------------------------------------------//
