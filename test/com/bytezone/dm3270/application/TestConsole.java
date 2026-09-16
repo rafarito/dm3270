@@ -69,7 +69,7 @@ class TestConsole extends Console
   // ---------------------------------------------------------------------------------//
   {
     calls.add ("createPluginsStage");
-    recordedPluginsStage = new RecordingPluginsStage (prefs, pluginsDirectory);
+    recordedPluginsStage = new RecordingPluginsStage (prefs, pluginsDirectory, calls);
 
     return recordedPluginsStage;
   }

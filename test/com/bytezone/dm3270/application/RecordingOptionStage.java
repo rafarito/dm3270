@@ -9,11 +9,11 @@ import javafx.scene.control.MenuItem;
  * O OptionStage real, com o gatilho do lancamento capturado e as transicoes de janela
  * gravadas.
  *
- * O QUE ELE NAO SUBSTITUI, e e essa a escolha central do arreio: getLaunchRequest (),
- * findServerSite () e savePreferences () NAO sao sobrescritos. O pedido que o Console recebe
- * e montado pelos widgets REAIS, a partir das preferencias que o teste semeia - o mesmo
- * caminho que SiteListStage:114-122 percorre na aplicacao. Um duble que fabricasse o
- * LaunchRequest afirmaria o que o duble inventou, e nao o que o usuario ve.
+ * O QUE ELE NAO SUBSTITUI, e e essa a escolha central do arreio: getLaunchRequest () e
+ * findServerSite () NAO sao tocados, e savePreferences () e gravado mas DELEGA ao super. O
+ * pedido que o Console recebe e montado pelos widgets REAIS, a partir das preferencias que o
+ * teste semeia - o mesmo caminho que SiteListStage:114-122 percorre na aplicacao. Um duble
+ * que fabricasse o LaunchRequest afirmaria o que o duble inventou, e nao o que o usuario ve.
  *
  * setOnConnect (Runnable) e sobrescrito porque e por ele que o gatilho fica acessivel: o
  * Console injeta "this::startSelectedFunction" em Console.java:81, e com isso o metodo
@@ -55,6 +55,20 @@ class RecordingOptionStage extends OptionStage
 
     showingProperty ().addListener ( (obs, wasShowing, isShowing) ->
         calls.add (isShowing ? "optionStage.show" : "optionStage.hide"));
+  }
+
+  /*
+   * Gravado e delegado: o Console.stop () chama isto antes de fechar o class loader, e a
+   * ORDEM entre os dois e o que o grupo do desligamento congela.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Override
+  void savePreferences ()
+  // ---------------------------------------------------------------------------------//
+  {
+    calls.add ("optionStage.savePreferences");
+
+    super.savePreferences ();
   }
 
   // ---------------------------------------------------------------------------------//

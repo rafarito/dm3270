@@ -33,7 +33,7 @@ import com.bytezone.dm3270.screen.ScreenDimensions;
 public class RecordingPluginsStage extends PluginsStage
 // -----------------------------------------------------------------------------------//
 {
-  public final List<String> calls = new ArrayList<> ();
+  public final List<String> calls;
 
   // O que o host enxergou quando perguntou as dimensoes de dentro do construtor da Screen.
   public ScreenDimensions dimensionsSeenDuringConstruction;
@@ -42,7 +42,31 @@ public class RecordingPluginsStage extends PluginsStage
   public RecordingPluginsStage (Preferences prefs, Path pluginsDirectory)
   // ---------------------------------------------------------------------------------//
   {
+    this (prefs, pluginsDirectory, new ArrayList<> ());
+  }
+
+  /*
+   * A lista COMPARTILHADA, para quando o teste precisar afirmar a ordem entre este gravador e
+   * outro - e o caso do Console.stop (), que chama optionStage.savePreferences () e so entao
+   * pluginsStage.closeClassLoader (). Uma lista por duble perderia exatamente isso.
+   */
+  // ---------------------------------------------------------------------------------//
+  public RecordingPluginsStage (Preferences prefs, Path pluginsDirectory, List<String> calls)
+  // ---------------------------------------------------------------------------------//
+  {
     super (prefs, pluginsDirectory);
+
+    this.calls = calls;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  @Override
+  public void closeClassLoader ()
+  // ---------------------------------------------------------------------------------//
+  {
+    calls.add ("pluginsStage.closeClassLoader");
+
+    super.closeClassLoader ();
   }
 
   // ---------------------------------------------------------------------------------//
