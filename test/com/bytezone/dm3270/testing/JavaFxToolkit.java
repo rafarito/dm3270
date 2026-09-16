@@ -61,6 +61,22 @@ public final class JavaFxToolkit implements BeforeAllCallback
       }
 
       awaitOrFail (ready, "o toolkit JavaFX nao subiu");
+
+      // SEM ISTO, O PRIMEIRO TESTE QUE MOSTRAR E FECHAR UMA JANELA MATA TODOS OS SEGUINTES.
+      //
+      // O implicitExit do JavaFX e true por default: quando a ultima janela e fechada, o
+      // runtime se desliga sozinho - e o toolkit nao religa na mesma JVM (ver o comentario
+      // de start (), acima). O sintoma nao aponta para a causa: os testes seguintes falham
+      // em "o trecho na thread do JavaFX nao terminou em 30s", num @BeforeEach que nao tem
+      // nada de errado, porque o Platform.runLater deles fica numa fila que ninguem mais
+      // atende.
+      //
+      // E por isso que nenhum teste de Stage desta suite jamais chamou show (): o
+      // OptionStageTest e o PluginsStageDispatchTest tem zero chamadas, e a disciplina foi
+      // registrada como "alcance pelo grafo de cena" sem que a razao aparecesse. A razao e
+      // esta.
+      Platform.setImplicitExit (false);
+
       started = true;
     }
   }
