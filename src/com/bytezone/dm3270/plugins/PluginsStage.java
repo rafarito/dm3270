@@ -1,21 +1,13 @@
 package com.bytezone.dm3270.plugins;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.prefs.Preferences;
 
 import org.slf4j.Logger;
@@ -67,19 +59,10 @@ public class PluginsStage extends PreferencesStage
   private ScreenDimensions screenDimensions;
   private int sequence;
   private AidSender consolePane;
-  // O loader combinado, com todos os JARs. Ele NAO carrega mais os plugins - cada um tem
-  // o seu - mas continua existindo como ultimo recurso para uma classe que nao esteja no
-  // JAR do plugin: e o caso de um JAR de biblioteca solto na pasta, que hoje funciona.
-  private URLClassLoader pluginClassLoader;
-
-  // Um loader POR JAR, na ordem em que o diretorio os lista.
-  private final List<JarClassLoader> jarClassLoaders = new ArrayList<> ();
-
-  // A pasta onde os JARs de plugin moram. Em producao e sempre
-  // Paths.get (PLUGINS_DIR).toAbsolutePath (), que era a expressao repetida nos tres
-  // sitios abaixo; entra pelo construtor so para que o teste possa apontar para um
-  // @TempDir em vez da pasta real do desenvolvedor.
-  private final Path pluginsDirectory;
+  // Os JARs da pasta de plugins: listar, montar um class loader por JAR, descobrir quem
+  // implementa Plugin e carregar cada classe pelo loader do JAR de onde ela veio. Nada disso
+  // precisa de janela, e por isso saiu daqui.
+  private final PluginJars pluginJars;
 
   // ---------------------------------------------------------------------------------//
   public PluginsStage (Preferences prefs)
@@ -93,10 +76,9 @@ public class PluginsStage extends PreferencesStage
   // ---------------------------------------------------------------------------------//
   {
     super (prefs);
-    this.pluginsDirectory = pluginsDirectory;
+    pluginJars = new PluginJars (pluginsDirectory);
     setTitle ("Plugin Manager");
 
-    buildPluginClassLoader ();
     readPrefs ();
     autoRegisterDiscoveredPlugins ();
     savePrefs ();
@@ -561,7 +543,7 @@ public class PluginsStage extends PreferencesStage
           // then fall back to the default application classloader.
           // O loader do JAR que contem a classe, para que o plugin rode o proprio codigo.
           // Sem JAR nenhum na pasta, cai no class loader da aplicacao, como sempre fez.
-          Class<?> c = loadFromOwningJar (candidate);
+          Class<?> c = pluginJars.loadFromOwningJar (candidate);
           if (c == null)
             c = Class.forName (candidate);
 
@@ -626,194 +608,10 @@ public class PluginsStage extends PreferencesStage
   }
 
   // ---------------------------------------------------------------------------------//
-  // Plugin ClassLoader — loads JARs from the plugins/ directory
-  // ---------------------------------------------------------------------------------//
-
-  // ---------------------------------------------------------------------------------//
-  private void buildPluginClassLoader ()
-  // ---------------------------------------------------------------------------------//
-  {
-    Path pluginsPath = pluginsDirectory;
-
-    if (!Files.isDirectory (pluginsPath))
-    {
-      try
-      {
-        Files.createDirectories (pluginsPath);
-        logger.info ("Created plugins directory: {}", pluginsPath);
-      }
-      catch (IOException e)
-      {
-        logger.error ("Could not create plugins directory", e);
-        return;
-      }
-    }
-
-    File[] jarFiles = pluginsPath.toFile ().listFiles (
-        (dir, name) -> name.toLowerCase ().endsWith (".jar"));
-
-    if (jarFiles == null || jarFiles.length == 0)
-    {
-      logger.info ("No plugin JARs found in: {}", pluginsPath);
-      return;
-    }
-
-    try
-    {
-      URL[] urls = new URL[jarFiles.length];
-      for (int i = 0; i < jarFiles.length; i++)
-      {
-        urls[i] = jarFiles[i].toURI ().toURL ();
-        logger.info ("Loaded plugin JAR: {}", jarFiles[i].getName ());
-      }
-
-      pluginClassLoader = new URLClassLoader (urls, getClass ().getClassLoader ());
-
-      for (int i = 0; i < jarFiles.length; i++)
-        jarClassLoaders.add (new JarClassLoader (jarFiles[i], urls[i],
-            getClass ().getClassLoader (), pluginClassLoader));
-    }
-    catch (IOException e)
-    {
-      logger.error ("Error loading plugin JARs", e);
-    }
-  }
-
-  /*
-   * UM CLASS LOADER POR JAR, e a ordem de busca dele e o coracao da correcao:
-   *
-   *   1. o pai, que e o class loader da aplicacao - e de la que vem Plugin, PluginData e tudo
-   *      mais do dm3270, sempre, para todos os plugins;
-   *   2. o PROPRIO JAR;
-   *   3. so entao o loader combinado, com todos os JARs da pasta.
-   *
-   * O passo 2 antes do 3 e o que resolve a colisao: duas copias de uma classe com o mesmo
-   * nome qualificado deixam de disputar, porque cada plugin encontra a sua antes de chegar ao
-   * monte comum. Antes disto havia um loader so, e a primeira definicao encontrada valia para
-   * todos - com o desempate decidido pela ordem de listagem do diretorio.
-   *
-   * E o passo 3 existe para nao quebrar o que ja funcionava: um JAR de plugin que dependa de
-   * um JAR de biblioteca solto na mesma pasta continua achando a biblioteca, e continua
-   * compartilhando UMA copia dela com os demais plugins - porque quem a define e o loader
-   * combinado, nao este.
-   */
-  // ---------------------------------------------------------------------------------//
-  private static final class JarClassLoader extends URLClassLoader
-  // ---------------------------------------------------------------------------------//
-  {
-    private final URLClassLoader siblings;
-
-    JarClassLoader (File jarFile, URL url, ClassLoader parent, URLClassLoader siblings)
-    {
-      super (jarFile.getName (), new URL[] { url }, parent);
-      this.siblings = siblings;
-    }
-
-    @Override
-    protected Class<?> findClass (String name) throws ClassNotFoundException
-    {
-      try
-      {
-        return super.findClass (name);
-      }
-      catch (ClassNotFoundException e)
-      {
-        return siblings.loadClass (name);
-      }
-    }
-  }
-
-  // ---------------------------------------------------------------------------------//
-  // Auto-discovery — scans JARs for classes implementing Plugin
-  // ---------------------------------------------------------------------------------//
-
-  // ---------------------------------------------------------------------------------//
-  private List<String[]> discoverPluginsInJars ()
-  // ---------------------------------------------------------------------------------//
-  {
-    List<String[]> discovered = new ArrayList<> ();
-
-    // A varredura percorre os loaders por JAR, e nao lista o diretorio outra vez: cada classe
-    // e carregada pelo loader do JAR DE ONDE ELA VEIO. Carregar tudo por um loader unico
-    // reintroduziria aqui exatamente a colisao que a correcao existe para tirar.
-    for (JarClassLoader jarClassLoader : jarClassLoaders)
-    {
-      File jarFile = pluginsDirectory.resolve (jarClassLoader.getName ()).toFile ();
-
-      try (JarFile jar = new JarFile (jarFile))
-      {
-        Enumeration<JarEntry> entries = jar.entries ();
-        while (entries.hasMoreElements ())
-        {
-          JarEntry entry = entries.nextElement ();
-          String entryName = entry.getName ();
-
-          if (!entryName.endsWith (".class") || entryName.contains ("$"))
-            continue;
-
-          String className =
-              entryName.replace ('/', '.').substring (0, entryName.length () - 6);
-
-          try
-          {
-            Class<?> c = jarClassLoader.loadClass (className);
-            if (Plugin.class.isAssignableFrom (c)
-                && !c.isInterface ()
-                && !java.lang.reflect.Modifier.isAbstract (c.getModifiers ()))
-            {
-              String simpleName = c.getSimpleName ();
-              discovered.add (new String[] { simpleName, className });
-              logger.info ("Discovered plugin: {}", className);
-            }
-          }
-          catch (ClassNotFoundException | LinkageError e)
-          {
-            // class cannot be loaded, skip it
-          }
-        }
-      }
-      catch (IOException e)
-      {
-        logger.error ("Error scanning JAR: {}", jarFile.getName (), e);
-      }
-    }
-
-    return discovered;
-  }
-
-  /*
-   * O loader do JAR que REALMENTE contem esta classe.
-   *
-   * A pergunta e feita com findResource, que num URLClassLoader procura apenas nas URLs dele
-   * - sem o pai e sem o combinado. E o que distingue "esta classe esta neste JAR" de "esta
-   * classe e alcancavel a partir deste JAR": a segunda e verdadeira para todos, e escolher
-   * por ela poria o plugin de um JAR para rodar sob o loader de outro, desfazendo a correcao.
-   */
-  // ---------------------------------------------------------------------------------//
-  private Class<?> loadFromOwningJar (String className)
-  // ---------------------------------------------------------------------------------//
-  {
-    String resource = className.replace ('.', '/') + ".class";
-
-    for (JarClassLoader jarClassLoader : jarClassLoaders)
-      if (jarClassLoader.findResource (resource) != null)
-        try
-        {
-          return jarClassLoader.loadClass (className);
-        }
-        catch (ClassNotFoundException e)
-        {
-          // o recurso esta la mas a classe nao carrega - tenta o proximo
-        }
-
-    return null;
-  }
-
-  // ---------------------------------------------------------------------------------//
   private void autoRegisterDiscoveredPlugins ()
   // ---------------------------------------------------------------------------------//
   {
-    List<String[]> discovered = discoverPluginsInJars ();
+    List<String[]> discovered = pluginJars.discover ();
     if (discovered.isEmpty ())
       return;
 
@@ -856,38 +654,13 @@ public class PluginsStage extends PreferencesStage
   public void closeClassLoader ()
   // ---------------------------------------------------------------------------------//
   {
-    for (JarClassLoader jarClassLoader : jarClassLoaders)
-      close (jarClassLoader);
-
-    close (pluginClassLoader);
-  }
-
-  /*
-   * Fecha um loader e segue. Acumular em vez de parar no primeiro erro importa porque no
-   * Windows um loader que fique aberto mantem o JAR mapeado, e o proximo lancamento nao
-   * consegue substituir o arquivo.
-   */
-  // ---------------------------------------------------------------------------------//
-  private void close (URLClassLoader classLoader)
-  // ---------------------------------------------------------------------------------//
-  {
-    if (classLoader == null)
-      return;
-
-    try
-    {
-      classLoader.close ();
-    }
-    catch (IOException e)
-    {
-      logger.error ("Error closing class loader", e);
-    }
+    pluginJars.close ();
   }
 
   // ---------------------------------------------------------------------------------//
   public Path getPluginsDirectory ()
   // ---------------------------------------------------------------------------------//
   {
-    return pluginsDirectory;
+    return pluginJars.getDirectory ();
   }
 }

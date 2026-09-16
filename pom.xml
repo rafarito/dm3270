@@ -225,6 +225,14 @@
               honesta. O DefaultPlugin continua de fora: hoje ele e so fachada de
               compatibilidade, e seus metodos sao delegacoes de uma linha.
             -->
+            <!--
+              O carregamento de JARs de plugin, que saiu de dentro da janela no passo 9.
+              Entra pelo criterio de sempre: classe nova, sem JavaFX e com teste proprio - e o
+              PluginJarsTest roda headless, sem o JavaFxToolkit, o que antes era impossivel.
+              Entra ACRESCENTANDO denominador: o PluginsStage nunca esteve na lista, entao
+              estes mutantes nao eram medidos. A porcentagem global pode nao subir.
+            -->
+            <param>com.bytezone.dm3270.plugins.PluginJars</param>
             <param>com.bytezone.dm3270.plugins.PluginDigest</param>
             <param>com.bytezone.dm3270.plugins.PluginData</param>
             <param>com.bytezone.dm3270.plugins.PluginField</param>
