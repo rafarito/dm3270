@@ -1,33 +1,23 @@
 package com.bytezone.dm3270.plugins;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 // -----------------------------------------------------------------------------------//
 public abstract class DefaultPlugin implements Plugin
 // -----------------------------------------------------------------------------------//
 {
-  private static final Logger logger = LoggerFactory.getLogger (DefaultPlugin.class);
-
+  /*
+   * O DIGEST MORA NO PluginDigest desde o passo 9 - um resumo criptografico de um vetor de
+   * bytes nao tem nada a ver com plugin, e este metodo nunca tocou num PluginData.
+   *
+   * Os dois ficam aqui, com assinatura e modificador intactos, porque sao API de terceiro:
+   * um JAR ja compilado que chame getMD5 tem o invokevirtual gravado contra esta classe.
+   */
   // ---------------------------------------------------------------------------------//
   protected String getMD5 (byte[] buffer)
   // ---------------------------------------------------------------------------------//
   {
-    try
-    {
-      byte[] digest = MessageDigest.getInstance ("MD5").digest (buffer);
-      //      return DatatypeConverter.printHexBinary (digest);
-      return toHex (digest);
-    }
-    catch (NoSuchAlgorithmException e)
-    {
-      logger.error ("NoSuchAlgorithmException in getMD5", e);
-    }
-    return "";
+    return PluginDigest.md5 (buffer);
   }
 
   //  protected static ScreenField getCursorField (PluginData data)
@@ -90,14 +80,6 @@ public abstract class DefaultPlugin implements Plugin
   static String toHex (byte[] bytes)
   // ---------------------------------------------------------------------------------//
   {
-    StringBuilder builder = new StringBuilder (bytes.length * 2);
-    for (int i = 0; i < bytes.length; i++)
-    {
-      int digit = (bytes[i] >> 4) & 0xF;
-      builder.append (digit < 10 ? (char) ('0' + digit) : (char) ('A' - 10 + digit));
-      digit = (bytes[i] & 0xF);
-      builder.append (digit < 10 ? (char) ('0' + digit) : (char) ('A' - 10 + digit));
-    }
-    return builder.toString ();
+    return PluginDigest.toHex (bytes);
   }
 }

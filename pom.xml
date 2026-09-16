@@ -216,6 +216,16 @@
             <param>com.bytezone.dm3270.streams.TerminalServer</param>
             <param>com.bytezone.dm3270.streams.TelnetSocket</param>
             <param>com.bytezone.dm3270.streams.SslContextFactory</param>
+            <!--
+              O digest que saiu do DefaultPlugin no passo 9. Entra pelo mesmo criterio do
+              SiteValue no passo 3, do ReportScore no passo 4 e do TerminalModel no passo 8:
+              classe nova, sem JavaFX e com teste proprio. Entra ACRESCENTANDO denominador -
+              o md5 e o toHex nao eram medidos enquanto moravam no DefaultPlugin, que nao
+              esta na lista -, entao a porcentagem global pode nao subir. Essa e a direcao
+              honesta. O DefaultPlugin continua de fora: hoje ele e so fachada de
+              compatibilidade, e seus metodos sao delegacoes de uma linha.
+            -->
+            <param>com.bytezone.dm3270.plugins.PluginDigest</param>
             <param>com.bytezone.dm3270.plugins.PluginData</param>
             <param>com.bytezone.dm3270.plugins.PluginField</param>
             <param>com.bytezone.dm3270.plugins.ScreenLocation</param>
