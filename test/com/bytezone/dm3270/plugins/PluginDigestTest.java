@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
  * Os valores de MD5 sao conhecidos e publicados, nao recalculados no proprio teste - do
  * contrario a assercao seria tautologica e passaria contra qualquer implementacao errada.
  */
+// O caso da delegacao alcanca o DefaultPlugin, que e deprecated de proposito.
+@SuppressWarnings ("deprecation")
 // -----------------------------------------------------------------------------------//
 @DisplayName ("PluginDigest - o MD5 e o hexadecimal da API de plugins")
 class PluginDigestTest

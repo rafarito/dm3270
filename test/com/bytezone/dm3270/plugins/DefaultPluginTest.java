@@ -30,6 +30,9 @@ import org.junit.jupiter.api.Test;
  * com.bytezone.plugins, que e onde os plugins moram. A heranca custa o unico slot de
  * superclasse dos seis plugins para entregar um metodo que tres deles usam.
  */
+// A classe sob teste e deprecated de proposito - ela e a camada de compatibilidade com
+// os JARs ja compilados -, e vigia-la e exatamente o trabalho desta rede.
+@SuppressWarnings ("deprecation")
 // -----------------------------------------------------------------------------------//
 @DisplayName ("DefaultPlugin - os sete utilitarios entregues por heranca")
 class DefaultPluginTest

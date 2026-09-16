@@ -36,6 +36,9 @@ import org.junit.jupiter.api.Test;
  * O passo 9 acrescenta interfaces e move utilitarios; e este o teste que diz se alguma dessas
  * mexidas saiu do que a Regra 3 permite.
  */
+// O DefaultPlugin e deprecated de proposito - e a camada de compatibilidade com os JARs
+// ja compilados -, e afirmar a forma binaria dela e justamente o que esta classe faz.
+@SuppressWarnings ("deprecation")
 // -----------------------------------------------------------------------------------//
 @DisplayName ("A forma binaria da API de plugins")
 class PluginApiShapeTest

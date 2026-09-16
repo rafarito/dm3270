@@ -26,6 +26,10 @@ import org.slf4j.LoggerFactory;
 public final class PluginDigest
 // -----------------------------------------------------------------------------------//
 {
+  // A referencia a classe DEPRECATED e deliberada, e nao um descuido: o logback.xml
+  // imprime %logger{36}, entao trocar por PluginDigest.class mudaria o texto de toda
+  // linha de log que este erro produz - e isso e comportamento observavel.
+  @SuppressWarnings ("deprecation")
   private static final Logger logger = LoggerFactory.getLogger (DefaultPlugin.class);
 
   // ---------------------------------------------------------------------------------//
