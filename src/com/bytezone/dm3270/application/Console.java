@@ -186,7 +186,7 @@ public class Console extends Application
    *
    * A ordem importa e esta preservada: configura primeiro, reclama depois.
    */
-  private void setModel (Site serverSite)
+  void setModel (Site serverSite)
   {
     int model = serverSite.getModel ();
     logger.debug ("model: {}", model);
@@ -202,6 +202,32 @@ public class Console extends Application
 
     if (terminalModel.isEmpty () || model == 5)         // o case 5 sem break, item 1 do backlog
       logger.warn ("Invalid model number: {}", model);
+  }
+
+  /*
+   * Os dois acessores abaixo, e o setModel de pacote logo acima, existem para que o
+   * ConsoleModelTest possa observar o item 1 do BACKLOG-DEFEITOS.md - o modelo 5, que se
+   * configura corretamente e SO ENTAO reclama de si mesmo, e o modelo invalido, que herda a
+   * dimensao do lancamento anterior. O passo 8 mediu que esse defeito estava DESCONGELADO: o
+   * backlog afirmava que a caracterizacao de setModel o cobria, e ela nao existia.
+   *
+   * Sao os tres unicos membros nao-private desta classe alem de init, start, stop e main, e
+   * sao PASSIVO, na contabilidade do relatorio. A diferenca em relacao aos 21 da fase 2 e que
+   * este e autoliquidavel: os tres morrem quando o composition root levar o setModel para
+   * fora do Console e passar a injetar o TelnetState em vez de construi-lo aqui.
+   */
+  // ---------------------------------------------------------------------------------//
+  TelnetState telnetState ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return telnetState;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  ScreenDimensions alternateScreenDimensions ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return alternateScreenDimensions;
   }
 
   private void setConsolePane (Screen screen, Site serverSite)
