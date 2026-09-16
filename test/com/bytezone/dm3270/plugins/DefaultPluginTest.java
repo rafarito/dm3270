@@ -82,6 +82,28 @@ class DefaultPluginTest
     }
 
     /*
+     * A tela de apoio tem dois protegidos e dois nao, e com ela a contagem da 2 tanto no
+     * codigo certo quanto num que contasse os PROTEGIDOS - foi um mutante sobrevivente do PIT
+     * que mostrou isso. Este caso usa uma tela assimetrica, onde as duas contagens diferem.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("a contagem e dos modificaveis, e nao dos protegidos")
+    void aContagemEDosModificaveis ()
+    // -------------------------------------------------------------------------------//
+    {
+      List<PluginField> fields = new ArrayList<> ();
+      fields.add (field (0, 0, true, true, "protegido1"));
+      fields.add (field (1, 20, true, true, "protegido2"));
+      fields.add (field (2, 40, true, true, "protegido3"));
+      fields.add (field (3, 60, false, true, "entrada"));
+      PluginData data = new PluginData (0, new ScreenLocation (0), fields);
+
+      assertEquals (1, DefaultPlugin.countModifiableFields (data));
+      assertEquals (1, data.countModifiableFields ());
+    }
+
+    /*
      * getNumericFields e o complemento de getAlphanumericFields, e nao um filtro proprio: o
      * criterio dos dois e o mesmo campo isAlpha, negado num deles. Vale registrar porque os
      * nomes sugerem duas classificacoes independentes, e nao sao.

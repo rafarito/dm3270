@@ -71,6 +71,36 @@ class PluginJarsTest
     }
 
     /*
+     * So arquivos .jar entram, e este caso precisou de duas tentativas.
+     *
+     * A primeira versao punha um .txt e um .properties na pasta e afirmava que a descoberta
+     * achava um plugin so. Ela passava - e o mutante do PIT que fazia o filtro devolver sempre
+     * true TAMBEM passava: com ele os dois arquivos entram na lista, mas o new JarFile falha
+     * neles com IOException, que a varredura loga e engole. O resultado final era o mesmo, e a
+     * assercao nao distinguia nada.
+     *
+     * O que distingue e um arquivo que E um JAR valido, com um plugin dentro, mas NAO termina
+     * em .jar. O codigo certo o ignora pelo nome; o mutante o abre e descobre o segundo plugin.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("so a extensao .jar entra, mesmo que o arquivo seja um JAR valido")
+    void soAExtensaoJarEntra () throws Exception
+    // -------------------------------------------------------------------------------//
+    {
+      writePlugin ("com.example.um", "Primeiro", "Primeiro.jar");
+      writePlugin ("com.example.dois", "Segundo", "Segundo.zip");
+      Files.writeString (directory.resolve ("LEIAME.txt"), "isto nao e um JAR");
+
+      jars = new PluginJars (directory);
+      List<String[]> discovered = jars.discover ();
+
+      assertEquals (1, discovered.size ());
+      assertEquals ("com.example.um.Primeiro", discovered.get (0)[1]);
+      assertNull (jars.loadFromOwningJar ("com.example.dois.Segundo"));
+    }
+
+    /*
      * A pasta e CRIADA quando nao existe. E o que faz o dm3270 subir numa instalacao nova sem
      * que ninguem precise criar plugins/ a mao.
      */

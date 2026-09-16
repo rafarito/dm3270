@@ -46,6 +46,22 @@ class PluginDigestTest
                   PluginDigest.toHex (new byte[] { 0x00, 0x0F, 0x10, (byte) 0xFF }));
   }
 
+  /*
+   * A FRONTEIRA do "digit < 10", que e onde a conversao decide entre somar a '0' e somar a
+   * 'A'. Nenhum dos outros casos exercitava o digito 10 - nem os dois MD5, que por acaso nao
+   * tem um unico 'A' -, e um mutante do PIT que trocava "<" por "<=" sobrevivia. Com "<=", o
+   * digito 10 sairia como ':', que e o caractere seguinte ao '9'.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Test
+  @DisplayName ("o digito 10 vira A, e nao o caractere seguinte ao 9")
+  void oDigitoDezViraA ()
+  // ---------------------------------------------------------------------------------//
+  {
+    assertEquals ("AA", PluginDigest.toHex (new byte[] { (byte) 0xAA }));
+    assertEquals ("9AA9", PluginDigest.toHex (new byte[] { (byte) 0x9A, (byte) 0xA9 }));
+  }
+
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("toHex cobre os 256 valores, sempre com dois caracteres")
