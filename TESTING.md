@@ -27,9 +27,18 @@ em paralelo sem antes isolar esses casos.
 Este documento acompanha a refatoracao estrutural da branch `refactor/solid-architecture`, e
 ficou defasado entre a Onda 1 e o Passo 5.
 
-**Remedido no Passo 8, e portanto confiavel:** "Situacao atual", "Rede de seguranca", "Testes
-que exigem JavaFX", "Cobertura atual" e "Proximos alvos". Os numeros dessas secoes foram
-medidos de novo com `mvn clean test` e `mvn clean test-compile pitest:mutationCoverage`.
+**Remedido no Passo 9, e portanto confiavel:** "Situacao atual", "Rede de seguranca",
+"Testes que exigem JavaFX", "JARs sinteticos" e "Uma falha intermitente que nao e sua". A
+contagem de testes foi medida com `mvn clean test`.
+
+**COM UMA RESSALVA SOBRE O PIT, e ela importa:** o passo 9 NAO conseguiu rodar a passada de
+mutacao completa - a maquina ficou sem memoria e a matou duas vezes. O que rodou foi escopado
+as classes que o passo tocou, e esses numeros estao na "Situacao atual". **Os numeros GLOBAIS
+de mutacao continuam sendo os do Passo 8** e estao marcados como tal; nao os cite como
+remedidos.
+
+**Remedido no Passo 8:** "Cobertura atual" e "Proximos alvos". Os numeros dessas secoes foram
+medidos com `mvn clean test` e `mvn clean test-compile pitest:mutationCoverage`.
 
 **Remedido no Passo 10, e ainda confiavel na ordem de grandeza:** "Cobertura por pacote —
 `dm3270`", "Mapa de modulos" e "Uma falha intermitente que nao e sua". O unico pacote que mudou
@@ -94,17 +103,44 @@ e o que diz se os testes escritos valem alguma coisa.
 
 ### Situacao atual
 
-Medido ao fim do Passo 8.
-
 | | `dm3270` | `dm3270-plugins` |
 |---|---:|---:|
-| Testes | 1.582 | 248 (63 no `UploadDataset`) |
-| Cobertura de instrucoes (projeto todo) | 54% | — |
-| Cobertura de ramos | 50% | — |
-| Mutantes gerados | 4.024 | — |
-| Mutation coverage | 66% (2.647/4.024) | — |
-| **Test strength** | **86%** | — |
-| Classes no `targetClasses` | 163 | — |
+| Testes | **1.640** (Passo 9) | 248 (63 no `UploadDataset`) |
+| Cobertura de instrucoes (projeto todo) | 54% (Passo 8) | — |
+| Cobertura de ramos | 50% (Passo 8) | — |
+| Mutantes gerados | 4.024 (Passo 8) | — |
+| Mutation coverage | 66% (2.647/4.024) (Passo 8) | — |
+| **Test strength** | **86%** (Passo 8) | — |
+| Classes no `targetClasses` | 165 (Passo 9) | — |
+
+**O Passo 9 acrescentou 58 testes e duas classes ao `targetClasses`**, e a passada de mutacao
+dele foi ESCOPADA, nao global - ver a ressalva na secao de frescor. Medido nas classes que o
+passo tocou:
+
+| Classe | Mutantes | Mortos | |
+|---|---:|---:|---|
+| `plugins.PluginJars` | 25 | 25 | **100%** |
+| `plugins.PluginDigest` | 16 | 15 | 94% |
+| `plugins.PluginData` | 45 | 33 | 73%, de 71% |
+
+O `PluginData` subiu porque os **quatro metodos que ganhou entraram com 100%**; o que sobra
+nele e de `listFields`, `toString`, `getField` e `trimField`, todos anteriores ao passo. O
+unico sobrevivente das duas classes novas e `new StringBuilder (bytes.length * 2)` virando
+divisao - a capacidade inicial do buffer, sem efeito observavel, **mutante equivalente**.
+
+**Tres sobreviventes viraram teste, e nenhum deles sairia de releitura de codigo.** A tela de
+apoio do `countModifiableFields` tinha dois campos protegidos e dois modificaveis, entao
+contar os protegidos dava o mesmo numero; nenhum caso do `toHex` exercitava o digito 10, que e
+onde a conversao decide entre somar a `'0'` e somar a `'A'` - e os dois MD5 usados, por acaso,
+nao tem um unico `A`; e nenhum teste punha arquivo que nao fosse `.jar` na pasta de plugins.
+
+**O terceiro precisou de duas tentativas, e essa e a parte reusavel.** A primeira versao punha
+um `.txt` na pasta e afirmava que a descoberta achava um plugin so. Passava - **e o mutante
+tambem passava**: com o filtro devolvendo sempre `true` o arquivo entra na lista, mas o
+`new JarFile` falha nele com `IOException`, que a varredura loga e engole. O resultado era
+identico. O que distingue e um arquivo que **e** um JAR valido, com um plugin dentro, mas que
+nao termina em `.jar`: o codigo certo o ignora pelo nome, o mutante o abre. E a diferenca entre
+exercitar o caminho e provar a decisao.
 
 **O Passo 8 acrescentou 90 testes e NAO moveu nenhuma das duas coberturas, e isso tambem e
 esperado.** Ele cobriu o `ConsoleKeyPress` (69 casos) e o novo `runtime.TerminalModel` (18), e
@@ -167,7 +203,7 @@ nao sao congeladas.
 
 ## Rede de seguranca da refatoracao estrutural
 
-A refatoracao em curso preserva 100% do comportamento observavel. Quatro mecanismos
+A refatoracao em curso preserva 100% do comportamento observavel. **Cinco** mecanismos
 sustentam essa promessa, e todos rodam no `mvn test`:
 
 | Mecanismo | Onde | O que protege |
@@ -175,7 +211,25 @@ sustentam essa promessa, e todos rodam no `mvn test`:
 | Golden master do parser | `ParserGoldenMasterTest` + `test/golden/mf-parse.txt` | Reprocessa uma sessao TN3270 real e congela tudo que o parser monta: registros, comandos, orders, respostas telnet. Cobre `telnet`, `buffers`, `commands`, `orders`, `extended`, `structuredfields` e `replyfield` de uma vez |
 | Regras de camada | `LayeringTest` + `test/archunit-baseline/` | **Treze** regras de dependencia com ArchUnit. **Doze chegaram a zero e NAO sao congeladas** - uma violacao nova quebra a build sem baseline para absorve-la. So `uiIsTheOnlyPlaceThatKnowsJavaFx` segue congelada, em 240 violacoes, e o baseline versionado e o placar: ele so encolhe |
 | Placar de ciclos | `LayeringTest.MAX_MUTUAL_CYCLES`, hoje **9** | Conta os pares de pacotes com dependencia mutua. Falha se subir **e** se cair sem atualizar o limite, para que todo ganho seja registrado no commit que o produziu |
-| Caracterizacao | `SiteFormTest`, `OptionStageTest`, `ConsoleKeyPressTest`, `ScreenContextPoolingTest`, `ReportScoreTest`, `SessionRecordTest`, `SessionTest`, e outros | Congela o comportamento atual das classes que serao desmontadas, **incluindo os defeitos** — ver [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md) |
+| Caracterizacao | `SiteFormTest`, `OptionStageTest`, `ConsoleKeyPressTest`, `PluginsStageDispatchTest`, `ScreenContextPoolingTest`, `ReportScoreTest`, `SessionRecordTest`, `SessionTest`, e outros | Congela o comportamento atual das classes que serao desmontadas, **incluindo os defeitos** — ver [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md) |
+| Compatibilidade da API de plugins | `PluginApiShapeTest` + `LegacyPluginCompatibilityTest` | **Nasceu no Passo 9.** Afirma a forma BINARIA de `Plugin` e `DefaultPlugin` e carrega um JAR compilado no proprio teste. E o que torna a Regra 3 uma porta de build, e nao um ritual manual |
+
+**A Regra 3 - "JARs de terceiros ja compilados tem de continuar carregando" - deixou de
+depender de disciplina no Passo 9**, e vale entender por que sao DOIS testes e nao um.
+
+Rodar `mvn install` aqui e `mvn test` no `../dm3270-plugins` prova compatibilidade de
+**fonte**: la tudo e recompilado, e uma recompilacao absorve em silencio exatamente as
+mudancas que quebram um JAR ja compilado. Transformar `DefaultPlugin.getModifiableFields` de
+`protected static` em metodo de instancia deixa toda subclasse compilando igual e mata o
+`invokestatic` gravado dentro do `DownloadDataset.jar` com `IncompatibleClassChangeError`; o
+mesmo vale para transformar `DefaultPlugin` em interface, ou um `default` de `Plugin` em
+metodo abstrato.
+
+O `PluginApiShapeTest` cobre essa metade por reflexao - os seis metodos de `Plugin` e os sete
+do `DefaultPlugin`, com **assinatura e modificador** de cada um, porque o modificador e parte
+do contrato binario tanto quanto a assinatura. O `LegacyPluginCompatibilityTest` cobre a
+outra: compila um plugin no meio do teste, empacota num JAR e o carrega pelo caminho de
+verdade - varredura, descoberta, auto-registro, instanciacao e despacho.
 
 **O teclado nao tem golden master, e o `ConsoleKeyPressTest` e o que existe no lugar.** Ele e a
 unica rede sobre o despacho de tecla: 69 casos, um por binding, mais os dez caminhos que **nao**
@@ -207,8 +261,18 @@ reaprovado — o que exige justificativa no commit, nunca um `rm` silencioso.
 primeiras tem teste hoje. A extensao `JavaFxToolkit` liga o toolkit uma vez por JVM; use com
 `@ExtendWith (JavaFxToolkit.class)`.
 
-**Sao QUATRO as classes de teste que usam a extensao desde o Passo 8**, e a quarta nao e por
-instanciar widget nenhum: o `ConsoleKeyPressTest` monta `KeyEvent` a mao, e montar um evento
+**Sao SETE as classes de teste que usam a extensao desde o Passo 9** - eram quatro. As tres
+novas sao do Plugin Manager (`PluginsStageDispatchTest`, `LegacyPluginCompatibilityTest` e
+`PluginClassLoadingTest`), e nao ha como evitar: `PluginsStage` estende `Stage`.
+
+**E uma classe do Passo 9 deliberadamente NAO usa a extensao, o que e a assercao dela.** O
+`PluginJarsTest` exercita o carregamento de JARs de plugin inteiro - pasta criada, descoberta,
+os dois filtros que ela aplica, o loader de cada JAR, a classe ausente e a biblioteca solta -
+**sem subir toolkit nenhum**. Enquanto aquilo morava dentro de uma `javafx.stage.Stage`, so
+era testavel com o toolkit de pe; e a mesma natureza de assercao do `SiteValueTest` e do
+`ReportScoreTest`, e esta dita no cabecalho da classe.
+
+**A quarta da lista antiga nao e por instanciar widget nenhum:** o `ConsoleKeyPressTest` monta `KeyEvent` a mao, e montar um evento
 realmente nao exige toolkit. O que exige e **le-lo**. `KeyEvent.isShortcutDown ()` chama
 `com.sun.javafx.tk.Toolkit.getToolkit ()` para saber qual e o modificador de atalho da
 plataforma - conferido com `javap` no `javafx-graphics-21.0.7` -, e ela e a **primeira** guarda
@@ -257,11 +321,48 @@ xvfb-run --auto-servernum mvn test
 Sem isso, `Platform.startup` falha e a extensao diz exatamente esse motivo na mensagem de
 erro.
 
+### JARs sinteticos: compilar um plugin dentro do teste
+
+`test/com/bytezone/dm3270/testing/SyntheticPluginJar.java`, do Passo 9, escreve fontes Java,
+compila com `ToolProvider.getSystemJavaCompiler ()` e empacota num JAR dentro de um `@TempDir`.
+E o que permite carregar um plugin pelo caminho de verdade sem depender de nenhum arquivo
+commitado no repositorio.
+
+```java
+new SyntheticPluginJar ()
+    .add ("com.example.legacy.LegacyPlugin", "package com.example.legacy; ...")
+    .writeTo (pluginsDirectory, "LegacyPlugin.jar");
+```
+
+`writeTo` tem uma sobrecarga que empacota **so as classes nomeadas**, embora todas sejam
+compiladas juntas. Serve para montar um JAR de plugin que depende de uma classe que mora
+noutro JAR da mesma pasta - o javac precisa das duas juntas, e o empacotamento precisa delas
+separadas.
+
+**TRES ARMADILHAS, e as tres custam tempo:**
+
+- **o classpath de compilacao NAO pode vir de `System.getProperty ("java.class.path")`.** O
+  Surefire roda com `useManifestOnlyJar` ligado por padrao, e aquela propriedade contem apenas
+  o *booter jar*: o `javac` nao enxerga nem `Plugin` nem `DefaultPlugin`, e a mensagem de erro
+  e um `cannot find symbol` sem explicacao. O classpath e montado a partir do
+  `getProtectionDomain ().getCodeSource ().getLocation ()` de quatro classes ancora -
+  `target/classes`, `target/test-classes`, o slf4j (porque `DefaultPlugin` guarda um `Logger`)
+  e o `javafx.base` (porque `PluginField` importa `javafx.beans.property`, e a API de plugins
+  ja nasceu com JavaFX dentro);
+
+- **`getSystemJavaCompiler ()` devolve `null` sobre um JRE**, e o harness **falha alto** em vez
+  de virar um `assumeTrue`. Pular a rede que prova a Regra 3 porque a maquina esta mal
+  configurada e exatamente o que a Regra 5 proibe;
+
+- **todo teste que abre um JAR tem de fechar os class loaders no `@AfterEach`.** Ver a secao
+  seguinte.
+
 ### Uma falha intermitente que nao e sua
 
 **Qualquer classe de teste que use `@TempDir` pode falhar sem que nada esteja errado no
-codigo.** Sao seis: `DatabaseTest`, `TransferManagerTest`, `TransferTest`, `SessionReaderTest`,
-`SessionTest` e `ReportTesterTest`. A mensagem:
+codigo.** Sao dez desde o Passo 9: `DatabaseTest`, `TransferManagerTest`, `TransferTest`,
+`SessionReaderTest`, `SessionTest`, `ReportTesterTest`, `PluginsStageDispatchTest`,
+`LegacyPluginCompatibilityTest`, `PluginClassLoadingTest` e `PluginJarsTest`. A mensagem:
 
 ```
 org.junit.platform.commons.JUnitException: Failed to close extension context
@@ -288,6 +389,30 @@ e o `@TempDir`.
 
 **Antes de investigar uma mudanca sua, rode de novo.** Se reproduzir com consistencia, ou sempre
 na mesma classe, ai sim ha o que investigar.
+
+**E ha uma causa DETERMINISTICA da mesma mensagem, que nao e intermitente e nao adianta rodar
+de novo:** um `URLClassLoader` aberto sobre um JAR dentro do `@TempDir`. No Windows o arquivo
+fica mapeado enquanto o loader existir, e a exclusao falha sempre. As quatro classes de teste
+do Passo 9 que constroem JARs fecham os loaders no `@AfterEach` - `stage.closeClassLoader ()`
+ou `jars.close ()` - e e por isso que elas nao aparecem nessa falha. **Quem escrever a
+proxima tem de fazer o mesmo**; se a mensagem aparecer sempre, e este o motivo, nao o do
+paragrafo anterior.
+
+### PIT interrompido deixa forks orfaos
+
+Descoberto no Passo 9, e vale para qualquer execucao cancelada: **`pitest:mutationCoverage`
+nao limpa os proprios forks quando e morto no meio.** Seis deles ficaram segurando 1,4 GB numa
+maquina de 7 GB, e as execucoes seguintes morriam por falta de memoria - o sintoma parece
+lentidao da suite ou do Maven, e nao tem nada a ver com codigo.
+
+```powershell
+Get-CimInstance Win32_Process -Filter "Name='java.exe'" |
+  Where-Object { $_.CommandLine -match 'pitest' }
+```
+
+Se a lista nao estiver vazia e nao houver PIT rodando, mate os processos antes de culpar a
+proxima execucao. E, numa maquina apertada, `-Dthreads=1` e um escopo menor de
+`-DtargetClasses` resolvem o problema na origem.
 
 E o mesmo conselho do erro de fork do Surefire (`Error occurred in starting fork` sem nenhuma
 falha de teste): rodar de novo antes de concluir qualquer coisa.
@@ -495,7 +620,7 @@ classes que sao genuinamente visuais, como `Site`, cujos campos sao widgets.
 
 ## Cobertura atual
 
-### `dm3270` — 54 classes de teste, 1.582 testes
+### `dm3270` — 61 classes de teste, 1.640 testes
 
 **Remedida no Passo 8**, contando elementos `<testcase>` nos relatorios do Surefire, que e a
 unica contagem que fecha (ver "Ler o resultado da suite", no `RELATORIO-REFATORACAO.md` §5.18):
@@ -713,6 +838,13 @@ que cairam e o argumento de que o metodo funciona:
    lista - o caminho inteiro (`Console`, `OptionStage`, `ConsoleKeyPress`) tinha **zero**
    testes, o que e a maior lacuna que esta secao deixou de registrar. Hoje o `OptionStage`
    tem 38.
+7. ~~**O `PluginsStage` e a API de plugins.**~~ Feito no Passo 9, e tambem nao estava nesta
+   lista: a classe tinha **750 linhas e zero testes**, e estava fora do `targetClasses` do
+   PIT. Hoje tem 32, e a rede achou **quatro defeitos** - os itens 18 a 21 do
+   [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md) -, dois deles impossiveis de ver lendo o
+   codigo. O carregamento de JARs saiu da janela para o `PluginJars`, que roda headless e
+   entrou no PIT com **100% de mutacao**.
+
 6. ~~**`ConsoleKeyPress` e o `setModel`.**~~ Feito no Passo 8, e rendeu mais do que testes: a
    medicao achou **dois defeitos novos** que nenhum documento registrava, e que so apareceram
    porque a rede foi escrita antes do refactor. Sao os itens 16 e 17 do
