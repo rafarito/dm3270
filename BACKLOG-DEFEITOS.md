@@ -653,6 +653,156 @@ e PA3 — não têm validação manual.
 
 ---
 
+## 18. Um `requestMenuItem` nulo entra no menu, e todo rebuild seguinte estoura
+
+**Arquivo:** [plugins/PluginsStage.java](src/com/bytezone/dm3270/plugins/PluginsStage.java)
+
+`doesRequest ()` é perguntado em **dois** sítios durante a montagem do menu, e eles não
+compartilham o resultado:
+
+```java
+// PluginEntry.select (), :474 - so cria o item se ainda nao existir
+if (requestMenuItem == null && plugin.doesRequest ())
+  requestMenuItem = new MenuItem (name.getText ());
+...
+// setMenu (), :265 - decide se o item entra no menu, e NAO confere se ele existe
+if (pluginEntry.isAutoActivate () && pluginEntry.plugin != null
+    && pluginEntry.plugin.doesRequest ())
+  menu.getItems ().add (pluginEntry.requestMenuItem);
+```
+
+Se o plugin responder `false` na primeira pergunta e `true` na segunda, o item nunca é criado
+e o `:265` acrescenta **`null`** à lista de itens do menu. A `Menu` do JavaFX estoura
+`NullPointerException` dentro do próprio *listener* de mudança da lista — `Cannot invoke
+MenuItem.getParentMenu()` —, e isso acontece **na thread da aplicação, sem propagar** para
+quem chamou: a janela continua de pé, com um `null` guardado na lista.
+
+**E o defeito tem um segundo sintoma, pior que o primeiro.** O `null` fica lá, e o
+`rebuildMenu ()` — que roda a cada clique num item de plugin — tenta removê-lo:
+
+```java
+while (items.size () > baseMenuSize)
+  items.remove (menu.getItems ().size () - 1);        // :286
+```
+
+`Cannot invoke MenuItem.setParentMenu(...)`. **Toda troca de plugin passa a estourar**, para
+sempre, até a aplicação ser reiniciada.
+
+**Hoje é latente, e a razão é estreita.** Entre as duas perguntas só roda o laço sobre os
+outros plugins, e nenhum dos seis mexe no `doesRequest` alheio — então as duas respostas são
+sempre iguais. Mas `doesRequest` **muda durante a execução** em cinco dos seis (10 transições
+vivas), e o guarda que faltava — conferir `requestMenuItem != null` no `:265`, como o
+`rebuildMenu ()` já faz no `:290` — não existe.
+
+**Correção sugerida:** acrescentar `pluginEntry.requestMenuItem != null` à condição do `:265`.
+Uma linha.
+
+**Por que não foi corrigido:** Regra 1. O `PluginsStageDispatchTest` congela a trava em volta
+disso; o caso que disparava o `NullPointerException` foi deliberadamente reescrito para não
+disparar, porque um teste que suja a saída da suíte a cada execução é pior do que um item de
+backlog com o repro escrito. O repro é: registrar um plugin ativo cujo `doesRequest ()`
+devolva `false` na primeira chamada e `true` na segunda, e chamar `getMenu ()`.
+
+---
+
+## 19. `processAll` captura `Exception`, não `Throwable` — um `Error` cancela os plugins seguintes
+
+**Arquivo:** [plugins/PluginsStage.java](src/com/bytezone/dm3270/plugins/PluginsStage.java)
+
+```java
+for (PluginEntry pluginEntry : plugins)
+  if (pluginEntry.isActivated)
+  {
+    Plugin plugin = pluginEntry.plugin;
+    if (plugin != null && plugin.doesAuto ())
+      try { plugin.processAuto (data); }
+      catch (Exception e) { logger.error ("Error processing auto", e); }
+  }
+```
+
+O `try/catch` existe justamente para que um plugin quebrado não derrube os outros — e cumpre
+isso para `Exception`. Mas um `Error` — `StackOverflowError` numa recursão do plugin,
+`NoClassDefFoundError` numa classe que falta no JAR dele, `AssertionError` de um `assert` do
+próprio plugin — **escapa do laço**, cancela os plugins que ainda não rodaram e sobe até
+[commands/WriteCommand.java:127](src/com/bytezone/dm3270/commands/WriteCommand.java#L127),
+que é quem chama `processPluginAuto ()` logo depois de destravar o teclado.
+
+`NoClassDefFoundError` é o caso realista: é exatamente o que um JAR de plugin incompleto
+produz, e o subsistema de plugins carrega classes de JARs de terceiros por reflexão.
+
+**O efeito visível** é que os plugins registrados *depois* do que quebrou param de funcionar
+sem nenhuma mensagem que os nomeie — a diferença entre "o plugin X falhou" e "os plugins
+pararam".
+
+**Correção sugerida:** capturar `Throwable`, ou pelo menos `Exception | LinkageError`, e
+nomear o plugin na mensagem — hoje o log diz `"Error processing auto"` sem dizer qual.
+
+**Por que não foi corrigido:** Regra 1. O caso `umErrorEscapaEAbortaOsSeguintes` do
+`PluginsStageDispatchTest` congela o comportamento atual, e é o teste que precisa ser
+invertido no dia em que alguém corrigir isto.
+
+---
+
+## 20. `processPluginRequest` não tem guarda de `doesRequest ()` nem `try/catch`
+
+**Arquivo:** [plugins/PluginsStage.java](src/com/bytezone/dm3270/plugins/PluginsStage.java)
+
+O caminho automático e o de *request* são assimétricos nos dois sentidos, e nenhum documento
+registrava isso:
+
+| | `processAll` (auto) | `processPluginRequest` |
+|---|---|---|
+| confere se o plugin quer ser chamado | `doesAuto ()`, a cada tela | **não confere nada** |
+| isola a falha | `try/catch (Exception)` + log | **nenhum** |
+
+Quem aciona é o item de menu, e a decisão de esse item existir foi tomada lá atrás, na trava
+do item 18 — possivelmente **muitas telas antes**. Entre uma coisa e outra o plugin pode ter
+zerado o próprio `doesRequest`, que é o que o `FanLogoff` faz na linha 115 e o
+`DownloadDataset` faz no `abort ()`. O plugin é chamado assim mesmo.
+
+E como não há `try/catch`, uma exceção sobe pelo `setOnAction` do item de menu até o
+tratador de exceções não capturadas da thread do JavaFX — depois de o `processReply` já ter
+possivelmente escrito campos na tela.
+
+**Correção sugerida:** as duas metades são independentes. A guarda é uma linha; o `try/catch`
+deveria ser o mesmo do `processAll`, para que os dois caminhos falhem do mesmo jeito.
+
+**Por que não foi corrigido:** Regra 1. Os casos `processRequestRodaSemGuarda` e
+`excecaoNoRequestSobe` do `PluginsStageDispatchTest` congelam os dois.
+
+---
+
+## 21. `getMenu ()` re-instancia todo plugin, e chama `activate ()` outra vez
+
+**Arquivo:** [plugins/PluginsStage.java](src/com/bytezone/dm3270/plugins/PluginsStage.java)
+
+`getMenu ()` chama `setMenu ()`, que chama `pluginEntry.instantiate ()` — e `instantiate ()`
+começa com `plugin = null` e constrói um objeto novo por reflexão. Numa segunda chamada de
+`getMenu ()`:
+
+- o plugin antigo é **descartado com todo o seu estado**, sem que `deactivate ()` seja
+  chamado nele;
+- `activate ()` roda no objeto novo, que começa do zero;
+- o `requestMenuItem`, que é campo do `PluginEntry` e não do plugin, **sobrevive** — e por
+  isso a pergunta `doesRequest ()` do `:474` não se repete, saindo pelo curto-circuito da
+  trava.
+
+Para o `FanLogon` isso significaria perder `fanDeZhi`, `offset`, usuário e senha no meio de um
+logon; para o `UploadDataset`, perder o `UploadContext` e o estado da máquina no meio de um
+envio.
+
+**Hoje é latente porque `getMenu ()` é chamado uma vez só**, em
+[application/ConsolePane.java:107](src/com/bytezone/dm3270/application/ConsolePane.java#L107),
+na montagem da barra de menus. Nada o chama de novo.
+
+**Correção sugerida:** `instantiate ()` devolver o plugin existente quando já houver um, ou
+`setMenu ()` não re-instanciar o que já está montado.
+
+**Por que não foi corrigido:** Regra 1, e o fato de ser inalcançável hoje. O caso
+`getMenuDeNovoReinstanciaEAtivaOutraVez` do `PluginsStageDispatchTest` congela a sequência.
+
+---
+
 ## Onde estão os defeitos que a refatoração *vai* resolver
 
 Estes não estão nesta lista porque não são mudança de comportamento:
