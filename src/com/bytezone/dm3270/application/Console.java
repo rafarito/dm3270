@@ -205,8 +205,32 @@ public class Console extends Application
         break;
     }
 
-    if (!errorMessage.isEmpty () && Dm3270Utility.showAlert (errorMessage))
+    if (!errorMessage.isEmpty () && showAlert (errorMessage))
       optionStage.show ();
+  }
+
+  /*
+   * O alerta de erro do lancamento, atras de um metodo de pacote pelo mesmo motivo das duas
+   * fabricas - mas o motivo aqui e de outra natureza, e por isso e outro commit.
+   *
+   * Dm3270Utility.showAlert e ESTATICO e chama alert.showAndWait () (Dm3270Utility:286).
+   * Numa suite isso nao falha: TRAVA, esperando um clique que nunca vem. E os tres ramos de
+   * erro do startSelectedFunction - "No server selected", "No client selected" e
+   * "<caminho> does not exist" - sao justamente a parte do switch que nao constroi nada, ou
+   * seja, a mais barata e a mais valiosa de congelar. Ate aqui eles so tinham o roteiro de
+   * validacao manual do passo 7.
+   *
+   * O curto-circuito esta preservado: isEmpty () continua sendo avaliado primeiro, e o
+   * alerta so aparece quando ha mensagem.
+   *
+   * Sai quando o composition root assumir a fiacao: vira uma porta de notificacao, no
+   * padrao das outras portas desta refatoracao.
+   */
+  // ---------------------------------------------------------------------------------//
+  boolean showAlert (String message)
+  // ---------------------------------------------------------------------------------//
+  {
+    return Dm3270Utility.showAlert (message);
   }
 
   /*
