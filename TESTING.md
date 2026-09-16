@@ -430,8 +430,8 @@ for escrever teste. Um traco em "Mutacao" significa que o pacote **nao esta** no
 | `dm3270.console` | 0% | 0% | — | UI, mas com parser de mensagem dentro (`ConsoleMessage`) |
 | `reporter.application` | 4% | 3% | — | UI do visualizador |
 | `dm3270.application` | 6% | 5% | — | UI: janelas, teclado, ciclo de vida |
-| `dm3270.display` | 12% | 14% | 50% | so `FxPalette` esta no PIT; `Screen` (1.094 linhas) e as janelas nao tem teste |
-| `dm3270.plugins` | 20% | 23% | 60% | so `PluginData`, `PluginField` e `ScreenLocation` no PIT; `PluginsStage` (750) fora |
+| `dm3270.display` | 12% | 14% | 50% | so `FxPalette` esta no PIT; `Screen` (**1.109** linhas) e as janelas nao tem teste |
+| `dm3270.plugins` | 20% | 23% | 60% | **instantaneo do Passo 10.** Desde o Passo 9 entraram `PluginDigest` e `PluginJars` no PIT, e o `PluginsStage` - hoje **665** linhas - continua fora, por ser widget |
 | `reporter.reports` | 34% | 40% | **34%** | a pior mutacao do projeto |
 | `dm3270.streams` | 53% | 46% | **38%** | `TelnetListener` e `MainframeServer` rodam headless desde o Passo 5, mas so 4 classes estao no PIT |
 | `dm3270.utilities` | 54% | 70% | 87% | listado classe a classe no PIT: `Dm3270Utility`, `FileSaver`, `SiteValue` |
@@ -454,7 +454,9 @@ for escrever teste. Um traco em "Mutacao" significa que o pacote **nao esta** no
 | `dm3270.replyfield` | 96% | 85% | 81% | |
 | `dm3270.runtime` | — | — | — | dois enums, 55 linhas |
 
-**Total do projeto: 51% de instrucoes, 48% de ramos.** O numero reflete a camada JavaFX sem
+**Total do projeto: 54% de instrucoes, 50% de ramos** (Passo 8; a tabela acima e um
+instantaneo do Passo 10 e os percentuais por pacote nao foram regenerados desde entao). O
+numero reflete a camada JavaFX sem
 teste, e nao a qualidade da suite: os quatro pacotes de UI no topo da tabela somam mais de 20
 mil instrucoes e quase nenhum teste. Nos pacotes de protocolo a cobertura passa de 80%.
 
@@ -507,7 +509,7 @@ Para transformar em trava depois que os numeros estabilizarem, use `jacoco:check
 
 ## Mapa de modulos
 
-### `dm3270` — 285 arquivos, 27 pacotes, 33.748 linhas
+### `dm3270` — 294 arquivos, 27 pacotes, 34.504 linhas
 
 **Remedido no Passo 10.** A coluna que importa para esta refatoracao e a ultima: **headless**
 quer dizer que o pacote nao nomeia JavaFX e roda sem toolkit grafico, com garantia imposta por
@@ -548,7 +550,7 @@ marcados com †.
 `reporter.application` — sao os unicos que a regra congelada `uiIsTheOnlyPlaceThatKnowsJavaFx`
 autoriza a conhecer JavaFX.** Todo o resto e vigiado por regra que quebra a build.
 
-### `dm3270-plugins` — 12 arquivos, 5 plugins
+### `dm3270-plugins` — 15 arquivos, **6** plugins
 
 | Modulo | Responsabilidade | Criticidade | Tem teste |
 |---|---|:---:|:---:|
@@ -601,7 +603,7 @@ chamavam faziam todos a mesma coisa.
 
 O que ainda falta, e por que:
 
-- **`Screen`** continua com 1.094 linhas e oito responsabilidades. E o que mantem
+- **`Screen`** continua com **1.109** linhas e oito responsabilidades. E o que mantem
   `dm3270.display` em 12%: o modelo tem teste, a classe que o hospeda nao. **Decompo-la deixou
   de ser prioridade na Onda 3**, que mediu e descobriu que os ciclos vinham dos `import` dela,
   nao do tamanho - seis cairam sem quebrar uma classe sequer.
@@ -622,11 +624,17 @@ classes que sao genuinamente visuais, como `Site`, cujos campos sao widgets.
 
 ### `dm3270` — 61 classes de teste, 1.640 testes
 
+**A TABELA ABAIXO E UM INSTANTANEO DO PASSO 8 e lista 54 classes, nao 61.** Faltam as sete que
+o Passo 9 acrescentou, todas em `test/com/bytezone/dm3270/plugins/`: `PluginsStageDispatchTest`
+(20 casos), `PluginJarsTest` (8), `LegacyPluginCompatibilityTest` (3), `PluginClassLoadingTest`
+(2), `PluginApiShapeTest` (9), `DefaultPluginTest` (10) e `PluginDigestTest` (4). O total de
+1.640 esta certo; a tabela e que nao foi regenerada.
+
 **Remedida no Passo 8**, contando elementos `<testcase>` nos relatorios do Surefire, que e a
 unica contagem que fecha (ver "Ler o resultado da suite", no `RELATORIO-REFATORACAO.md` §5.18):
 
 ```bash
-grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.582
+grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.640
 ```
 
 | Classe de teste | Testes |
@@ -704,12 +712,30 @@ mutuos. E o outro lado da rede: ele nao verifica comportamento, verifica arquite
 | Montagem do documento (ShowDataset) | `DocumentTest` | 10 |
 | Logon automatico | `FanLogonTest` | 21 |
 | Logoff automatico | `FanLogoffTest` | 29 |
-| **Total** | | **164** |
+| Upload de dataset | `UploadDatasetTest`, `UploadContextTest`, `NoFixedDelayTest` | 63 |
+| **Total** | | **227 anotacoes, 248 casos no Surefire** |
+
+**O `UploadDataset` faltava nesta tabela**, e ele e justamente o modulo com a melhor cobertura
+do repositorio - e o unico alvo de refatoracao que sobrou la. Acrescentado no Passo 9.
 
 `DocumentPageTest`, `DocumentTest` e `ScreenBuilder` aparecem duas vezes porque
-`Document.java` e `DocumentPage.java` sao **identicos byte a byte** em `DownloadDataset`
-e `ShowDataset`. A duplicacao dos testes espelha a duplicacao do codigo; ao extrair as
-duas classes para um modulo comum, as copias devem ser apagadas junto.
+`Document.java` e `DocumentPage.java` existem em duas copias, em `DownloadDataset` e
+`ShowDataset`. A duplicacao dos testes espelha a duplicacao do codigo.
+
+**ESTE PARAGRAFO DIZIA DUAS COISAS ERRADAS, e as duas foram corrigidas no Passo 9.**
+
+Ele dizia que as copias sao "identicas byte a byte". **Nao sao**, e a do `Document` diverge
+SEMANTICAMENTE: o `stitch ()` do `DownloadDataset` remonta o arquivo fielmente e reinicia o
+contador de linha entre faixas horizontais; o do `ShowDataset` prefixa o numero da linha no
+texto e usa `leftColumn + 6` onde o outro usa `leftColumn - 1`. Os dois `DocumentPage`
+divergem em robustez: um casa os marcadores ISPF em qualquer caixa, o outro nao (item 2 do
+`BACKLOG-DEFEITOS.md`).
+
+E ele mandava apagar as copias "ao extrair as duas classes para um modulo comum".
+**NAO EXTRAIA MODULO COMUM.** E decisao explicita do usuario, registrada como Regra 4 no
+`CLAUDE.md` deste repositorio e como Regra A no do `dm3270-plugins`: cada plugin e
+independente e implementa a mesma ideia de formas diferentes. O diagnostico original leu a
+divergencia como copia defasada e estava errado.
 
 Dois testes merecem nota:
 
@@ -808,11 +834,22 @@ testes seguem lá, agora descrevendo a regra em vez de alertar sobre ela:
   2355 define o TN3270E sobre transmissao binaria com marcacao de fim de registro: um
   host que negociou TN3270E ja concordou com as duas. Desligar EOR com o TN3270E ligado
   nao deve ter efeito — e o `OR` e o que garante isso.
-- **`Document` e `DocumentPage` duplicados nos dois plugins.** Os arquivos continuam
-  identicos byte a byte em `DownloadDataset` e `ShowDataset`, e as correcoes foram
-  aplicadas nos dois. Extrair um modulo comum mudaria o empacotamento: cada plugin e um
-  jar solto que o dm3270 carrega, e um jar compartilhado a mais teria de ser distribuido
-  junto. E o refactor certo, mas e uma decisao de distribuicao, nao de teste.
+- **`Document` e `DocumentPage` duplicados nos dois plugins — e a duplicacao e PROPOSITAL.**
+  Esta entrada dizia que os arquivos sao "identicos byte a byte" e que extrair um modulo
+  comum "e o refactor certo". **As duas afirmacoes estao erradas**, e foram corrigidas no
+  Passo 9.
+
+  As copias **divergem**, e a do `Document` diverge semanticamente - uma remonta o arquivo
+  fielmente, a outra prefixa numeros de linha e desloca as colunas. E **nao se extrai modulo
+  comum**: e decisao explicita do usuario (Regra 4 no `CLAUDE.md`, Regra A no do repositorio
+  de plugins), porque cada plugin e independente e implementa a mesma ideia de formas
+  diferentes.
+
+  **O que o Passo 9 fez foi o oposto de unificar: deu a cada JAR o proprio class loader.**
+  Ate entao os dois JARs dividiam um loader unico e as duas copias colidiam - a primeira
+  encontrada valia para os dois plugins, com o desempate decidido pela ordem de listagem do
+  diretorio. Hoje cada plugin roda deterministicamente a propria copia, que e o que o fonte
+  de cada um sempre disse.
 
 ---
 
@@ -893,7 +930,7 @@ O que continua aberto, em ordem de retorno medido:
    **A receita que funcionou, para quem for fazer o mesmo com outra classe presa a widget:**
    estreitar os colaboradores PRIMEIRO, escrever a rede DEPOIS, decompor por ultimo. As duas
    portas do Passo 8 cobriram os onze metodos que o `ConsoleKeyPress` usava, e so entao a rede
-   ficou barata - antes delas ela exigiria uma `Screen` de 1.094 linhas e um `ConsolePane` de
+   ficou barata - antes delas ela exigiria uma `Screen` de 1.109 linhas e um `ConsolePane` de
    442, nenhum dos dois instanciavel num teste.
 
    O `Console` em si continua intestavel enquanto for uma `Application` que constroi o grafo
