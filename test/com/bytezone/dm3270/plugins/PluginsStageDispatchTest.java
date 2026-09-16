@@ -19,8 +19,12 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.bytezone.dm3270.testing.JavaFxToolkit;
 
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 
 /*
  * A primeira rede do PluginsStage - 750 linhas que ate aqui nao tinham teste nenhum, e que
@@ -221,6 +225,175 @@ class PluginsStageDispatchTest
     }
   }
 
+  /*
+   * A TRAVA DO doesRequest, que e a outra metade da razao pela qual o plano escrito do passo
+   * 9 nao pode ser implementado como esta.
+   *
+   * doesRequest () NAO e perguntado a cada passo, ao contrario do doesAuto (). Sao dois
+   * sitios, com vidas diferentes:
+   *
+   *   PluginEntry.select () :474 - guardado por requestMenuItem == null. Quem responde false
+   *   na PRIMEIRA ativacao nunca ganha item de menu, por mais que responda true depois;
+   *
+   *   setMenu () :250 - decide se o item ja criado entra na secao de request do menu.
+   *
+   * E rebuildMenu (), que e o que roda a cada clique no menu, NAO PERGUNTA doesRequest () -
+   * ele gateia em isActivated && requestMenuItem != null. Ou seja: depois da montagem, a
+   * presenca do item depende do campo travado e nao mais da resposta do plugin.
+   *
+   * Isso importa porque doesRequest tambem muda durante a execucao - 10 transicoes vivas em
+   * cinco dos seis plugins, e nenhum documento do projeto registra isso. O FanLogoff real
+   * zera o proprio doesRequest no meio do fluxo (linha 115) e mesmo assim mantem o item.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("A trava do doesRequest")
+  class RequestLatch
+  // ---------------------------------------------------------------------------------//
+  {
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("quem responde true na primeira ativacao ganha item de request")
+    void requestTrueGanhaItem ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginProbe.scriptRequest ("ScriptedPlugin", true);
+      register (0, "Scripted", ScriptedPlugin.class, true);
+      Menu menu = buildMenu ();
+
+      assertTrue (hasItemNamed (menu, "Scripted", 2));
+    }
+
+    /*
+     * A TRAVA NAO E "na primeira ativacao", e esta medicao desmentiu tanto o plano escrito
+     * quanto a expectativa que eu tinha escrito neste mesmo arquivo.
+     *
+     * O guarda e requestMenuItem == null, e ele e reavaliado em TODA chamada de select () -
+     * nao so na primeira. Um plugin que responde false enquanto o item nao existe continua
+     * sendo perguntado, e ganha o item na hora em que responder true, seja em que ativacao
+     * for. Depois disso, nunca mais e perguntado por select ().
+     *
+     * E o item pode nascer numa DESATIVACAO: select (false) chama deactivate () e logo em
+     * seguida cai no mesmo guarda. E o que este caso mostra - o item so aparece no menu na
+     * religada, porque rebuildMenu () exige isActivated.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("o item de request pode nascer numa ativacao posterior, e ate numa desativacao")
+    void itemDeRequestPodeNascerNumaAtivacaoPosterior ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginProbe.scriptRequest ("ScriptedPlugin", false, false, true);
+      register (0, "Scripted", ScriptedPlugin.class, true);
+      Menu menu = buildMenu ();
+
+      assertEquals (1, countItemsNamed (menu, "Scripted"));
+
+      toggle (menu, "Scripted", false);
+      toggle (menu, "Scripted", true);
+
+      assertEquals (2, countItemsNamed (menu, "Scripted"));
+    }
+
+    /*
+     * A trava pelo outro lado: criado o item, ele volta ao menu num rebuild mesmo com
+     * doesRequest () ja respondendo false - porque rebuildMenu () nao pergunta. O log prova
+     * que nao pergunta: depois da montagem nao ha mais nenhum doesRequest.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("criado o item, ele sobrevive a doesRequest virar false - rebuildMenu nao pergunta")
+    void itemCriadoSobreviveADoesRequestVirarFalse ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginProbe.scriptRequest ("ScriptedPlugin", true, false);
+      register (0, "Scripted", ScriptedPlugin.class, true);
+      Menu menu = buildMenu ();
+
+      toggle (menu, "Scripted", false);
+      toggle (menu, "Scripted", true);
+
+      assertEquals (2, countItemsNamed (menu, "Scripted"));
+
+      // o toggle limpa o log antes de disparar, entao o que sobra e so a religada: nenhum
+      // doesRequest, que e exatamente o ponto - rebuildMenu nao pergunta
+      assertEquals (List.of ("ScriptedPlugin.activate"), PluginProbe.calls ());
+    }
+
+    /*
+     * Desligar o plugin tira o item de request do menu, e religar traz de volta - pelo campo
+     * isActivated, nao por nova consulta.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("desligar o plugin tira o item de request, religar traz de volta")
+    void desligarTiraOItemReligarTraz ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginProbe.scriptRequest ("ScriptedPlugin", true);
+      register (0, "Scripted", ScriptedPlugin.class, true);
+      Menu menu = buildMenu ();
+
+      toggle (menu, "Scripted", false);
+      assertEquals (1, countItemsNamed (menu, "Scripted"));
+
+      toggle (menu, "Scripted", true);
+      assertEquals (2, countItemsNamed (menu, "Scripted"));
+    }
+
+    /*
+     * Os aceleradores saem de uma lista fixa, na ordem em que os itens sao criados. A tecla
+     * de atalho e medida do proprio toolkit, nunca suposta: e control no Windows e no Linux
+     * e meta no macOS, e um teste que fixe uma das duas passa numa plataforma e quebra na
+     * outra. O precedente e o helper shortcutIsMeta () do ConsoleKeyPressTest.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("os dois primeiros plugins de request ficam com os digitos 1 e 2")
+    void aceleradoresSaoOsDigitosEmOrdem ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginProbe.scriptRequest ("ScriptedPlugin", true);
+      PluginProbe.scriptRequest ("QuietPlugin", true);
+      register (0, "Scripted", ScriptedPlugin.class, true);
+      register (1, "Quiet", QuietPlugin.class, true);
+      Menu menu = buildMenu ();
+
+      assertEquals (new KeyCodeCombination (KeyCode.DIGIT1, KeyCombination.SHORTCUT_DOWN),
+                    requestItem (menu, "Scripted").getAccelerator ());
+      assertEquals (new KeyCodeCombination (KeyCode.DIGIT2, KeyCombination.SHORTCUT_DOWN),
+                    requestItem (menu, "Quiet").getAccelerator ());
+    }
+
+    /*
+     * getMenu () chamado duas vezes re-instancia todo plugin - instantiate () zera o campo e
+     * constroi de novo -, entao activate () roda outra vez, num objeto NOVO, enquanto o
+     * requestMenuItem sobrevive do anterior. Em producao getMenu () e chamado uma vez so, em
+     * ConsolePane:107, entao isto e latente. Congelado aqui e registrado no backlog.
+     *
+     * E repare na contagem, que tambem desmentiu a expectativa escrita antes: na SEGUNDA
+     * montagem doesRequest () e perguntado UMA vez, nao duas. O sitio de select () :474 sai
+     * pelo curto-circuito, porque requestMenuItem ja nao e null; sobra o de setMenu () :250.
+     * E a trava se mostrando de novo, agora pela reducao do numero de perguntas.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("getMenu chamado de novo re-instancia o plugin e ativa outra vez")
+    void getMenuDeNovoReinstanciaEAtivaOutraVez ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginProbe.scriptRequest ("ScriptedPlugin", true);
+      register (0, "Scripted", ScriptedPlugin.class, true);
+      buildMenu ();
+
+      menu ();
+
+      assertEquals (List.of ("ScriptedPlugin.activate",            // select (), :470
+                             "ScriptedPlugin.doesRequest->true"),  // setMenu (), :250
+                    PluginProbe.calls ());
+    }
+  }
+
   // ---------------------------------------------------------------------------------//
   //  Apoio
   // ---------------------------------------------------------------------------------//
@@ -275,6 +448,69 @@ class PluginsStageDispatchTest
     return menu.getItems ().stream ().filter (item -> text.equals (item.getText ()))
         .findFirst ()
         .orElseThrow ( () -> new AssertionError ("item de menu nao encontrado: " + text));
+  }
+
+  /*
+   * Reproduz o CLIQUE inteiro num CheckMenuItem, e nao so o fire (). CheckMenuItem.fire ()
+   * NAO inverte o selected - quem inverte e o skin do menu, antes de disparar a acao -, e
+   * como itemSelected () le justamente isSelected (), um teste que chamasse so fire ()
+   * afirmaria o contrario do que o usuario ve, e passaria. E a mesma armadilha que derrubou
+   * tres casos do OptionStageTest de uma vez.
+   */
+  // ---------------------------------------------------------------------------------//
+  private void toggle (Menu menu, String text, boolean selected)
+  // ---------------------------------------------------------------------------------//
+  {
+    CheckMenuItem item = (CheckMenuItem) menu.getItems ().stream ()
+        .filter (candidate -> candidate instanceof CheckMenuItem)
+        .filter (candidate -> text.equals (candidate.getText ())).findFirst ()
+        .orElseThrow ( () -> new AssertionError ("nao achei o CheckMenuItem " + text));
+
+    PluginProbe.clearCalls ();
+    onFx ( () ->
+    {
+      item.setSelected (selected);
+      item.fire ();
+    });
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private static void onFx (Runnable action)
+  // ---------------------------------------------------------------------------------//
+  {
+    JavaFxToolkit.onFxThread ( () ->
+    {
+      action.run ();
+      return null;
+    });
+  }
+
+  /*
+   * O item de request e um MenuItem simples com o mesmo texto do CheckMenuItem que liga o
+   * plugin - por isso a contagem por nome, e nao a busca pelo primeiro.
+   */
+  // ---------------------------------------------------------------------------------//
+  private static long countItemsNamed (Menu menu, String text)
+  // ---------------------------------------------------------------------------------//
+  {
+    return menu.getItems ().stream ().filter (item -> text.equals (item.getText ())).count ();
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private static boolean hasItemNamed (Menu menu, String text, long times)
+  // ---------------------------------------------------------------------------------//
+  {
+    return countItemsNamed (menu, text) == times;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private static MenuItem requestItem (Menu menu, String text)
+  // ---------------------------------------------------------------------------------//
+  {
+    return menu.getItems ().stream ()
+        .filter (item -> !(item instanceof CheckMenuItem))
+        .filter (item -> text.equals (item.getText ())).findFirst ()
+        .orElseThrow ( () -> new AssertionError ("nao achei o item de request " + text));
   }
 
   // ---------------------------------------------------------------------------------//
