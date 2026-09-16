@@ -167,19 +167,34 @@ public class PluginsStage extends PreferencesStage
   // ---------------------------------------------------------------------------------//
   {
     for (PluginEntry pluginEntry : plugins)
-      if (pluginEntry.isActivated)
-      {
-        Plugin plugin = pluginEntry.plugin;
-        if (plugin != null && plugin.doesAuto ())
-          try
-          {
-            plugin.processAuto (data);
-          }
-          catch (Exception e)
-          {
-            logger.error ("Error processing auto", e);
-          }
-      }
+      if (pluginEntry.isActivated && pluginEntry.plugin != null)
+        dispatchAuto (pluginEntry.plugin, data);
+  }
+
+  /*
+   * O despacho automatico, e ele nomeia AutoPlugin - dois metodos - em vez de Plugin, que tem
+   * seis. E PERGUNTA a cada chamada, nunca testa o tipo: doesAuto () muda durante a execucao
+   * em cinco dos seis plugins reais, e um instanceof responderia uma pergunta estatica no
+   * lugar de uma que muda a cada tela. Ver o comentario de AutoPlugin.
+   *
+   * O catch e de Exception, e nao de Throwable: um Error escapa daqui e cancela os plugins
+   * seguintes. Isso e o item 19 do BACKLOG-DEFEITOS.md, preservado de proposito.
+   */
+  // ---------------------------------------------------------------------------------//
+  private void dispatchAuto (AutoPlugin plugin, PluginData data)
+  // ---------------------------------------------------------------------------------//
+  {
+    if (!plugin.doesAuto ())
+      return;
+
+    try
+    {
+      plugin.processAuto (data);
+    }
+    catch (Exception e)
+    {
+      logger.error ("Error processing auto", e);
+    }
   }
 
   // ---------------------------------------------------------------------------------//
@@ -368,13 +383,45 @@ public class PluginsStage extends PreferencesStage
             cursorPosition % screenDimensions.columns);
     PluginData pluginData =
         PluginFields.toPluginData (sequence++, screenLocation, screen.getFields ());
-    plugin.processRequest (pluginData);
+    dispatchRequest (plugin, pluginData);
     AIDCommand command = processReply (pluginData);
     if (command != null)
     {
       screen.lockKeyboard (command.getKeyName ());
       consolePane.sendAID (command);
     }
+  }
+
+  /*
+   * O despacho de pedido, nomeando RequestPlugin em vez de Plugin.
+   *
+   * Sem guarda de doesRequest () e sem try/catch, de proposito: e o que o codigo sempre fez,
+   * e as duas assimetrias com o dispatchAuto estao no item 20 do BACKLOG-DEFEITOS.md.
+   *
+   * A assinatura PUBLICA de processPluginRequest continua recebendo Plugin. Alarga-la para
+   * RequestPlugin seria compativel no fonte e INCOMPATIVEL NO BINARIO - o descritor do metodo
+   * mudaria -, e metodo publico deste pacote e API de terceiro.
+   */
+  // ---------------------------------------------------------------------------------//
+  private static void dispatchRequest (RequestPlugin plugin, PluginData data)
+  // ---------------------------------------------------------------------------------//
+  {
+    plugin.processRequest (data);
+  }
+
+  /*
+   * Ligar e desligar, nomeando Activatable. O par nao e simetrico no tempo: quem chama isto
+   * pergunta doesRequest () DEPOIS, e e por isso que um plugin consegue armar as proprias
+   * capacidades de dentro do activate ().
+   */
+  // ---------------------------------------------------------------------------------//
+  private static void setActive (Activatable plugin, boolean activate)
+  // ---------------------------------------------------------------------------------//
+  {
+    if (activate)
+      plugin.activate ();
+    else
+      plugin.deactivate ();
   }
 
   // ---------------------------------------------------------------------------------//
@@ -480,10 +527,7 @@ public class PluginsStage extends PreferencesStage
 
     public void select (boolean activate)
     {
-      if (activate)
-        plugin.activate ();
-      else
-        plugin.deactivate ();
+      setActive (plugin, activate);
 
       if (requestMenuItem == null && plugin.doesRequest ())
       {
