@@ -25,6 +25,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
 
 import org.slf4j.Logger;
@@ -73,13 +74,45 @@ public class Console extends Application
     primaryStage.setOnCloseRequest (e -> Platform.exit ());
     primaryStage.setResizable (true);
 
-    pluginsStage = new PluginsStage (prefs);
-    optionStage = new OptionStage (prefs, pluginsStage.getEditMenuItem ());
+    pluginsStage = createPluginsStage ();
+    optionStage = createOptionStage (pluginsStage.getEditMenuItem ());
 
     primaryScreenBounds = javafx.stage.Screen.getPrimary ().getVisualBounds ();
 
     optionStage.setOnConnect (this::startSelectedFunction);
     optionStage.show ();
+  }
+
+  /*
+   * As duas fabricas abaixo sao DELEGACAO PURA, e existem para que a rede do caminho de
+   * lancamento possa substituir os dois colaboradores que o start constroi.
+   *
+   * O PluginsStage e o caso duro: o construtor publico dele delega a
+   * "this (prefs, Paths.get (PLUGINS_DIR).toAbsolutePath ())", ou seja, varre a pasta
+   * plugins/ da maquina de quem roda a suite - que esta no .gitignore e portanto tem
+   * conteudo diferente em cada checkout. Sem esta fabrica a rede seria dependente de
+   * maquina. E o mesmo custo que o OptionStage recusou por escrito, em OptionStage:111-116.
+   *
+   * O OptionStage e o outro: ele e uma Stage, e o start termina em show (). Um teste que
+   * dirigisse o start de verdade abriria janela.
+   *
+   * A delegacao preserva comportamento por inspecao: mesmos argumentos, mesma ordem, mesmo
+   * ponto de avaliacao - pluginsStage.getEditMenuItem () continua sendo avaliado onde era, no
+   * sitio de chamada. Os dois metodos somem quando o composition root assumir a fiacao: viram
+   * argumentos do construtor do colaborador de montagem.
+   */
+  // ---------------------------------------------------------------------------------//
+  PluginsStage createPluginsStage ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return new PluginsStage (prefs);
+  }
+
+  // ---------------------------------------------------------------------------------//
+  OptionStage createOptionStage (MenuItem pluginsEditMenuItem)
+  // ---------------------------------------------------------------------------------//
+  {
+    return new OptionStage (prefs, pluginsEditMenuItem);
   }
 
   private void startSelectedFunction ()
