@@ -1,0 +1,239 @@
+package com.bytezone.dm3270.plugins;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+/*
+ * Os sete utilitarios do DefaultPlugin, que nunca tiveram teste.
+ *
+ * Eles sao API de terceiro: protected e package-private numa classe que os JARs instalados
+ * estendem - o javap confirma "extends com.bytezone.dm3270.plugins.DefaultPlugin" dentro do
+ * DownloadDataset.jar. O bloco 2 do passo 9 vai tirar a implementacao de dentro deles e
+ * deixa-los delegando, e esta e a rede que diz se a delegacao preserva o resultado.
+ *
+ * O teste mora no MESMO pacote, entao "protected static" e package-private sao chamaveis
+ * direto - nao e preciso subclasse nenhuma, salvo para o unico metodo de instancia, o
+ * getMD5.
+ *
+ * MEDIDO, e e o que justifica o bloco 2: destes sete, so getModifiableFields e chamado por
+ * alguem - seis sitios em tres dos seis plugins -, e ele e identico, linha por linha, ao
+ * PluginData.getModifiableFields () que o proprio parametro ja oferece. Os outros seis tem
+ * zero referencias nos dois repositorios, e o toHex nem sequer e visivel de
+ * com.bytezone.plugins, que e onde os plugins moram. A heranca custa o unico slot de
+ * superclasse dos seis plugins para entregar um metodo que tres deles usam.
+ */
+// -----------------------------------------------------------------------------------//
+@DisplayName ("DefaultPlugin - os sete utilitarios entregues por heranca")
+class DefaultPluginTest
+// -----------------------------------------------------------------------------------//
+{
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("As consultas de campo")
+  class FieldQueries
+  // ---------------------------------------------------------------------------------//
+  {
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("getModifiableFields devolve os nao protegidos, na ordem da tela")
+    void getModifiableFieldsDevolveOsNaoProtegidos ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginData data = mixedScreen ();
+
+      assertEquals (List.of ("entrada1", "entrada2"),
+                    values (DefaultPlugin.getModifiableFields (data)));
+    }
+
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("getProtectedFields devolve exatamente o complemento")
+    void getProtectedFieldsDevolveOComplemento ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginData data = mixedScreen ();
+
+      assertEquals (List.of ("titulo", "rotulo"),
+                    values (DefaultPlugin.getProtectedFields (data)));
+    }
+
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("countModifiableFields concorda com o tamanho da lista")
+    void countConcordaComOTamanhoDaLista ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginData data = mixedScreen ();
+
+      assertEquals (DefaultPlugin.getModifiableFields (data).size (),
+                    DefaultPlugin.countModifiableFields (data));
+      assertEquals (2, DefaultPlugin.countModifiableFields (data));
+    }
+
+    /*
+     * getNumericFields e o complemento de getAlphanumericFields, e nao um filtro proprio: o
+     * criterio dos dois e o mesmo campo isAlpha, negado num deles. Vale registrar porque os
+     * nomes sugerem duas classificacoes independentes, e nao sao.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("alfanumericos e numericos particionam a tela pelo isAlpha")
+    void alfanumericosENumericosParticionamPeloIsAlpha ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginData data = mixedScreen ();
+
+      assertEquals (List.of ("titulo", "entrada1"),
+                    values (DefaultPlugin.getAlphanumericFields (data)));
+      assertEquals (List.of ("rotulo", "entrada2"),
+                    values (DefaultPlugin.getNumericFields (data)));
+    }
+
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("numa tela sem campos as cinco consultas devolvem vazio ou zero")
+    void telaSemCamposDevolveVazio ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginData data = new PluginData (0, new ScreenLocation (0), new ArrayList<> ());
+
+      assertEquals (List.of (), values (DefaultPlugin.getModifiableFields (data)));
+      assertEquals (List.of (), values (DefaultPlugin.getProtectedFields (data)));
+      assertEquals (List.of (), values (DefaultPlugin.getAlphanumericFields (data)));
+      assertEquals (List.of (), values (DefaultPlugin.getNumericFields (data)));
+      assertEquals (0, DefaultPlugin.countModifiableFields (data));
+    }
+
+    /*
+     * A equivalencia que o bloco 2 vai explorar: o utilitario herdado e o metodo do proprio
+     * PluginData produzem a mesma lista, elemento por elemento. Se alguem mudar um dos dois,
+     * este caso e o que acusa.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("o utilitario herdado e o metodo do PluginData dao a mesma lista")
+    void oUtilitarioHerdadoEOMetodoDoPluginDataSaoEquivalentes ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginData data = mixedScreen ();
+
+      assertEquals (values (data.getModifiableFields ()),
+                    values (DefaultPlugin.getModifiableFields (data)));
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("O digest")
+  class Digest
+  // ---------------------------------------------------------------------------------//
+  {
+    /*
+     * Valores conhecidos, e nao recalculados no proprio teste - do contrario a assercao seria
+     * tautologica. Sao os dois MD5 mais publicados que existem.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("getMD5 de valores conhecidos, em maiusculas")
+    void getMD5DeValoresConhecidos ()
+    // -------------------------------------------------------------------------------//
+    {
+      DefaultPlugin plugin = new TestPlugin ();
+
+      assertEquals ("D41D8CD98F00B204E9800998ECF8427E", plugin.getMD5 (new byte[0]));
+      assertEquals ("900150983CD24FB0D6963F7D28E17F72",
+                    plugin.getMD5 ("abc".getBytes (StandardCharsets.US_ASCII)));
+    }
+
+    /*
+     * toHex escreve DOIS digitos por byte, com A-F em MAIUSCULAS, e trata o byte como sem
+     * sinal. O 0x0F com zero a esquerda e o 0xFF sao as duas bordas que uma reimplementacao
+     * por Integer.toHexString erraria - aquela come o zero e escreve minusculas.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("toHex: dois digitos por byte, maiusculas, sem sinal")
+    void toHexDoisDigitosPorByte ()
+    // -------------------------------------------------------------------------------//
+    {
+      assertEquals ("", DefaultPlugin.toHex (new byte[0]));
+      assertEquals ("000F10FF",
+                    DefaultPlugin.toHex (new byte[] { 0x00, 0x0F, 0x10, (byte) 0xFF }));
+    }
+
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("toHex cobre os 256 valores, sempre com dois caracteres")
+    void toHexCobreOs256Valores ()
+    // -------------------------------------------------------------------------------//
+    {
+      byte[] todos = new byte[256];
+      for (int i = 0; i < 256; i++)
+        todos[i] = (byte) i;
+
+      String hex = DefaultPlugin.toHex (todos);
+
+      assertEquals (512, hex.length ());
+      assertEquals ("000102", hex.substring (0, 6));
+      assertEquals ("FDFEFF", hex.substring (506));
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
+  //  Apoio
+  // ---------------------------------------------------------------------------------//
+
+  /*
+   * Quatro campos que separam as tres classificacoes de forma independente: dois protegidos e
+   * dois nao, dois alfa e dois nao, e as duas divisoes cruzadas de proposito - do contrario
+   * um metodo devolvendo a lista do outro passaria despercebido.
+   */
+  // ---------------------------------------------------------------------------------//
+  private static PluginData mixedScreen ()
+  // ---------------------------------------------------------------------------------//
+  {
+    List<PluginField> fields = new ArrayList<> ();
+    fields.add (field (0, 0, true, true, "titulo"));
+    fields.add (field (1, 20, true, false, "rotulo"));
+    fields.add (field (2, 40, false, true, "entrada1"));
+    fields.add (field (3, 60, false, false, "entrada2"));
+
+    return new PluginData (0, new ScreenLocation (0), fields);
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private static PluginField field (int sequence, int location, boolean isProtected,
+      boolean isAlpha, String value)
+  // ---------------------------------------------------------------------------------//
+  {
+    return new PluginField (sequence, new ScreenLocation (location), value.length (),
+        isProtected, isAlpha, true, false, value);
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private static List<String> values (List<PluginField> fields)
+  // ---------------------------------------------------------------------------------//
+  {
+    List<String> values = new ArrayList<> ();
+    for (PluginField field : fields)
+      values.add (field.getFieldValue ());
+    return values;
+  }
+
+  /*
+   * getMD5 e o unico dos sete que e metodo de INSTANCIA, e protected - entao precisa de uma
+   * subclasse, que e exatamente a forma que um plugin de verdade tem.
+   */
+  // ---------------------------------------------------------------------------------//
+  private static final class TestPlugin extends DefaultPlugin
+  // ---------------------------------------------------------------------------------//
+  {
+  }
+}
