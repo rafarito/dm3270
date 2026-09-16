@@ -2,7 +2,6 @@ package com.bytezone.dm3270.plugins;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -41,59 +40,50 @@ public abstract class DefaultPlugin implements Plugin
   //    return null;
   //  }
 
+  /*
+   * OS CINCO FILTROS DE CAMPO AGORA MORAM NO PluginData, que e o objeto que carrega a
+   * lista. Eles ficam aqui, com a MESMA assinatura e o MESMO modificador, porque sao API
+   * de terceiro: os JARs ja compilados chamam DefaultPlugin.getModifiableFields (data) e
+   * o invokestatic gravado neles nao acompanha mudanca nenhuma de forma. Delegar e o que
+   * tira a duplicacao sem quebrar a Regra 3.
+   *
+   * Medido antes de mexer: destes cinco, so getModifiableFields tem chamador - seis
+   * sitios em tres dos seis plugins -, e ele ja era identico, linha por linha, ao metodo
+   * que o PluginData sempre teve.
+   */
   // ---------------------------------------------------------------------------------//
   protected static int countModifiableFields (PluginData data)
   // ---------------------------------------------------------------------------------//
   {
-    int count = 0;
-    for (PluginField field : data.screenFields)
-      if (!field.isProtected)
-        ++count;
-    return count;
+    return data.countModifiableFields ();
   }
 
   // ---------------------------------------------------------------------------------//
   protected static List<PluginField> getModifiableFields (PluginData data)
   // ---------------------------------------------------------------------------------//
   {
-    List<PluginField> fields = new ArrayList<> ();
-    for (PluginField field : data.screenFields)
-      if (!field.isProtected)
-        fields.add (field);
-    return fields;
+    return data.getModifiableFields ();
   }
 
   // ---------------------------------------------------------------------------------//
   protected static List<PluginField> getProtectedFields (PluginData data)
   // ---------------------------------------------------------------------------------//
   {
-    List<PluginField> fields = new ArrayList<> ();
-    for (PluginField field : data.screenFields)
-      if (field.isProtected)
-        fields.add (field);
-    return fields;
+    return data.getProtectedFields ();
   }
 
   // ---------------------------------------------------------------------------------//
   protected static List<PluginField> getAlphanumericFields (PluginData data)
   // ---------------------------------------------------------------------------------//
   {
-    List<PluginField> fields = new ArrayList<> ();
-    for (PluginField field : data.screenFields)
-      if (field.isAlpha)
-        fields.add (field);
-    return fields;
+    return data.getAlphanumericFields ();
   }
 
   // ---------------------------------------------------------------------------------//
   protected static List<PluginField> getNumericFields (PluginData data)
   // ---------------------------------------------------------------------------------//
   {
-    List<PluginField> fields = new ArrayList<> ();
-    for (PluginField field : data.screenFields)
-      if (!field.isAlpha)
-        fields.add (field);
-    return fields;
+    return data.getNumericFields ();
   }
 
   // ---------------------------------------------------------------------------------//

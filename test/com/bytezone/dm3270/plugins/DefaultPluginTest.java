@@ -15,8 +15,9 @@ import org.junit.jupiter.api.Test;
  *
  * Eles sao API de terceiro: protected e package-private numa classe que os JARs instalados
  * estendem - o javap confirma "extends com.bytezone.dm3270.plugins.DefaultPlugin" dentro do
- * DownloadDataset.jar. O bloco 2 do passo 9 vai tirar a implementacao de dentro deles e
- * deixa-los delegando, e esta e a rede que diz se a delegacao preserva o resultado.
+ * DownloadDataset.jar. Esta classe nasceu como a rede que precedeu a delegacao, e continua
+ * sendo o que diz se ela preserva o resultado: hoje os cinco filtros de campo moram no
+ * PluginData e os daqui apenas delegam, com assinatura e modificador intactos.
  *
  * O teste mora no MESMO pacote, entao "protected static" e package-private sao chamaveis
  * direto - nao e preciso subclasse nenhuma, salvo para o unico metodo de instancia, o
@@ -112,20 +113,53 @@ class DefaultPluginTest
     }
 
     /*
-     * A equivalencia que o bloco 2 vai explorar: o utilitario herdado e o metodo do proprio
-     * PluginData produzem a mesma lista, elemento por elemento. Se alguem mudar um dos dois,
-     * este caso e o que acusa.
+     * A REDE DA DELEGACAO. Desde o passo 9 os cinco filtros moram no PluginData e o
+     * DefaultPlugin apenas delega, mantendo assinatura e modificador porque sao API de
+     * terceiro. Estes cinco pares sao o que prova que a delegacao nao inverteu nem trocou
+     * nenhum dos filtros - o erro mais facil de cometer quando cinco lacos quase iguais viram
+     * cinco chamadas quase iguais.
+     *
+     * Eles so podem ser escritos porque o teste mora no mesmo pacote e alcanca os
+     * "protected static" direto.
      */
     // -------------------------------------------------------------------------------//
     @Test
-    @DisplayName ("o utilitario herdado e o metodo do PluginData dao a mesma lista")
-    void oUtilitarioHerdadoEOMetodoDoPluginDataSaoEquivalentes ()
+    @DisplayName ("os cinco utilitarios herdados dao o mesmo que os do PluginData")
+    void osCincoUtilitariosDelegamParaOPluginData ()
     // -------------------------------------------------------------------------------//
     {
       PluginData data = mixedScreen ();
 
       assertEquals (values (data.getModifiableFields ()),
                     values (DefaultPlugin.getModifiableFields (data)));
+      assertEquals (values (data.getProtectedFields ()),
+                    values (DefaultPlugin.getProtectedFields (data)));
+      assertEquals (values (data.getAlphanumericFields ()),
+                    values (DefaultPlugin.getAlphanumericFields (data)));
+      assertEquals (values (data.getNumericFields ()),
+                    values (DefaultPlugin.getNumericFields (data)));
+      assertEquals (data.countModifiableFields (),
+                    DefaultPlugin.countModifiableFields (data));
+    }
+
+    /*
+     * E as quatro consultas novas do PluginData tambem respondem direito numa tela vazia -
+     * elas entram no <targetClasses> do PIT junto com o resto da classe, e um mutante que
+     * trocasse o filtro por "true" sobreviveria sem este caso.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("as consultas do PluginData filtram pelos mesmos criterios")
+    void asConsultasDoPluginDataFiltramPelosMesmosCriterios ()
+    // -------------------------------------------------------------------------------//
+    {
+      PluginData data = mixedScreen ();
+
+      assertEquals (List.of ("entrada1", "entrada2"), values (data.getModifiableFields ()));
+      assertEquals (List.of ("titulo", "rotulo"), values (data.getProtectedFields ()));
+      assertEquals (List.of ("titulo", "entrada1"), values (data.getAlphanumericFields ()));
+      assertEquals (List.of ("rotulo", "entrada2"), values (data.getNumericFields ()));
+      assertEquals (2, data.countModifiableFields ());
     }
   }
 
