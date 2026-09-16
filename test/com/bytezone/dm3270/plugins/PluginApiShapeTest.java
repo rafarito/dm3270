@@ -90,6 +90,71 @@ class PluginApiShapeTest
     }
   }
 
+  /*
+   * Os papeis declaram os metodos ABSTRATOS - sao eles que dizem o que cada papel significa.
+   * Quem devolve o default e o Plugin, e e por isso que acrescentar as superinterfaces nao
+   * acrescentou metodo abstrato nenhum a ele (JLS 13.5.3) e os JARs antigos seguem
+   * carregando.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("Os tres papeis")
+  class RoleShape
+  // ---------------------------------------------------------------------------------//
+  {
+    /*
+     * A DIRECAO do extends, que foi escolhida com a medicao na mao: Plugin ESTENDE os tres,
+     * em vez de os tres estenderem Plugin. Assim todo plugin que ja existiu passa a ser um
+     * AutoPlugin e um RequestPlugin sem que uma linha de fonte mude em lugar nenhum - e, o
+     * ponto, um "instanceof AutoPlugin" fica trivialmente verdadeiro, incapaz de filtrar
+     * coisa alguma. O despacho estatico que o plano do passo 9 pedia deixa de ser possivel
+     * POR CONSTRUCAO, e nao so por recomendacao.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("Plugin estende os tres papeis, e por isso todo plugin ja e os tres")
+    void pluginEstendeOsTresPapeis ()
+    // -------------------------------------------------------------------------------//
+    {
+      assertEquals (List.of (Activatable.class, AutoPlugin.class, RequestPlugin.class),
+                    List.of (Plugin.class.getInterfaces ()));
+    }
+
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("cada papel declara so os seus dois metodos, e nenhum e default")
+    void cadaPapelDeclaraSoOsSeusDois ()
+    // -------------------------------------------------------------------------------//
+    {
+      assertEquals (List.of ("void activate()", "void deactivate()"),
+                    signaturesOf (Activatable.class));
+      assertEquals (List.of ("boolean doesAuto()",
+                             "void processAuto(com.bytezone.dm3270.plugins.PluginData)"),
+                    signaturesOf (AutoPlugin.class));
+      assertEquals (List.of ("boolean doesRequest()",
+                             "void processRequest(com.bytezone.dm3270.plugins.PluginData)"),
+                    signaturesOf (RequestPlugin.class));
+
+      for (Class<?> role : List.of (Activatable.class, AutoPlugin.class, RequestPlugin.class))
+        for (Method method : declaredMethodsOf (role))
+          assertFalse (method.isDefault (), method.getName () + " virou default no papel");
+    }
+
+    /*
+     * Nenhum dos tres estende Plugin - se estendessem, a direcao se inverteria e o
+     * instanceof voltaria a ser um filtro util, que e justamente o que nao se quer.
+     */
+    // -------------------------------------------------------------------------------//
+    @Test
+    @DisplayName ("nenhum papel conhece Plugin de volta")
+    void nenhumPapelConhecePluginDeVolta ()
+    // -------------------------------------------------------------------------------//
+    {
+      for (Class<?> role : List.of (Activatable.class, AutoPlugin.class, RequestPlugin.class))
+        assertEquals (List.of (), List.of (role.getInterfaces ()));
+    }
+  }
+
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("DefaultPlugin")
