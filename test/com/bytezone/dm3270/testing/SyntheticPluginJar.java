@@ -56,8 +56,27 @@ public final class SyntheticPluginJar
     return this;
   }
 
+  /*
+   * Empacota TODAS as classes compiladas.
+   */
   // ---------------------------------------------------------------------------------//
   public Path writeTo (Path directory, String jarName) throws IOException
+  // ---------------------------------------------------------------------------------//
+  {
+    return writeTo (directory, jarName, new String[0]);
+  }
+
+  /*
+   * Empacota so as classes nomeadas, embora todas sejam compiladas juntas.
+   *
+   * Serve para montar um JAR de plugin que DEPENDE de uma classe que mora noutro JAR da mesma
+   * pasta - o caso da biblioteca solta, que o terceiro passo da busca do JarClassLoader
+   * existe para atender. Sem isto nao ha como escrever esse teste: o javac precisa das duas
+   * classes juntas, e o empacotamento precisa delas separadas.
+   */
+  // ---------------------------------------------------------------------------------//
+  public Path writeTo (Path directory, String jarName, String... classNames)
+      throws IOException
   // ---------------------------------------------------------------------------------//
   {
     Path work = Files.createTempDirectory ("synthetic-plugin");
@@ -86,6 +105,8 @@ public final class SyntheticPluginJar
           {
             String name = classRoot.relativize (path).toString ().replace (File.separatorChar,
                 '/');
+            if (!wanted (name, classNames))
+              return;
             out.putNextEntry (new JarEntry (name));
             copy (path, out);
             out.closeEntry ();
@@ -99,6 +120,26 @@ public final class SyntheticPluginJar
     }
 
     return jar;
+  }
+
+  /*
+   * Lista vazia significa "todas". Um nome casa a propria classe e as aninhadas dela.
+   */
+  // ---------------------------------------------------------------------------------//
+  private static boolean wanted (String entryName, String[] classNames)
+  // ---------------------------------------------------------------------------------//
+  {
+    if (classNames.length == 0)
+      return true;
+
+    for (String className : classNames)
+    {
+      String prefix = className.replace ('.', '/');
+      if (entryName.equals (prefix + ".class") || entryName.startsWith (prefix + "$"))
+        return true;
+    }
+
+    return false;
   }
 
   // ---------------------------------------------------------------------------------//

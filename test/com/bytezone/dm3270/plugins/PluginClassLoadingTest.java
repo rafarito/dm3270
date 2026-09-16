@@ -26,8 +26,9 @@ import com.bytezone.dm3270.testing.SyntheticPluginJar;
  * vence PARA OS DOIS PLUGINS - e qual delas vence depende da ordem em que File.listFiles ()
  * devolve os arquivos.
  *
- * ISSO NAO E COMPORTAMENTO A PRESERVAR, E INDETERMINISMO, e e a unica excecao a Regra 1
- * prevista para o passo 9, autorizada pelo usuario.
+ * ISSO NAO ERA COMPORTAMENTO A PRESERVAR, ERA INDETERMINISMO - e foi a unica excecao a
+ * Regra 1 do passo 9, autorizada pelo usuario. Corrigido: cada JAR passou a ter o seu proprio
+ * class loader, que procura no PROPRIO JAR antes de cair no monte comum.
  *
  * O caso real, medido no repositorio irmao: com.bytezone.plugins.Document e
  * com.bytezone.plugins.DocumentPage existem em duas copias, no DownloadDataset e no
@@ -82,19 +83,20 @@ class PluginClassLoadingTest
    * Dois JARs, cada um com a SUA copia de com.example.shared.Stamp, devolvendo letras
    * diferentes. Cada plugin reporta o que a copia que ele enxergou respondeu.
    *
-   * ESTE CASO DELIBERADAMENTE NAO AFIRMA QUAL LETRA CADA UM VE. Hoje isso depende da ordem em
-   * que File.listFiles () devolve os arquivos, que nao e especificada: afirmar um valor
-   * concreto seria escrever um teste que passa por sorte, e que mudaria de resultado noutro
-   * sistema de arquivos. O que ele afirma e a CONSEQUENCIA observavel da colisao - os dois
-   * veem a mesma letra, isto e, um dos dois esta rodando o codigo do outro.
+   * ATE O COMMIT QUE CORRIGIU ISTO, este caso afirmava o contrario - que os dois viam a MESMA
+   * letra, sem dizer qual, porque qual delas dependia da ordem de listagem do diretorio. A
+   * assercao anterior era:
    *
-   * Medido nesta maquina no momento em que este teste foi escrito: os dois viam "A", e o
-   * PluginB rodava o Stamp que veio dentro do PluginA.jar.
+   *     assertEquals (stampSeenBy ("PluginA"), stampSeenBy ("PluginB"));
+   *
+   * e nesta maquina ela passava com os dois vendo "A": o PluginB rodava o Stamp que veio
+   * dentro do PluginA.jar. Agora cada um ve a sua propria copia, e o teste pode afirmar
+   * VALORES CONCRETOS - o que antes era impossivel, porque nao havia resposta certa.
    */
   // ---------------------------------------------------------------------------------//
   @Test
-  @DisplayName ("hoje os dois plugins veem a mesma copia, e qual delas e indeterminado")
-  void osDoisVeemAMesmaCopia () throws Exception
+  @DisplayName ("cada plugin ve a copia que veio no proprio JAR")
+  void cadaPluginVeACopiaDoProprioJar () throws Exception
   // ---------------------------------------------------------------------------------//
   {
     writeJar ("a", "A");
@@ -103,7 +105,73 @@ class PluginClassLoadingTest
     buildMenu ();
     stage.processAll (data (0));
 
-    assertEquals (stampSeenBy ("PluginA"), stampSeenBy ("PluginB"));
+    assertEquals ("A", stampSeenBy ("PluginA"));
+    assertEquals ("B", stampSeenBy ("PluginB"));
+  }
+
+  /*
+   * O TERCEIRO PASSO DA BUSCA, e este caso existe para provar que ele nao e decorativo.
+   *
+   * Um JAR de plugin que dependa de uma classe que mora noutro JAR da mesma pasta - uma
+   * biblioteca solta - continua achando a classe. Se o loader por JAR olhasse SO o proprio
+   * JAR, isto quebraria, e quebraria em silencio: NoClassDefFoundError na primeira vez que o
+   * plugin tocasse a biblioteca, no meio de uma sessao. Nada no repositorio exercita esse
+   * arranjo, o que e justamente o motivo para ele ser encontrado por um usuario e nao pela
+   * suite.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Test
+  @DisplayName ("um plugin continua achando a biblioteca solta noutro JAR da pasta")
+  void pluginAchaBibliotecaSoltaNoutroJar () throws Exception
+  // ---------------------------------------------------------------------------------//
+  {
+    SyntheticPluginJar sources = new SyntheticPluginJar ()
+        .add ("com.example.lib.Greeting", """
+            package com.example.lib;
+
+            public class Greeting
+            {
+              public static String text ()
+              {
+                return "biblioteca";
+              }
+            }
+            """)
+        .add ("com.example.user.PluginUser", """
+            package com.example.user;
+
+            import com.bytezone.dm3270.plugins.Plugin;
+            import com.bytezone.dm3270.plugins.PluginData;
+            import com.bytezone.dm3270.plugins.PluginProbe;
+
+            import com.example.lib.Greeting;
+
+            public class PluginUser implements Plugin
+            {
+              public PluginUser () { }
+
+              @Override
+              public boolean doesAuto ()
+              {
+                return true;
+              }
+
+              @Override
+              public void processAuto (PluginData data)
+              {
+                PluginProbe.record ("PluginUser:" + Greeting.text ());
+              }
+            }
+            """);
+
+    // compiladas juntas, empacotadas separadas - que e exatamente o arranjo em jogo
+    sources.writeTo (pluginsDirectory, "lib.jar", "com.example.lib.Greeting");
+    sources.writeTo (pluginsDirectory, "PluginUser.jar", "com.example.user.PluginUser");
+
+    buildMenu ();
+    stage.processAll (data (0));
+
+    assertEquals (List.of ("PluginUser:biblioteca"), PluginProbe.calls ());
   }
 
   // ---------------------------------------------------------------------------------//
