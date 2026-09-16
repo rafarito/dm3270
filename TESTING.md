@@ -533,8 +533,8 @@ marcados com †.
 | `dm3270.datasets` † | 5 | 1.078 | **Dominio de dataset** e a porta `DatasetStore` | sim |
 | `dm3270.runtime` † | 2 | 55 | **Dados neutros de execucao**: o modo e o lado da conversa | sim |
 | `dm3270.database` | 16 | 1.677 | Persistencia SQLite, atras da porta `DatasetStore` | sim |
-| `dm3270.plugins` | 8 | 1.635 | API de plugins. `PluginsStage` (750 linhas) e JavaFX | parcial |
-| `dm3270.display` | 13 | 2.794 | **So a view**: `Screen` (1.094), `FieldManager`, `ScreenPacker`, fontes | nao |
+| `dm3270.plugins` | 13 | 2.067 | API de plugins. Desde o Passo 9: tres papeis (`Activatable`, `AutoPlugin`, `RequestPlugin`), o `PluginDigest` e o `PluginJars` (headless, com teste proprio). `PluginsStage` caiu de 892 para **665** linhas e continua JavaFX | **sim** |
+| `dm3270.display` | 13 | 2.794 | **So a view**: `Screen` (**1.109**), `FieldManager`, `ScreenPacker`, fontes | nao |
 | `dm3270.console` | 6 | 531 | Log de console. Tem parser de mensagem dentro (`ConsoleMessage`) | nao |
 | `dm3270.assistant` | 19 | 2.045 | Abas de dataset, job e transferencia | nao |
 | `dm3270.application` | 17 | 3.272 | Janelas, teclado, ciclo de vida. **O composition root de fato** | nao |
