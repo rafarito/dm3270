@@ -109,7 +109,7 @@ e o que diz se os testes escritos valem alguma coisa.
 | | `dm3270` | `dm3270-plugins` |
 |---|---:|---:|
 | Testes | **1.640** (Passo 9) | 248 (63 no `UploadDataset`) |
-| Cobertura de instrucoes (projeto todo) | 54% (Passo 8) | — |
+| Cobertura de instrucoes (projeto todo) | **64%** (Passo 11) | — |
 | Cobertura de ramos | 50% (Passo 8) | — |
 | Mutantes gerados | 4.024 (Passo 8) | — |
 | Mutation coverage | 66% (2.647/4.024) (Passo 8) | — |
@@ -544,9 +544,24 @@ for escrever teste. Um traco em "Mutacao" significa que o pacote **nao esta** no
 | `dm3270.replyfield` | 96% | 85% | 81% | |
 | `dm3270.runtime` | — | — | — | dois enums, 55 linhas |
 
-**Total do projeto: 54% de instrucoes, 50% de ramos** (Passo 8; a tabela acima e um
-instantaneo do Passo 10 e os percentuais por pacote nao foram regenerados desde entao). O
-numero reflete a camada JavaFX sem
+**Total do projeto: 64% de instrucoes, 56% de ramos** — medido no Passo 11 com
+`target/site/jacoco/index.html`: 20.998 instrucoes perdidas de 59.495. **A tabela acima e um
+instantaneo do Passo 10 e os percentuais POR PACOTE nao foram regenerados desde entao**, entao
+ela subestima os pacotes de UI.
+
+**O salto foi de DEZ PONTOS, e ele merece explicacao** porque contraria o que este arquivo
+dizia ("54% e 50%, parados desde o Passo 7"). Nao foi a quantidade de casos - sao 40. Foi o que
+eles CONSTROEM: uma `Screen` de verdade arrasta `FieldManager`, `TransfersStage` e as cinco
+abas, `ConsoleLogStage`, `ReporterNode`, `TreePanel`, `SystemMessage`, `TransferManager`,
+`TransferMenu`, `Pen` e `ScreenPacker`; e um `Console.start` de verdade arrasta `OptionStage`,
+`SiteListStage` e `SiteForm`. Milhares de instrucoes de UI que nenhum teste alcancava.
+
+**A licao, para quem for dar rede a outra god class de JavaFX:** o efeito colateral na cobertura
+e grande e vem de graca - mas ele NAO significa que aquele codigo esteja verificado. Construir
+uma classe executa o construtor dela; nao afirma nada sobre o que ela faz. Leia o numero como
+"passou por aqui", nao como "esta coberto".
+
+O numero reflete a camada JavaFX sem
 teste, e nao a qualidade da suite: os quatro pacotes de UI no topo da tabela somam mais de 20
 mil instrucoes e quase nenhum teste. Nos pacotes de protocolo a cobertura passa de 80%.
 
