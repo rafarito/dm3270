@@ -385,6 +385,32 @@ a exibicao, so observa-la. Quem precisar disso tem duas saidas, e as duas estao 
 `Console.start (Stage)` termina em `optionStage.show ()`, entao as tres classes do caminho de
 lancamento mostram janela de verdade enquanto rodam. Num ambiente headless, `xvfb-run`.
 
+### Um `target/` deixado por um build interrompido derruba o `jacoco:report`
+
+Sintoma: **`BUILD FAILURE` com ZERO falhas de teste**, e uma mensagem que aponta para o lugar
+errado:
+
+```
+Failed to execute goal org.jacoco:jacoco-maven-plugin:report (jacoco-report)
+  on project ShowDataset: An error has occurred in JaCoCo report generation.:
+  Error while creating report: malformed input around byte 20
+```
+
+Todos os testes do modulo passam - o relatorio do Surefire mostra `Failures: 0, Errors: 0` em
+todas as classes. O que falha e a **geracao do relatorio**, depois deles.
+
+A mensagem sugere problema de *encoding* de fonte, e nao e: medido no Passo 11, todos os
+`.java` do modulo sao UTF-8 valido e `file.encoding` da JVM e UTF-8. A causa e um `target/`
+inconsistente, deixado por um `mvn` que foi **morto no meio** - o `jacoco.exec` fica truncado e
+o leitor binario dele estoura ao decodificar.
+
+**A correcao e a regra que o projeto ja tem:** `mvn clean test`, sempre com `clean`. Com ele o
+modulo volta a `BUILD SUCCESS` na hora.
+
+Vale saber disto porque o sintoma leva a procurar regressao no lugar errado. Antes de acusar
+uma mudanca sua, rode com `clean` e confira se o repositorio irmao esta mesmo limpo
+(`git status --porcelain`).
+
 ### JARs sinteticos: compilar um plugin dentro do teste
 
 `test/com/bytezone/dm3270/testing/SyntheticPluginJar.java`, do Passo 9, escreve fontes Java,
