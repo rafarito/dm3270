@@ -1,8 +1,6 @@
 package com.bytezone.dm3270.application;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.prefs.Preferences;
 
@@ -14,11 +12,9 @@ import com.bytezone.dm3270.display.Screen;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.plugins.PluginsStage;
 import com.bytezone.dm3270.session.Session;
-import com.bytezone.dm3270.streams.SessionLoader;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 import com.bytezone.dm3270.utilities.Site;
-import com.bytezone.dm3270.utilities.SiteValue;
 import com.bytezone.dm3270.utilities.WindowSaver;
 
 import javafx.application.Application;
@@ -34,9 +30,6 @@ import org.slf4j.LoggerFactory;
 public class Console extends Application
 {
   private static final Logger logger = LoggerFactory.getLogger (Console.class);
-  private static final int MAINFRAME_EMULATOR_PORT = 5555;
-  private static final Site DEFAULT_MAINFRAME = new SiteValue ("mainframe",
-      "localhost", MAINFRAME_EMULATOR_PORT, true, 2, false, false, false, "");
 
   private Stage primaryStage;
   private Rectangle2D primaryScreenBounds;
@@ -57,6 +50,7 @@ public class Console extends Application
   private PluginsStage pluginsStage;
 
   private final LaunchTarget stages = new Stages ();
+  private LaunchCoordinator coordinator;
 
   @Override
   public void init () throws Exception
@@ -81,7 +75,8 @@ public class Console extends Application
 
     primaryScreenBounds = javafx.stage.Screen.getPrimary ().getVisualBounds ();
 
-    optionStage.setOnConnect (this::startSelectedFunction);
+    coordinator = new LaunchCoordinator (stages, telnetState, Platform::runLater);
+    optionStage.setOnConnect (coordinator::launch);
     optionStage.show ();
   }
 
@@ -100,8 +95,13 @@ public class Console extends Application
    *
    * A delegacao preserva comportamento por inspecao: mesmos argumentos, mesma ordem, mesmo
    * ponto de avaliacao - pluginsStage.getEditMenuItem () continua sendo avaliado onde era, no
-   * sitio de chamada. Os dois metodos somem quando o composition root assumir a fiacao: viram
-   * argumentos do construtor do colaborador de montagem.
+   * sitio de chamada.
+   *
+   * OS DOIS CONTINUAM AQUI depois de a fiacao sair para Stages e a decisao para o
+   * LaunchCoordinator, e vale dizer por que em vez de deixar a promessa antiga apodrecendo: o
+   * start (Stage) e o ciclo de vida da Application do JavaFX, e os dois Stage que ele monta
+   * sao anteriores a qualquer lancamento. Eles viram argumentos de construtor quando o
+   * proprio Console deixar de ser quem monta a janela de abertura.
    */
   // ---------------------------------------------------------------------------------//
   PluginsStage createPluginsStage ()
@@ -117,113 +117,21 @@ public class Console extends Application
     return new OptionStage (prefs, pluginsEditMenuItem);
   }
 
-  private void startSelectedFunction ()
-  {
-    stages.hideOptions ();
-    String errorMessage = "";
-
-    LaunchRequest request = stages.launchRequest ();
-    Optional<Site> optionalServerSite = request.serverSite ();
-    Optional<Site> optionalClientSite = request.clientSite ();
-
-    switch (request.function ())
-    {
-      case REPLAY:
-        Path path = Paths.get (request.spyFolder () + "/" + request.replayFile ());
-        if (!Files.exists (path))
-          errorMessage = path + " does not exist";
-        else
-          try
-          {
-            // can throw Exception
-            Session session =
-                SessionLoader.replay (telnetState, path, Platform::runLater);
-            stages.useAlternateScreenDimensions (session.getScreenDimensions ());
-
-            Optional<Site> serverSite =
-                stages.findServerSite (session.getServerName ());
-            if (serverSite.isPresent ())
-            {
-              Site site = serverSite.get ();
-              stages.showConsole (TerminalFunction.REPLAY, site);
-            }
-            else
-            {
-              logger.warn ("Couldn't find the server site for {}",
-                  session.getServerName ());
-              stages.showConsole (TerminalFunction.REPLAY, null);
-            }
-
-            stages.showReplay (session, path);
-          }
-          catch (Exception e)
-          {
-            logger.error ("Error creating replay window", e);
-            errorMessage = "Error creating replay window";
-          }
-
-        break;
-
-      case TERMINAL:
-        if (optionalServerSite.isPresent ())
-        {
-          Site serverSite = optionalServerSite.get ();
-          stages.applyModel (serverSite);
-          stages.showConsole (TerminalFunction.TERMINAL, serverSite);
-          stages.connectConsole ();
-        }
-        else
-          errorMessage = "No server selected";
-
-        break;
-
-      case SPY:
-        if (!optionalServerSite.isPresent ())
-          errorMessage = "No server selected";
-        else if (!optionalClientSite.isPresent ())
-          errorMessage = "No client selected";
-        else
-        {
-          Site serverSite = optionalServerSite.get ();
-          Site clientSite = optionalClientSite.get ();
-          stages.showSpy (TerminalFunction.SPY, serverSite, clientSite);
-        }
-
-        break;
-
-      case TEST:
-        if (!optionalClientSite.isPresent ())
-          errorMessage = "No client selected";
-        else
-        {
-          Site clientSite = optionalClientSite.get ();
-          stages.showSpy (TerminalFunction.TEST, DEFAULT_MAINFRAME, clientSite);
-          stages.showMainframe (MAINFRAME_EMULATOR_PORT);
-        }
-
-        break;
-    }
-
-    if (!errorMessage.isEmpty () && stages.alert (errorMessage))
-      stages.showOptions ();
-  }
-
   /*
    * O alerta de erro do lancamento, atras de um metodo de pacote pelo mesmo motivo das duas
    * fabricas - mas o motivo aqui e de outra natureza, e por isso e outro commit.
    *
-   * Dm3270Utility.showAlert e ESTATICO e chama alert.showAndWait () (Dm3270Utility:286).
-   * Numa suite isso nao falha: TRAVA, esperando um clique que nunca vem. E os tres ramos de
-   * erro do startSelectedFunction - "No server selected", "No client selected" e
-   * "<caminho> does not exist" - sao justamente a parte do switch que nao constroi nada, ou
-   * seja, a mais barata e a mais valiosa de congelar. Ate aqui eles so tinham o roteiro de
-   * validacao manual do passo 7.
+   * Dm3270Utility.showAlert e ESTATICO e chama alert.showAndWait (). Numa suite isso nao
+   * falha: TRAVA, esperando um clique que nunca vem. E os tres ramos de erro do lancamento -
+   * "No server selected", "No client selected" e "<caminho> does not exist" - sao justamente a
+   * parte do switch que nao constroi nada, ou seja, a mais barata e a mais valiosa de
+   * congelar.
    *
-   * O curto-circuito esta preservado: isEmpty () continua sendo avaliado primeiro, e o
-   * alerta so aparece quando ha mensagem.
+   * O curto-circuito esta preservado, e hoje mora no LaunchCoordinator: isEmpty () continua
+   * sendo avaliado primeiro, e o alerta so aparece quando ha mensagem.
    *
-   * Sai quando o composition root assumir a fiacao: vira uma porta de notificacao, no
-   * padrao das outras portas desta refatoracao.
+   * Quem chama isto e Stages.alert (String), o metodo da porta. A indirecao existe porque o
+   * TestConsole sobrescreve ESTE metodo, e sem isso a suite travaria no showAndWait.
    */
   // ---------------------------------------------------------------------------------//
   boolean showAlert (String message)
@@ -402,12 +310,11 @@ public class Console extends Application
   /*
    * A FIACAO, atras da porta LaunchTarget.
    *
-   * Nenhum corpo aqui e novo: cada um e um grupo de instrucoes que ate o commit anterior
-   * estava solto dentro do switch de startSelectedFunction. O que mudou e que a decisao -
-   * qual funcao, o que falta, que mensagem dar, em que ordem - agora fala com um contrato em
-   * vez de com "new ConsolePane" e "primaryStage.show ()", e o contrato nao nomeia um widget
-   * sequer. O passo seguinte leva o switch para fora do Console; este commit so abre a porta
-   * por onde ele vai falar.
+   * Nenhum corpo aqui e novo: cada um e um grupo de instrucoes que estava solto dentro do
+   * switch de Console.startSelectedFunction. O que mudou e que a decisao - qual funcao, o que
+   * falta, que mensagem dar, em que ordem - saiu para o LaunchCoordinator e fala com um
+   * contrato em vez de com "new ConsolePane" e "primaryStage.show ()". O contrato nao nomeia
+   * um widget sequer, e e isso que faz a decisao rodar sem toolkit grafico.
    *
    * POR QUE UMA CLASSE INTERNA NAO-ESTATICA, e nao "Console implements LaunchTarget": metodo
    * de interface e implicitamente publico, entao a segunda forma tornaria os doze metodos
