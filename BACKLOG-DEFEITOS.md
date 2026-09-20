@@ -864,6 +864,53 @@ congela as duas respostas.
 
 ---
 
+## 24. Um arquivo que não é uma sessão gravada abre um replay vazio, em silêncio
+
+**Arquivos:** [session/SessionReader.java](src/com/bytezone/dm3270/session/SessionReader.java),
+[application/LaunchCoordinator.java](src/com/bytezone/dm3270/application/LaunchCoordinator.java)
+
+O ramo do replay valida **uma** coisa sobre o arquivo escolhido: que ele existe
+(`Files.exists`). Dali em diante não há validação de formato em ponto nenhum.
+
+`SessionReader.readFile` captura **apenas** `IOException`, e nesse caso devolve uma lista
+vazia em vez de propagar. O laço de *parse* que vem depois não reclama de linha que não sirva:
+ele simplesmente não encontra nenhuma. O resultado é uma `Session` **vazia**, cujo
+`getServerName ()` responde `"Unknown"` e cujo `getScreenDimensions ()` responde `null`.
+
+O `LaunchCoordinator` lança essa sessão vazia como lançaria qualquer outra: pede a tela, não
+acha o site chamado `"Unknown"`, monta o console sem site e **abre a janela de replay**. Sem
+dados, sem aviso, sem entrada no log. Para o usuário, a aplicação aceitou o arquivo e mostrou
+uma sessão em branco.
+
+**Medido**, com um arquivo de uma linha contendo texto qualquer:
+
+| | |
+|---|---|
+| Alertas | **nenhum** |
+| Operações do lançamento | `hideOptions`, `launchRequest`, `useAlternateScreenDimensions`, `findServerSite`, `showConsole`, `showReplay` — o caminho feliz inteiro |
+| Nome de servidor procurado | `"Unknown"` |
+| Sessão entregue à janela | `Empty session` |
+
+**Por que é latente na prática:** o combo de arquivos do `OptionStage` é preenchido por
+`getSessionFiles`, que lista a pasta de spy, então o usuário normalmente só escolhe arquivos
+que a própria aplicação gravou. O caminho aparece quando a pasta tem outro arquivo, quando uma
+gravação foi truncada, ou quando alguém aponta a pasta de spy para um diretório qualquer pelo
+botão `Folder...`.
+
+**Correção sugerida:** o `SessionLoader` recusar uma sessão sem nenhum registro, ou o
+`LaunchCoordinator` tratar uma sessão vazia como o erro que ela é — a mensagem
+`"Error creating replay window"` já existe e já reabre a janela de opções.
+
+**Por que não foi corrigido:** Regra 1. O caso `aFileThatIsNotARecordedSession` do
+`LaunchCoordinatorPathsTest` congela o comportamento atual, inclusive a ausência de alerta.
+
+**Como foi achado:** pela rede do Passo 12, no primeiro `mvn test`. O caso tinha sido escrito
+afirmando o contrário — que um arquivo inválido cairia no `catch` do ramo do replay e viraria
+`"Error creating replay window"` — e falhou. É a quinta vez seguida que a rede escrita antes
+do refactor desmente o plano.
+
+---
+
 ## Onde estão os defeitos que a refatoração *vai* resolver
 
 Estes não estão nesta lista porque não são mudança de comportamento:
