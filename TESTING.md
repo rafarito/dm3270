@@ -27,9 +27,11 @@ em paralelo sem antes isolar esses casos.
 Este documento acompanha a refatoracao estrutural da branch `refactor/solid-architecture`, e
 ficou defasado entre a Onda 1 e o Passo 5.
 
-**Remedido no Passo 11, e portanto confiavel:** "Testes que exigem JavaFX" e a secao nova
-"Mostrar uma janela num teste desliga o toolkit". A suite esta em **1.680** casos e **66**
-classes, medidos com `mvn clean test`.
+**Remedido no Passo 12, e portanto confiavel:** "Rede de seguranca" e "Testes que exigem
+JavaFX". A suite esta em **1.703** casos e **67** classes, medidos com `mvn clean test`.
+
+**Remedido no Passo 11, e ainda confiavel:** a secao "Mostrar uma janela num teste desliga o
+toolkit", que e a armadilha mais cara registrada aqui.
 
 **Remedido no Passo 9, e ainda confiavel:** "Situacao atual", "Rede de seguranca", "JARs
 sinteticos" e "Uma falha intermitente que nao e sua".
@@ -108,9 +110,9 @@ e o que diz se os testes escritos valem alguma coisa.
 
 | | `dm3270` | `dm3270-plugins` |
 |---|---:|---:|
-| Testes | **1.640** (Passo 9) | 248 (63 no `UploadDataset`) |
+| Testes | **1.703** (Passo 12) | 248 (63 no `UploadDataset`) |
 | Cobertura de instrucoes (projeto todo) | **64%** (Passo 11) | — |
-| Cobertura de ramos | 50% (Passo 8) | — |
+| Cobertura de ramos | **56%** (Passo 11) | — |
 | Mutantes gerados | 4.024 (Passo 8) | — |
 | Mutation coverage | 66% (2.647/4.024) (Passo 8) | — |
 | **Test strength** | **86%** (Passo 8) | — |
@@ -212,7 +214,7 @@ sustentam essa promessa, e todos rodam no `mvn test`:
 | Mecanismo | Onde | O que protege |
 |---|---|---|
 | Golden master do parser | `ParserGoldenMasterTest` + `test/golden/mf-parse.txt` | Reprocessa uma sessao TN3270 real e congela tudo que o parser monta: registros, comandos, orders, respostas telnet. Cobre `telnet`, `buffers`, `commands`, `orders`, `extended`, `structuredfields` e `replyfield` de uma vez |
-| Regras de camada | `LayeringTest` + `test/archunit-baseline/` | **Treze** regras de dependencia com ArchUnit. **Doze chegaram a zero e NAO sao congeladas** - uma violacao nova quebra a build sem baseline para absorve-la. So `uiIsTheOnlyPlaceThatKnowsJavaFx` segue congelada, em 240 violacoes, e o baseline versionado e o placar: ele so encolhe |
+| Regras de camada | `LayeringTest` + `test/archunit-baseline/` | **Catorze** regras de dependencia com ArchUnit. **Treze chegaram a zero e NAO sao congeladas** - uma violacao nova quebra a build sem baseline para absorve-la. So `uiIsTheOnlyPlaceThatKnowsJavaFx` segue congelada, em 240 violacoes, e o baseline versionado e o placar: ele so encolhe |
 | Placar de ciclos | `LayeringTest.MAX_MUTUAL_CYCLES`, hoje **9** | Conta os pares de pacotes com dependencia mutua. Falha se subir **e** se cair sem atualizar o limite, para que todo ganho seja registrado no commit que o produziu |
 | Caracterizacao | `SiteFormTest`, `OptionStageTest`, `ConsoleKeyPressTest`, `PluginsStageDispatchTest`, `ScreenContextPoolingTest`, `ReportScoreTest`, `SessionRecordTest`, `SessionTest`, e outros | Congela o comportamento atual das classes que serao desmontadas, **incluindo os defeitos** — ver [BACKLOG-DEFEITOS.md](BACKLOG-DEFEITOS.md) |
 | Compatibilidade da API de plugins | `PluginApiShapeTest` + `LegacyPluginCompatibilityTest` | **Nasceu no Passo 9.** Afirma a forma BINARIA de `Plugin` e `DefaultPlugin` e carrega um JAR compilado no proprio teste. E o que torna a Regra 3 uma porta de build, e nao um ritual manual |
@@ -266,7 +268,31 @@ use com `@ExtendWith (JavaFxToolkit.class)`.
 
 **Sao ONZE as classes de teste que usam a extensao desde o Passo 11** - eram sete. As quatro
 novas sao a do construtor da `Screen` (`ScreenConstructionTest`) e as tres do caminho de
-lancamento (`ConsoleStartTest`, `ConsoleLaunchErrorsTest`, `ConsoleShutdownTest`).
+lancamento (`ConsoleStartTest`, `ConsoleLaunchErrorsTest`, `ConsoleShutdownTest`). **O Passo 12
+nao acrescentou nenhuma, e isso e o resultado dele, nao um descuido** - ver logo abaixo.
+
+**O PASSO 12 TIROU O SWITCH DO LANCAMENTO DE DENTRO DO TOOLKIT.** O
+`LaunchCoordinatorPathsTest` cobre os quatro caminhos felizes - TERMINAL, SPY, TEST e REPLAY -
+com **22 casos e sem `@ExtendWith`**. Ele e possivel porque a decisao saiu do `Console` para o
+`LaunchCoordinator`, que fala com a porta `LaunchTarget`, e nenhum metodo dessa porta nomeia
+`Screen`, `ConsolePane`, `SpyPane`, `Scene` ou `Stage`. A thread da interface chega como
+`java.util.concurrent.Executor`, entao o teste passa `Runnable::run`.
+
+**E o replay dele carrega uma sessao de VERDADE, o `mf.txt` do golden master.** Isso foi
+medido antes de ser usado, e vale saber porque parece arriscado e nao e: `SessionLoader.load`
+entrega `null` como `SessionDisplay`, e `TelnetListener` so chama `uiThread.execute` quando a
+funcao e `TERMINAL`. Num replay o `Executor` **nunca e invocado** durante a carga - logo
+`Runnable::run` roda exatamente o mesmo caminho que `Platform::runLater` roda na aplicacao.
+
+**Duas medicoes desse arquivo que surpreendem, e que um teste novo nao deve supor:** o
+`getServerName ()` do `mf.txt` e `"FanDeZhi"`, e o `getScreenDimensions ()` dele e **`null`** -
+o arquivo nao tem negociacao telnet nenhuma, so registros de dados, entao nao ha Query Reply
+de onde tirar geometria.
+
+**A regra de camada nova vigia exatamente isso.** `theLaunchDecisionDoesNotKnowJavaFx` e NUA,
+nasceu em zero, e existe porque a congelada **nao** cobre este caso: ela olha para fora de
+`UI_PACKAGES`, e `com.bytezone.dm3270.application..` esta dentro. Sem ela, um `import` de
+JavaFX no coordenador passaria em silencio.
 
 **E a `Screen` deixou de ser o caso impossivel.** Este arquivo dizia, e o `CLAUDE.md` tambem,
 que ela "nao se instancia num teste hoje". Instancia, **sem costura nenhuma**: o construtor e
@@ -731,19 +757,22 @@ classes que sao genuinamente visuais, como `Site`, cujos campos sao widgets.
 
 ## Cobertura atual
 
-### `dm3270` — 66 classes de teste, 1.680 testes
+### `dm3270` — 67 classes de teste, 1.703 testes
 
-**A TABELA ABAIXO E UM INSTANTANEO DO PASSO 8 e lista 54 classes, nao 66.** Faltam as sete que
+**A TABELA ABAIXO E UM INSTANTANEO DO PASSO 8 e lista 54 classes, nao 67.** Faltam as sete que
 o Passo 9 acrescentou, todas em `test/com/bytezone/dm3270/plugins/`: `PluginsStageDispatchTest`
 (20 casos), `PluginJarsTest` (8), `LegacyPluginCompatibilityTest` (3), `PluginClassLoadingTest`
-(2), `PluginApiShapeTest` (9), `DefaultPluginTest` (10) e `PluginDigestTest` (4). O total de
-1.640 esta certo; a tabela e que nao foi regenerada.
+(2), `PluginApiShapeTest` (9), `DefaultPluginTest` (10) e `PluginDigestTest` (4); as cinco do
+Passo 11, em `application` e `display` (`ConsoleStartTest` 6, `ConsoleLaunchErrorsTest` 8,
+`ConsoleShutdownTest` 3, `ConsoleModelTest` 13, `ScreenConstructionTest` 10); e a do Passo 12,
+`LaunchCoordinatorPathsTest` (22). **O total de 1.703 esta certo; a tabela e que nao foi
+regenerada** - regenere com o comando abaixo antes de citar qualquer linha dela.
 
 **Remedida no Passo 8**, contando elementos `<testcase>` nos relatorios do Surefire, que e a
 unica contagem que fecha (ver "Ler o resultado da suite", no `RELATORIO-REFATORACAO.md` §5.18):
 
 ```bash
-grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.680
+grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.703
 ```
 
 | Classe de teste | Testes |
