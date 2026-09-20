@@ -284,9 +284,19 @@ public class Console extends Application
       pluginsStage.closeClassLoader ();
   }
 
+  /*
+   * A guarda do optionStage e a correcao do item 22 do BACKLOG-DEFEITOS.md, autorizada pelo
+   * usuario. O stop () protege seis colaboradores contra nulo e nao protegia o setimo: um
+   * Console que nunca chegou ao fim do start (Stage) estourava NullPointerException ao ser
+   * parado, e Application.stop () e chamado pelo runtime do JavaFX no fechamento.
+   *
+   * A guarda do screen ja existia, e cobre o prefs junto: os dois so nascem depois do init (),
+   * e sem tela nao ha fonte a gravar.
+   */
   private void savePreferences ()
   {
-    optionStage.savePreferences ();
+    if (optionStage != null)
+      optionStage.savePreferences ();
 
     if (screen != null)
     {
