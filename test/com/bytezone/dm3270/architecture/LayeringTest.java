@@ -284,6 +284,47 @@ class LayeringTest
           .resideInAnyPackage ("com.bytezone.dm3270.application..")                     //
           .because ("a composicao da aplicacao pertence ao composition root");
 
+  /*
+   * A DECISAO do lancamento roda sem toolkit grafico.
+   *
+   * Nasceu em zero, no passo 12, junto com o LaunchCoordinator. Ate ali o lancamento era o
+   * Console.startSelectedFunction: um switch de 92 linhas dentro de uma classe que estende
+   * javafx.application.Application, misturando a decisao - qual funcao, o que falta preencher,
+   * que mensagem de erro dar - com a construcao de Screen, ConsolePane, SpyPane, Scene,
+   * WindowSaver, ReplayStage e MainframeStage. Nada disso podia ser observado num teste sem
+   * abrir arquivo SQLite, mostrar janela e abrir socket.
+   *
+   * POR QUE UMA REGRA PROPRIA, SE A CONGELADA JA COBRE JAVAFX. Porque a congelada NAO cobre:
+   * ela olha para fora de UI_PACKAGES, e application esta dentro. Uma classe nova em
+   * application e estruturalmente incapaz de violar a congelada, entao um import de javafx no
+   * coordenador passaria em silencio - e com ele iria embora a unica coisa que este passo
+   * comprou, que e os quatro caminhos felizes do lancamento serem observaveis sem janela.
+   *
+   * A regra e NUA, e nao congelada, pelo motivo do passo 5: um baseline pode ser refrozen por
+   * comando; uma regra nua nao pode ser absorvida por comando nenhum.
+   *
+   * A REGRA NOMEIA OS TRES TIPOS, e nao o pacote inteiro nem um prefixo, e isso foi medido e
+   * nao escolhido. A primeira versao dizia "toda classe de application cujo nome comeca com
+   * Launch", e ela FALHOU no primeiro mvn test: existe um application.Launcher, o ponto de
+   * entrada estavel do "java -jar", cujo unico trabalho e chamar Application.launch. Ele TEM
+   * de conhecer JavaFX. A regra achou um erro meu antes de achar um erro do codigo, o que e o
+   * comportamento desejado, mas o registro fica aqui para ninguem alargar o predicado de novo.
+   *
+   * A porta e o pedido entram junto com o coordenador de proposito. Se o LaunchTarget passasse
+   * a nomear Stage, Scene ou um painel, a decisao voltaria a depender do toolkit por tabela,
+   * mesmo que o coordenador continuasse limpo - e e justamente a ausencia de widget nas
+   * assinaturas da porta que sustenta o desenho.
+   */
+  // ---------------------------------------------------------------------------------//
+  @ArchTest
+  static final ArchRule theLaunchDecisionDoesNotKnowJavaFx =                            //
+      noClasses ().that ()                                                              //
+          .haveSimpleName ("LaunchCoordinator")                                       //
+          .or ().haveSimpleName ("LaunchTarget")                                      //
+          .or ().haveSimpleName ("LaunchRequest")                                     //
+          .should ().dependOnClassesThat ().resideInAnyPackage ("javafx..")             //
+          .because ("a decisao do lancamento tem de rodar sem toolkit grafico");
+
   // ---------------------------------------------------------------------------------//
   @ArchTest
   static final ArchRule uiIsTheOnlyPlaceThatKnowsJavaFx = FreezingArchRule.freeze (     //
