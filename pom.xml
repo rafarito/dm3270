@@ -303,6 +303,22 @@
             <param>com.bytezone.reporter.file.ReportData</param>
             <param>com.bytezone.reporter.file.ReportTester</param>
             <param>com.bytezone.reporter.file.TextTester</param>
+            <!--
+              A DECISAO do lancamento entra no passo 12, e e a primeira classe de application
+              a entrar. O pacote inteiro esta de fora por um motivo que NAO se aplica a ela:
+              OptionStage e SiteForm sao widgets e entrariam com centenas de sobreviventes,
+              afogando o sinal. O LaunchCoordinator e o oposto disso - decisao pura, sem uma
+              linha de JavaFX, com o switch de quatro ramos, as guardas e as quatro mensagens
+              de erro. E exatamente o tipo de codigo em que o PIT e util.
+
+              O precedente de nomear UMA classe de um pacote excluido ja existe: FxPalette em
+              display, PluginJars em plugins, TelnetState em streams, SiteValue em utilities.
+
+              Medido ao entrar: 20 mutantes, 20 mortos, test strength 100%. Entra
+              ACRESCENTANDO denominador, entao a porcentagem global pode nao subir - mas aqui,
+              pela primeira vez em varios passos, ela nao deve cair tambem.
+            -->
+            <param>com.bytezone.dm3270.application.LaunchCoordinator</param>
           </targetClasses>
           <!--
             Excluidos por serem testes de integracao com socket ou thread: o PIT roda
