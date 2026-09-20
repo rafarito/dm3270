@@ -56,6 +56,8 @@ public class Console extends Application
   private MainframeStage mainframeStage;
   private PluginsStage pluginsStage;
 
+  private final LaunchTarget stages = new Stages ();
+
   @Override
   public void init () throws Exception
   {
@@ -117,10 +119,10 @@ public class Console extends Application
 
   private void startSelectedFunction ()
   {
-    optionStage.hide ();
+    stages.hideOptions ();
     String errorMessage = "";
 
-    LaunchRequest request = optionStage.getLaunchRequest ();
+    LaunchRequest request = stages.launchRequest ();
     Optional<Site> optionalServerSite = request.serverSite ();
     Optional<Site> optionalClientSite = request.clientSite ();
 
@@ -136,24 +138,23 @@ public class Console extends Application
             // can throw Exception
             Session session =
                 SessionLoader.replay (telnetState, path, Platform::runLater);
-            alternateScreenDimensions = session.getScreenDimensions ();
+            stages.useAlternateScreenDimensions (session.getScreenDimensions ());
 
             Optional<Site> serverSite =
-                optionStage.findServerSite (session.getServerName ());
+                stages.findServerSite (session.getServerName ());
             if (serverSite.isPresent ())
             {
               Site site = serverSite.get ();
-              setConsolePane (createScreen (TerminalFunction.REPLAY, site), site);
+              stages.showConsole (TerminalFunction.REPLAY, site);
             }
             else
             {
               logger.warn ("Couldn't find the server site for {}",
                   session.getServerName ());
-              setConsolePane (createScreen (TerminalFunction.REPLAY, null), null);
+              stages.showConsole (TerminalFunction.REPLAY, null);
             }
 
-            replayStage = new ReplayStage (session, path, prefs, screen);
-            replayStage.show ();
+            stages.showReplay (session, path);
           }
           catch (Exception e)
           {
@@ -167,9 +168,9 @@ public class Console extends Application
         if (optionalServerSite.isPresent ())
         {
           Site serverSite = optionalServerSite.get ();
-          setModel (serverSite);
-          setConsolePane (createScreen (TerminalFunction.TERMINAL, serverSite), serverSite);
-          consolePane.connect ();
+          stages.applyModel (serverSite);
+          stages.showConsole (TerminalFunction.TERMINAL, serverSite);
+          stages.connectConsole ();
         }
         else
           errorMessage = "No server selected";
@@ -185,7 +186,7 @@ public class Console extends Application
         {
           Site serverSite = optionalServerSite.get ();
           Site clientSite = optionalClientSite.get ();
-          setSpyPane (createScreen (TerminalFunction.SPY, null), serverSite, clientSite);
+          stages.showSpy (TerminalFunction.SPY, serverSite, clientSite);
         }
 
         break;
@@ -196,17 +197,15 @@ public class Console extends Application
         else
         {
           Site clientSite = optionalClientSite.get ();
-          setSpyPane (createScreen (TerminalFunction.TEST, null), DEFAULT_MAINFRAME, clientSite);
-          mainframeStage = new MainframeStage (telnetState, MAINFRAME_EMULATOR_PORT);
-          mainframeStage.show ();
-          mainframeStage.startServer ();
+          stages.showSpy (TerminalFunction.TEST, DEFAULT_MAINFRAME, clientSite);
+          stages.showMainframe (MAINFRAME_EMULATOR_PORT);
         }
 
         break;
     }
 
-    if (!errorMessage.isEmpty () && showAlert (errorMessage))
-      optionStage.show ();
+    if (!errorMessage.isEmpty () && stages.alert (errorMessage))
+      stages.showOptions ();
   }
 
   /*
@@ -398,6 +397,126 @@ public class Console extends Application
     screen = new Screen (screenDimensions, alternateScreenDimensions, prefs, function,
         pluginsStage, site, telnetState, datasetStore);
     return screen;
+  }
+
+  /*
+   * A FIACAO, atras da porta LaunchTarget.
+   *
+   * Nenhum corpo aqui e novo: cada um e um grupo de instrucoes que ate o commit anterior
+   * estava solto dentro do switch de startSelectedFunction. O que mudou e que a decisao -
+   * qual funcao, o que falta, que mensagem dar, em que ordem - agora fala com um contrato em
+   * vez de com "new ConsolePane" e "primaryStage.show ()", e o contrato nao nomeia um widget
+   * sequer. O passo seguinte leva o switch para fora do Console; este commit so abre a porta
+   * por onde ele vai falar.
+   *
+   * POR QUE UMA CLASSE INTERNA NAO-ESTATICA, e nao "Console implements LaunchTarget": metodo
+   * de interface e implicitamente publico, entao a segunda forma tornaria os doze metodos
+   * PUBLICOS numa classe publica. Seriam doze membros de superficie nova, contra os seis de
+   * pacote que o passo 11 abriu e contabilizou como passivo. Assim, ZERO alargamento: a classe
+   * e privada, os doze metodos so sao alcancaveis por quem tem o tipo LaunchTarget, que e de
+   * pacote, e o corpo le e escreve os campos privados do Console diretamente. Em Java 21 isso
+   * usa nestmates - o javac nao emite ponte sintetica, entao a prova por javap fica legivel e
+   * o JaCoCo nao inventa metodo.
+   *
+   * O alert () chama showAlert (String), o metodo de PACOTE, e nao Dm3270Utility.showAlert
+   * direto. E deliberado: o TestConsole sobrescreve showAlert, e Dm3270Utility.showAlert chama
+   * showAndWait (), que numa suite nao falha - TRAVA.
+   *
+   * As duas escritas de alternateScreenDimensions parecem redundantes e nao sao. applyModel
+   * negocia o modelo e deriva as dimensoes; useAlternateScreenDimensions recebe as da sessao
+   * gravada. Sao dois escritores de UM campo que sobrevive entre lancamentos na mesma JVM - e
+   * e essa sobrevivencia que sustenta a segunda metade do item 1 do BACKLOG-DEFEITOS.md, o
+   * modelo invalido que herda a geometria do lancamento anterior. Passar a dimensao como
+   * parametro de showConsole seria mais limpo e corrigiria o defeito de carona, o que a Regra 1
+   * proibe.
+   */
+  // ---------------------------------------------------------------------------------//
+  private final class Stages implements LaunchTarget
+  // ---------------------------------------------------------------------------------//
+  {
+    @Override
+    public void hideOptions ()
+    {
+      optionStage.hide ();
+    }
+
+    @Override
+    public void showOptions ()
+    {
+      optionStage.show ();
+    }
+
+    @Override
+    public LaunchRequest launchRequest ()
+    {
+      return optionStage.getLaunchRequest ();
+    }
+
+    @Override
+    public boolean alert (String message)
+    {
+      return showAlert (message);
+    }
+
+    @Override
+    public Optional<Site> findServerSite (String siteName)
+    {
+      return optionStage.findServerSite (siteName);
+    }
+
+    @Override
+    public void applyModel (Site serverSite)
+    {
+      setModel (serverSite);
+    }
+
+    @Override
+    public void useAlternateScreenDimensions (ScreenDimensions screenDimensions)
+    {
+      alternateScreenDimensions = screenDimensions;
+    }
+
+    /*
+     * Uma expressao so, de proposito: e o que garante que createScreen roda - e atribui o campo
+     * screen - antes de setConsolePane ler qualquer coisa. Separar em duas instrucoes nao
+     * mudaria nada hoje e tiraria a garantia do compilador.
+     */
+    @Override
+    public void showConsole (TerminalFunction function, Site serverSite)
+    {
+      setConsolePane (createScreen (function, serverSite), serverSite);
+    }
+
+    @Override
+    public void connectConsole ()
+    {
+      consolePane.connect ();
+    }
+
+    /*
+     * Le o campo screen, que showConsole acabou de atribuir. E a unica dependencia de ordem do
+     * ramo do replay que nao aparece na assinatura de metodo nenhum.
+     */
+    @Override
+    public void showReplay (Session session, Path path)
+    {
+      replayStage = new ReplayStage (session, path, prefs, screen);
+      replayStage.show ();
+    }
+
+    @Override
+    public void showSpy (TerminalFunction function, Site serverSite, Site clientSite)
+    {
+      setSpyPane (createScreen (function, null), serverSite, clientSite);
+    }
+
+    @Override
+    public void showMainframe (int port)
+    {
+      mainframeStage = new MainframeStage (telnetState, port);
+      mainframeStage.show ();
+      mainframeStage.startServer ();
+    }
   }
 
   public static void main (final String[] arguments)
