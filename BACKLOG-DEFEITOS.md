@@ -11,7 +11,7 @@ duas decisões que não deveriam se misturar: *reorganizar* e *mudar o que o pro
 Cada item abaixo é uma decisão pendente, não uma tarefa aprovada. Corrigir é uma escolha do
 time, num commit `fix(...)` próprio, com teste que falha antes e passa depois.
 
-**Como um item sai desta lista, e quem decide.** Já aconteceu duas vezes, e nas duas a
+**Como um item sai desta lista, e quem decide.** Já aconteceu três vezes, e nas três a
 autorização foi do usuário, pedida explicitamente antes de tocar no código:
 
 1. **medir** e registrar o item aqui, com o efeito de hoje e o delta que a correção causaria;
@@ -21,10 +21,10 @@ autorização foi do usuário, pedida explicitamente antes de tocar no código:
    Regra 1 foi dispensada a pedido dele.
 
 O item corrigido **continua nesta lista**, marcado, e não é renumerado: os comentários do código
-e dos testes citam o número. Hoje só o **item 17** está nessa situação.
+e dos testes citam o número. Hoje estão nessa situação os **itens 17 e 22**.
 
-**Os dois commits `fix` da branch são `cfc95f18` e `da0e89a8`** — são os únicos pontos em que um
-`git bisect` procurando mudança de comportamento pode parar.
+**Os três commits `fix` da branch são `cfc95f18`, `da0e89a8` e o do item 22, no Passo 12** —
+são os únicos pontos em que um `git bisect` procurando mudança de comportamento pode parar.
 
 ---
 
@@ -803,29 +803,52 @@ na montagem da barra de menus. Nada o chama de novo.
 
 ---
 
-## 22. `Console.stop ()` guarda seis colaboradores contra nulo, e não guarda o sétimo
+## 22. `Console.stop ()` guardava seis colaboradores contra nulo, e não guardava o sétimo — **CORRIGIDO**
 
 **Arquivo:** [application/Console.java](src/com/bytezone/dm3270/application/Console.java)
 
 O `stop ()` é defensivo de forma quase sistemática — `mainframeStage`, `spyPane`,
-`consolePane`, `replayStage`, os dois `WindowSaver` e a `screen` são todos testados contra
-nulo antes de serem usados. **O `optionStage` não é**: `savePreferences ()` o desreferencia
-direto, na primeira linha, e um `Console` que nunca chegou ao fim do `start (Stage)` estoura
+`consolePane`, `replayStage`, os dois `WindowSaver` e a `screen` eram todos testados contra
+nulo antes de serem usados. **O `optionStage` não era**: `savePreferences ()` o desreferenciava
+direto, na primeira linha, e um `Console` que nunca chegou ao fim do `start (Stage)` estourava
 `NullPointerException` ao ser parado.
 
-A assimetria é o que chama atenção: sete campos na mesma situação, seis protegidos e um não.
+A assimetria é o que chamava atenção: sete campos na mesma situação, seis protegidos e um não.
 
-**Isto não é teórico.** `Application.stop ()` é chamado pelo runtime do JavaFX no fechamento,
-e `start (Stage)` declara `throws Exception`. Qualquer falha antes de o `OptionStage` nascer
-deixa o objeto exatamente nesse estado — e o candidato mais realista é o `PluginsStage`, que
-é construído na linha imediatamente anterior e que varre a pasta de plugins, monta um class
+**Não era teórico.** `Application.stop ()` é chamado pelo runtime do JavaFX no fechamento, e
+`start (Stage)` declara `throws Exception`. Qualquer falha antes de o `OptionStage` nascer
+deixa o objeto exatamente nesse estado — e o candidato mais realista é o `PluginsStage`, que é
+construído na linha imediatamente anterior e que varre a pasta de plugins, monta um class
 loader por JAR e grava preferências.
 
-**Correção sugerida:** uma guarda de nulo, como nos outros seis. Ou, melhor, que o
-`savePreferences ()` só rode quando houver o que salvar.
+### O delta, por inteiro
 
-**Por que não foi corrigido:** Regra 1. O caso `stoppingAConsoleThatNeverStartedThrows` do
-`ConsoleShutdownTest` congela o comportamento atual.
+```java
+  private void savePreferences ()
+  {
+-   optionStage.savePreferences ();
++   if (optionStage != null)
++     optionStage.savePreferences ();
+
+    if (screen != null)
+    { ... }
+  }
+```
+
+| | Antes | Depois |
+|---|---|---|
+| `stop ()` num `Console` que completou o `start` | grava as preferências e fecha o class loader | **inalterado** |
+| `stop ()` num `Console` que nunca chegou ao `start` | `NullPointerException` escapando de `Application.stop ()` | não grava preferência nenhuma, fecha o que houver, e **retorna normalmente** |
+
+Nada mais muda. A guarda do `screen`, que já existia, cobre o `prefs` junto: os dois só nascem
+depois do `init ()`, e sem tela não há fonte a gravar.
+
+**Autorizado pelo usuário**, caso a caso, no Passo 12 — é o **terceiro** commit `fix` desta
+branch, depois de `cfc95f18` (avisar quando a conexão falha) e `da0e89a8` (o atalho que
+engolia a cadeia de teclas). O caso `stoppingAConsoleThatNeverStartedIsSafe` do
+`ConsoleShutdownTest` afirma o comportamento novo; até a correção ele se chamava
+`stoppingAConsoleThatNeverStartedThrows` e afirmava o oposto, e o comentário dele registra as
+duas pontas.
 
 ---
 
