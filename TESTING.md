@@ -36,11 +36,22 @@ toolkit", que e a armadilha mais cara registrada aqui.
 **Remedido no Passo 9, e ainda confiavel:** "Situacao atual", "Rede de seguranca", "JARs
 sinteticos" e "Uma falha intermitente que nao e sua".
 
-**COM UMA RESSALVA SOBRE O PIT, e ela importa:** o passo 9 NAO conseguiu rodar a passada de
-mutacao completa - a maquina ficou sem memoria e a matou duas vezes. O que rodou foi escopado
-as classes que o passo tocou, e esses numeros estao na "Situacao atual". **Os numeros GLOBAIS
-de mutacao continuam sendo os do Passo 8** e estao marcados como tal; nao os cite como
-remedidos.
+**COM UMA RESSALVA SOBRE O PIT, e ela ja aconteceu DUAS VEZES:** nem o Passo 9 nem o Passo 12
+conseguiram rodar a passada de mutacao completa nesta maquina - as duas vezes ela ficou sem
+memoria e o processo foi morto. O que rodou nos dois foi escopado as classes que o passo tocou.
+**Os numeros GLOBAIS de mutacao continuam sendo os do Passo 8** e estao marcados como tal; nao
+os cite como remedidos.
+
+**Trate isso como propriedade da maquina, e nao como algo a depurar.** Se voce precisa de
+mutacao aqui, rode ESCOPADO desde o inicio - e a unica forma que terminou nas duas ultimas
+tentativas:
+
+```bash
+mvn clean test-compile pitest:mutationCoverage -Dthreads=1     -DtargetClasses=com.bytezone.dm3270.<pacote>.<Classe>     -DtargetTests=com.bytezone.dm3270.<pacote>.<Classe>Test
+```
+
+No Passo 12 isso levou **49 segundos** e deu o numero que esta na "Situacao atual"; a passada
+global passou de dez minutos e foi morta antes de terminar.
 
 **Remedido no Passo 8:** "Cobertura atual" e "Proximos alvos". Os numeros dessas secoes foram
 medidos com `mvn clean test` e `mvn clean test-compile pitest:mutationCoverage`.
@@ -516,10 +527,15 @@ paragrafo anterior.
 
 ### PIT interrompido deixa forks orfaos
 
-Descoberto no Passo 9, e vale para qualquer execucao cancelada: **`pitest:mutationCoverage`
-nao limpa os proprios forks quando e morto no meio.** Seis deles ficaram segurando 1,4 GB numa
-maquina de 7 GB, e as execucoes seguintes morriam por falta de memoria - o sintoma parece
-lentidao da suite ou do Maven, e nao tem nada a ver com codigo.
+Descoberto no Passo 9, **CONFIRMADO no Passo 12**, e vale para qualquer execucao cancelada:
+**`pitest:mutationCoverage` nao limpa os proprios forks quando e morto no meio.** No Passo 9
+foram seis segurando 1,4 GB numa maquina de 7 GB. No Passo 12 foram **cinco segurando 724 MB**,
+e desta vez quem matou a execucao foi o proprio ambiente, por pressao de memoria - ou seja, o
+ciclo se fecha sozinho: a passada global esgota a memoria, e um sistema que reaja matando o
+processo deixa para tras justamente o que continua consumindo memoria.
+
+As execucoes seguintes morrem por falta de memoria, e o sintoma parece lentidao da suite ou do
+Maven - nao tem nada a ver com codigo.
 
 ```powershell
 Get-CimInstance Win32_Process -Filter "Name='java.exe'" |
@@ -527,8 +543,21 @@ Get-CimInstance Win32_Process -Filter "Name='java.exe'" |
 ```
 
 Se a lista nao estiver vazia e nao houver PIT rodando, mate os processos antes de culpar a
-proxima execucao. E, numa maquina apertada, `-Dthreads=1` e um escopo menor de
-`-DtargetClasses` resolvem o problema na origem.
+proxima execucao:
+
+```powershell
+Get-CimInstance Win32_Process -Filter "Name='java.exe'" |
+  Where-Object { $_.CommandLine -match 'pitest' } |
+  ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+```
+
+E, numa maquina apertada, `-Dthreads=1` e um escopo menor de `-DtargetClasses` resolvem o
+problema na origem - nas duas ultimas tentativas foi a UNICA forma que terminou.
+
+**E um efeito colateral que custa tempo se voce nao souber:** a passada morta deixa o `target/`
+pela metade, e um `target/` interrompido derruba o `jacoco:report` seguinte com
+`malformed input around byte 20`. O sintoma e `BUILD FAILURE` com **zero** falhas de teste, e a
+mensagem sugere problema de encoding. Nao e. Rode com `clean`.
 
 E o mesmo conselho do erro de fork do Surefire (`Error occurred in starting fork` sem nenhuma
 falha de teste): rodar de novo antes de concluir qualquer coisa.
