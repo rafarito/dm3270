@@ -127,7 +127,15 @@ e o que diz se os testes escritos valem alguma coisa.
 | Mutantes gerados | 4.024 (Passo 8) | — |
 | Mutation coverage | 66% (2.647/4.024) (Passo 8) | — |
 | **Test strength** | **86%** (Passo 8) | — |
-| Classes no `targetClasses` | 165 (Passo 9) | — |
+| Classes no `targetClasses` | **166** (Passo 12) | — |
+
+**O Passo 12 acrescentou UMA classe ao `targetClasses`: o `application.LaunchCoordinator`.** E
+a primeira de `application` a entrar, e o criterio e o de sempre e nao uma excecao - o pacote
+esta fora porque `OptionStage` e `SiteForm` sao widgets e entrariam com centenas de
+sobreviventes, e o coordenador e o oposto disso: decisao pura, sem uma linha de JavaFX. O
+precedente de nomear UMA classe de um pacote excluido ja existia quatro vezes
+(`display.FxPalette`, `plugins.PluginJars`, `streams.TelnetState`, `utilities.SiteValue`).
+**Medido ao entrar, numa passada escopada: 20 mutantes, 20 mortos, test strength 100%.**
 
 **O Passo 9 acrescentou 58 testes e duas classes ao `targetClasses`**, e a passada de mutacao
 dele foi ESCOPADA, nao global - ver a ressalva na secao de frescor. Medido nas classes que o
