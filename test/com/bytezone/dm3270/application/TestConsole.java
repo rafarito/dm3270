@@ -59,6 +59,29 @@ class TestConsole extends Console
   }
 
   /*
+   * O mesmo arreio, mas com o no vivo ENTREGUE ao Console pelo construtor de pacote do passo
+   * 13. E o unico jeito de um caminho feliz construir de verdade - com prefs nulo o primeiro
+   * WindowSaver estoura. O construtor de cima continua como era, e os casos que o usam
+   * continuam afirmando o que afirmavam com o prefs nulo.
+   */
+  // ---------------------------------------------------------------------------------//
+  static TestConsole withLivePreferences (Preferences prefs, Path pluginsDirectory)
+  // ---------------------------------------------------------------------------------//
+  {
+    return new TestConsole (prefs, pluginsDirectory, prefs);
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private TestConsole (Preferences prefs, Path pluginsDirectory, Preferences consolePrefs)
+  // ---------------------------------------------------------------------------------//
+  {
+    super (consolePrefs);
+
+    this.prefs = prefs;
+    this.pluginsDirectory = pluginsDirectory;
+  }
+
+  /*
    * Aponta o PluginsStage para um @TempDir. Sem isto a rede varreria a pasta plugins/ da
    * maquina de quem roda a suite - que esta no .gitignore, aqui tem dois JARs e num CI limpo
    * nao existe.
