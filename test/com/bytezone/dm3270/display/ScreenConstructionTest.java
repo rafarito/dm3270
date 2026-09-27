@@ -67,10 +67,14 @@ import com.bytezone.dm3270.testing.JavaFxToolkit;
  * proibiu de fazer na Screen.
  *
  * O unico observavel e o nono - telnetState.addTelnetStateListener (this) (:177) -, porque o
- * TelnetState e INJETADO e portanto pode ser um gravador. Os outros oito so ficam
- * observaveis quando a construcao sair para um colaborador atras de uma porta, que e o passo
- * seguinte. Tambem fica de fora a injecao tardia transfersStage.setTransferManager (:157),
- * pela mesma razao.
+ * TelnetState e INJETADO e portanto pode ser um gravador. Tambem fica de fora a injecao
+ * tardia transfersStage.setTransferManager (:157), pela mesma razao.
+ *
+ * O PASSO 13 MEDIU A SAIDA E A RECUSOU. As ORIGENS dos eventos - FieldManager, ScreenPacker,
+ * TransferManager, TransfersStage - sao classes concretas construidas aqui dentro; torna-las
+ * substituiveis exigiria um colaborador de fiacao com uns onze parametros, seis deles
+ * Consumer, no lugar de um bloco de treze linhas legivel. Os oito continuam fora da rede, e
+ * isso e decisao, nao pendencia.
  */
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
@@ -220,6 +224,11 @@ class ScreenConstructionTest
    * o vetor de ScreenPosition (:137-138) - mas termina em setCurrentScreen (DEFAULT) (:178),
    * e getScreenDimensions () (:399) responde pelo currentScreen, nao pelo campo. Quem le "a
    * tela foi construida com 27x132" e pergunta as dimensoes recebe 24x80.
+   *
+   * E ESTA CERTO, e o passo 13 mediu antes de corrigir: pelo protocolo 3270 o terminal comeca
+   * na particao de tamanho PADRAO, e so um Erase Write Alternate (WriteCommand:99) o leva a
+   * alternativa. O setCurrentScreen (DEFAULT) do fim do construtor redimensiona cursor, pen,
+   * historico, campos e mensagem para a particao em que o host vai escrever primeiro.
    */
   // ---------------------------------------------------------------------------------//
   @Test
@@ -241,7 +250,13 @@ class ScreenConstructionTest
    * e o xOffset e sempre 4 (ScreenDimensions:20), entao a diferenca e exatamente
    * fontWidth * 52.
    *
-   * Isto e caracterizacao, nao aprovacao - esta anotado no BACKLOG-DEFEITOS.md.
+   * NAO E DEFEITO, e o item 23 do BACKLOG-DEFEITOS.md foi reclassificado no passo 13. As duas
+   * respostas seguem contratos diferentes e os dois estao certos: o canvas usa a MAIOR
+   * geometria de proposito ("always use the largest available screen", em fontChanged), para
+   * a janela nao mudar de tamanho a cada troca de particao; o acessor reporta a particao
+   * CORRENTE, que no inicio e a padrao. Alinhar o acessor ao canvas faria um Write antes do
+   * primeiro EW enderecar com 132 colunas; alinhar o canvas ao acessor faria a janela crescer
+   * no EWA. O caso fica, e congela a divisao.
    */
   // ---------------------------------------------------------------------------------//
   @Test
