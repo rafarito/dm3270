@@ -27,17 +27,15 @@ public abstract class AbstractTransferTab extends Tab
 
   protected void eraseCommand ()
   {
-    tsoCommand.txtCommand.setText ("");
-    tsoCommand.btnExecute.setDisable (true);
+    tsoCommand.clearCommand ();
   }
 
   abstract protected void setText ();
 
   protected void setButton ()
   {
-    tsoCommand.btnExecute.setDisable (screen.isKeyboardLocked () || screenWatcher == null
-        || screenWatcher.getTSOCommandField () == null
-        || tsoCommand.txtCommand.getText ().isEmpty ());
+    tsoCommand.updateExecute (!screen.isKeyboardLocked () && screenWatcher != null
+        && screenWatcher.getTSOCommandField () != null);
   }
 
   @Override

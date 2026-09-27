@@ -70,6 +70,25 @@ public class TSOCommand implements ScreenChangeListener
     this.consolePane = consolePane;
   }
 
+  // o comando que a aba montou; quem decide o botao e updateExecute
+  void setCommand (String command)
+  {
+    txtCommand.setText (command);
+  }
+
+  // apaga o comando e desliga o Execute direto, sem passar pela regra de updateExecute
+  void clearCommand ()
+  {
+    txtCommand.setText ("");
+    btnExecute.setDisable (true);
+  }
+
+  // o Execute so liga se a tela aceita comando e ha texto no campo
+  void updateExecute (boolean screenAcceptsCommand)
+  {
+    btnExecute.setDisable (!screenAcceptsCommand || txtCommand.getText ().isEmpty ());
+  }
+
   private void execute ()
   {
     if (screenWatcher == null || consolePane == null)

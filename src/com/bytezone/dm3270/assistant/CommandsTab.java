@@ -49,7 +49,7 @@ public class CommandsTab extends AbstractTransferTab
       return;
     }
 
-    tsoCommand.txtCommand.setText (selectedCommand);
+    tsoCommand.setCommand (selectedCommand);
     setButton ();
   }
 }

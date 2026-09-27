@@ -73,7 +73,7 @@ public class FilesTab extends AbstractTransferTab implements NodeSelectionListen
     if (screenWatcher != null && !screenWatcher.isTSOCommandScreen ())
       command = "TSO " + command;
 
-    tsoCommand.txtCommand.setText (command);
+    tsoCommand.setCommand (command);
     ReportData reportData = currentFileNode.getReportData ();
     tsoCommand.setBuffer (reportData.getBuffer (), currentFileNode.getFile ());
     setButton ();

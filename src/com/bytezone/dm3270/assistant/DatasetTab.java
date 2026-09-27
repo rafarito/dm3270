@@ -113,8 +113,7 @@ public class DatasetTab extends AbstractTransferTab
     {
       if (datasetName.length () == prefix.length ())
       {
-        tsoCommand.txtCommand.setText ("");
-        tsoCommand.btnExecute.setDisable (true);
+        eraseCommand ();
         return;
       }
       datasetName = datasetName.substring (prefix.length () + 1);
@@ -127,7 +126,7 @@ public class DatasetTab extends AbstractTransferTab
 
     String command =
         String.format ("%sIND$FILE GET %s%s", tsoPrefix, datasetName, options);
-    tsoCommand.txtCommand.setText (command);
+    tsoCommand.setCommand (command);
     setButton ();
   }
 

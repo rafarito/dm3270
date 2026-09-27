@@ -70,7 +70,7 @@ public class BatchJobTab extends AbstractTransferTab implements BatchJobListener
         ? String.format ("%s%s", tsoPrefix, selectedBatchJob.outputCommand ())
         : String.format ("%sIND$FILE GET %s%s", tsoPrefix, report, ascii);
 
-    tsoCommand.txtCommand.setText (command);
+    tsoCommand.setCommand (command);
     setButton ();
   }
 
