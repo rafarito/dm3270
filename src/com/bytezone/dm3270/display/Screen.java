@@ -143,7 +143,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     setupMouseHandlers ();
 
     contextManager = new ContextManager ();
-    fontManager = FontManager.getInstance (this, prefs);
+    fontManager = FontManager.getInstance (this::fontChanged, prefs);
     fieldManager = new FieldManager (this, contextManager, screenDimensions, datasetStore);
     historyManager = new HistoryManager (screenDimensions, contextManager, fieldManager);
     transfersStage = new TransfersStage (this, fieldManager);
@@ -750,15 +750,10 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     screenPositions[position].draw (hasCursor);
   }
 
-  // called from FontManager() before we are fully initialised
-  // called from FontManager.setFont()
-  void fontChanged (FontDetails fontDetails)
-  {
-    fontChanged (fontDetails, true);
-  }
-
+  // called from FontManager() before we are fully initialised - see FontChangeTarget
+  // called from FontManager.setFont() with adjustStage=true
   // called with adjustStage=false when resize comes from user dragging the window
-  void fontChanged (FontDetails fontDetails, boolean adjustStage)
+  private void fontChanged (FontDetails fontDetails, boolean adjustStage)
   {
     contextManager.setFontMetrics (fontDetails.metrics ());
 
@@ -770,6 +765,9 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     setHeight (fontDetails.height * screenDimensions.rows + screenDimensions.yOffset * 2);
 
     gc.setFont (fontDetails.font);
+
+    // the two null checks below are the protection for the call from inside our own
+    // constructor: neither the console pane nor the screen positions exist yet
     if (consolePane != null)
       consolePane.setStatusFont ();
 

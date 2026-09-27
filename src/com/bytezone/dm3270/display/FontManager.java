@@ -7,7 +7,7 @@ import javafx.scene.text.Font;
 
 public interface FontManager
 {
-  public static FontManager getInstance (Screen screen, Preferences prefs)
+  public static FontManager getInstance (FontChangeTarget screen, Preferences prefs)
   {
     return new FontManagerType1 (screen, prefs);
   }

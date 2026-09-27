@@ -25,11 +25,11 @@ class FontManagerType1 implements FontManager
   private final RadioMenuItem[] fontSizeItems = new RadioMenuItem[fontSizes.length];
   private final Menu menuFont;
 
-  private final Screen screen;
+  private final FontChangeTarget screen;
   private FontDetails fontDetails;
   private Font statusBarFont;
 
-  FontManagerType1 (Screen screen, Preferences prefs)
+  FontManagerType1 (FontChangeTarget screen, Preferences prefs)
   {
     this.screen = screen;
 
@@ -194,7 +194,7 @@ class FontManagerType1 implements FontManager
   {
     fontDetails = new FontDetails (name, size, Font.font (name, size));
     statusBarFont = Font.font (name, Math.max (size - 2, 8));
-    screen.fontChanged (fontDetails);
+    screen.fontChanged (fontDetails, true);
   }
 
   @Override
