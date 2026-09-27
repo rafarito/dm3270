@@ -27,8 +27,8 @@ public class TSOCommand implements ScreenChangeListener
   private final HBox hbox = new HBox (10);
 
   private final Label lblCommand = new Label ("TSO Command");
-  final TextField txtCommand = new TextField ();
-  final Button btnExecute = new Button ("Execute");
+  private final TextField txtCommand = new TextField ();
+  private final Button btnExecute = new Button ("Execute");
 
   private AidSender consolePane;
   private ScreenWatcher screenWatcher;
