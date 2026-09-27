@@ -500,11 +500,17 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
     return null;              // exige um Site - ver a nota no topo
   }
 
+  /*
+   * O que o "plugin" responde. Por omissao nada, como uma tela sem plugin ativo; um teste
+   * que precise de resposta poe aqui o comando que o plugin teria produzido.
+   */
+  public AIDCommand pluginReply;
+
   @Override
   public AIDCommand processPluginAuto ()
   {
     calls.add ("processPluginAuto");
-    return null;
+    return pluginReply;
   }
 
   /*

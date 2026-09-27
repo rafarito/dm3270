@@ -2,6 +2,7 @@ package com.bytezone.dm3270.display;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.commands.Command;
 import com.bytezone.dm3270.commands.WriteCommand;
 
@@ -35,6 +37,8 @@ class HeadlessProcessingTest
   private static final byte WRITE = 0x01;
 
   private static final byte WCC_RESET_KEYBOARD = (byte) 0xC2;
+  private static final byte WCC_RESET_KEYBOARD_AND_MDT = (byte) 0xC3;
+  private static final byte WCC_NOTHING = (byte) 0xC0;
   private static final byte WCC_ALARM = (byte) 0xC4;
 
   private static final byte SBA = 0x11;              // Set Buffer Address
@@ -328,6 +332,163 @@ class HeadlessProcessingTest
 
       assertFalse (screen.calls.contains ("checkRecording"), "calls = " + screen.calls);
       assertFalse (screen.calls.contains ("processPluginAuto"), "calls = " + screen.calls);
+    }
+  }
+
+  /*
+   * O que o WriteCommand dispara depois de escrever: gravar a tela, rodar os plugins
+   * automaticos, desenhar. O ciclo C2 tira as condicoes disto de dentro do comando; estes
+   * casos congelam o que tem de sobreviver a mudanca.
+   *
+   * Tres coisas sao observaveis. A ORDEM: grava-se a tela ja destravada pelo WCC, antes que o
+   * plugin a altere, e so depois se desenha. As CONDICOES: as duas exigem campo e teclado
+   * livre, e o plugin exige ainda que haja orders ou que o WCC nao zere os MDT. E a RESPOSTA:
+   * setReply so e chamado quando o ramo do plugin roda - o CommandPane reprocessa o mesmo
+   * comando no replay, e a resposta anterior fica quando o ramo nao roda.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("depois de escrever")
+  class AfterWrite
+  // ---------------------------------------------------------------------------------//
+  {
+    private static final List<String> HOOKS =
+        List.of ("restoreKeyboard", "checkRecording", "processPluginAuto", "draw");
+
+    // uma tela com um campo desprotegido, e as anotacoes zeradas
+    // -------------------------------------------------------------------------------//
+    private HeadlessScreenTarget screenWithAField ()
+    // -------------------------------------------------------------------------------//
+    {
+      HeadlessScreenTarget target = new HeadlessScreenTarget ();
+      byte[] buffer = bytes (ERASE_WRITE, WCC_RESET_KEYBOARD, SBA, AT_0_HIGH, AT_0_LOW,
+                             SF, UNPROTECTED, 0xC1);
+      Command.getCommand (buffer, 0, buffer.length).process (target);
+      target.calls.clear ();
+      return target;
+    }
+
+    // -------------------------------------------------------------------------------//
+    private List<String> hooks (HeadlessScreenTarget target)
+    // -------------------------------------------------------------------------------//
+    {
+      return target.calls.stream ().filter (HOOKS::contains).toList ();
+    }
+
+    // -------------------------------------------------------------------------------//
+    private Command command (int... data)
+    // -------------------------------------------------------------------------------//
+    {
+      byte[] buffer = bytes (data);
+      return Command.getCommand (buffer, 0, buffer.length);
+    }
+
+    @Test
+    @DisplayName ("destrava, grava, roda o plugin e so entao desenha")
+    void recordsThenRunsPluginsThenDraws ()
+    {
+      process (ERASE_WRITE, WCC_RESET_KEYBOARD, SBA, AT_0_HIGH, AT_0_LOW,
+               SF, UNPROTECTED, 0xC1);
+
+      assertEquals (HOOKS, hooks (screen));
+    }
+
+    @Test
+    @DisplayName ("sem orders e com WCC que zera os MDT, grava mas nao roda o plugin")
+    void resetModifiedWithoutOrdersRecordsButSkipsPlugins ()
+    {
+      HeadlessScreenTarget target = screenWithAField ();
+
+      command (WRITE, WCC_RESET_KEYBOARD_AND_MDT).process (target);
+
+      assertEquals (List.of ("restoreKeyboard", "checkRecording"), hooks (target));
+    }
+
+    @Test
+    @DisplayName ("sem orders e com WCC que preserva os MDT, grava e roda o plugin, sem desenhar")
+    void keptModifiedWithoutOrdersRunsPluginsWithoutDrawing ()
+    {
+      HeadlessScreenTarget target = screenWithAField ();
+
+      command (WRITE, WCC_RESET_KEYBOARD).process (target);
+
+      assertEquals (List.of ("restoreKeyboard", "checkRecording", "processPluginAuto"),
+                    hooks (target));
+    }
+
+    @Test
+    @DisplayName ("com o teclado ainda travado, nem grava nem roda o plugin")
+    void lockedKeyboardSkipsBoth ()
+    {
+      HeadlessScreenTarget target = screenWithAField ();
+
+      command (WRITE, WCC_NOTHING).process (target);
+
+      assertEquals (List.of (), hooks (target));
+    }
+
+    @Test
+    @DisplayName ("sem WCC nenhum, nada roda e nada estoura")
+    void missingWccSkipsBoth ()
+    {
+      HeadlessScreenTarget target = screenWithAField ();
+
+      command (WRITE).process (target);
+
+      assertEquals (List.of (), hooks (target));
+    }
+
+    @Test
+    @DisplayName ("a resposta do plugin vira a resposta do comando")
+    void pluginReplyBecomesTheCommandReply ()
+    {
+      HeadlessScreenTarget target = screenWithAField ();
+      AIDCommand enter = enter ();
+      target.pluginReply = enter;
+      Command write = command (WRITE, WCC_RESET_KEYBOARD);
+
+      write.process (target);
+
+      assertSame (enter, write.getReply ().orElseThrow ());
+    }
+
+    @Test
+    @DisplayName ("reprocessado sem que o ramo do plugin rode, a resposta anterior fica")
+    void replayWithoutThePluginBranchKeepsTheReply ()
+    {
+      HeadlessScreenTarget first = screenWithAField ();
+      AIDCommand enter = enter ();
+      first.pluginReply = enter;
+      Command write = command (WRITE, WCC_RESET_KEYBOARD);
+      write.process (first);
+
+      HeadlessScreenTarget empty = new HeadlessScreenTarget ();       // sem campo nenhum
+      write.process (empty);
+
+      assertFalse (empty.calls.contains ("processPluginAuto"), "calls = " + empty.calls);
+      assertSame (enter, write.getReply ().orElseThrow ());
+    }
+
+    @Test
+    @DisplayName ("reprocessado com o ramo rodando e sem plugin ativo, a resposta e apagada")
+    void replayWithThePluginBranchClearsTheReply ()
+    {
+      HeadlessScreenTarget first = screenWithAField ();
+      first.pluginReply = enter ();
+      Command write = command (WRITE, WCC_RESET_KEYBOARD);
+      write.process (first);
+
+      write.process (screenWithAField ());         // pluginReply nulo: nenhum plugin ativo
+
+      assertTrue (write.getReply ().isEmpty (), "resposta = " + write.getReply ());
+    }
+
+    // -------------------------------------------------------------------------------//
+    private AIDCommand enter ()
+    // -------------------------------------------------------------------------------//
+    {
+      byte[] buffer = { AIDCommand.AID_ENTER, 0x40, 0x40 };
+      return new AIDCommand (buffer, 0, buffer.length);
     }
   }
 
