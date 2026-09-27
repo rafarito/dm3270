@@ -8,9 +8,10 @@ import java.util.List;
 public class DatasetRequest extends DatabaseRequest
 // -----------------------------------------------------------------------------------//
 {
-  public Dataset dataset;
-  public String datasetName;
-  public List<Dataset> datasets;
+  // O nome nunca muda depois do construtor. O dataset e a lista sao a resposta do worker.
+  private Dataset dataset;
+  private final String datasetName;
+  private List<Dataset> datasets;
 
   // ---------------------------------------------------------------------------------//
   public DatasetRequest (Initiator initiator, Command command, String datasetName)
@@ -29,6 +30,41 @@ public class DatasetRequest extends DatabaseRequest
 
     this.dataset = dataset;
     this.datasetName = dataset.getName ();
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public Dataset getDataset ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return dataset;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  void setDataset (Dataset dataset)
+  // ---------------------------------------------------------------------------------//
+  {
+    this.dataset = dataset;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public String getDatasetName ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return datasetName;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public List<Dataset> getDatasets ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return datasets;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  void setDatasets (List<Dataset> datasets)
+  // ---------------------------------------------------------------------------------//
+  {
+    this.datasets = datasets;
   }
 
   // ---------------------------------------------------------------------------------//

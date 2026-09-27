@@ -555,8 +555,8 @@ class DatabaseTest
       DatasetRequest request =
           new DatasetRequest (initiator, Command.FIND, "MEU.DATASET");
 
-      assertEquals ("MEU.DATASET", request.datasetName);
-      assertNull (request.dataset);
+      assertEquals ("MEU.DATASET", request.getDatasetName ());
+      assertNull (request.getDataset ());
       assertTrue (request.toString ().contains ("Dataset ....... MEU.DATASET"));
     }
 
@@ -568,8 +568,8 @@ class DatabaseTest
 
       DatasetRequest request = new DatasetRequest (initiator, Command.ADD, dataset);
 
-      assertEquals ("MEU.DATASET", request.datasetName);
-      assertSame (dataset, request.dataset);
+      assertEquals ("MEU.DATASET", request.getDatasetName ());
+      assertSame (dataset, request.getDataset ());
     }
 
     @Test
@@ -666,10 +666,10 @@ class DatabaseTest
     private DatabaseRequest wire (DatabaseRequest request, Initiator initiator)
     {
       if (request instanceof DatasetRequest datasetRequest)
-        return datasetRequest.dataset != null
-            ? new DatasetRequest (initiator, request.command, datasetRequest.dataset)
+        return datasetRequest.getDataset () != null
+            ? new DatasetRequest (initiator, request.command, datasetRequest.getDataset ())
             : new DatasetRequest (initiator, request.command,
-                                  datasetRequest.datasetName);
+                                  datasetRequest.getDatasetName ());
 
       if (request instanceof MemberRequest memberRequest)
         return memberRequest.member != null
@@ -775,11 +775,11 @@ class DatabaseTest
                                                        "MEU.DATASET"));
 
       assertEquals (Result.SUCCESS, found.getResult ());
-      assertNotNull (found.dataset);
-      assertEquals ("MEU.DATASET", found.dataset.getName ());
-      assertTrue (found.dataset.isPartitioned ());
-      assertTrue (found.dataset.toString ().contains ("FUSR01"),
-                  found.dataset.toString ());
+      assertNotNull (found.getDataset ());
+      assertEquals ("MEU.DATASET", found.getDataset ().getName ());
+      assertTrue (found.getDataset ().isPartitioned ());
+      assertTrue (found.getDataset ().toString ().contains ("FUSR01"),
+                  found.getDataset ().toString ());
     }
 
     @Test
@@ -857,8 +857,8 @@ class DatabaseTest
           (DatasetRequest) execute (new DatasetRequest (null, Command.LIST, "*"));
 
       assertEquals (Result.SUCCESS, list.getResult ());
-      assertNotNull (list.datasets);
-      assertEquals (2, list.datasets.size ());
+      assertNotNull (list.getDatasets ());
+      assertEquals (2, list.getDatasets ().size ());
     }
 
     @Test
@@ -874,7 +874,7 @@ class DatabaseTest
       DatasetRequest list =
           (DatasetRequest) execute (new DatasetRequest (null, Command.LIST, "USER01*"));
 
-      assertEquals (2, list.datasets.size ());
+      assertEquals (2, list.getDatasets ().size ());
     }
 
     @Test
@@ -897,9 +897,9 @@ class DatabaseTest
           (DatasetRequest) execute (new DatasetRequest (null, Command.LIST,
                                                        "NAO.EXISTE"));
 
-      assertEquals (2, empty.datasets.size ());
-      assertEquals (1, exact.datasets.size ());
-      assertEquals (0, missing.datasets.size ());
+      assertEquals (2, empty.getDatasets ().size ());
+      assertEquals (1, exact.getDatasets ().size ());
+      assertEquals (0, missing.getDatasets ().size ());
     }
 
     @Test
@@ -1216,7 +1216,7 @@ class DatabaseTest
 
       // toString imprime as quinze colunas de uma vez, entao comparar as duas
       // representacoes cobre a ida e a volta inteiras
-      assertEquals (original.toString (), found.dataset.toString ());
+      assertEquals (original.toString (), found.getDataset ().toString ());
     }
 
     @Test
@@ -1234,7 +1234,7 @@ class DatabaseTest
       DatasetRequest found = (DatasetRequest) execute (
           new DatasetRequest (null, Command.FIND, "SEM.DATAS"));
 
-      assertEquals (original.toString (), found.dataset.toString ());
+      assertEquals (original.toString (), found.getDataset ().toString ());
     }
 
     @Test

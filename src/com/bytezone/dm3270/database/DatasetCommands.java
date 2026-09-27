@@ -1,6 +1,7 @@
 package com.bytezone.dm3270.database;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -43,12 +44,12 @@ final class DatasetCommands
   void execute (DatasetRequest request)
   // ---------------------------------------------------------------------------------//
   {
-    Optional<Dataset> optDataset = datasets.find (request.datasetName);
+    Optional<Dataset> optDataset = datasets.find (request.getDatasetName ());
 
     switch (request.command)
     {
       case ADD:
-        if (!optDataset.isPresent () && datasets.insert (request.dataset))
+        if (!optDataset.isPresent () && datasets.insert (request.getDataset ()))
           request.setResult (Result.SUCCESS);
         break;
 
@@ -60,7 +61,7 @@ final class DatasetCommands
         }
         else
         {
-          if (datasets.insert (request.dataset))
+          if (datasets.insert (request.getDataset ()))
             request.setResult (Result.SUCCESS);
         }
         break;
@@ -78,7 +79,7 @@ final class DatasetCommands
       case FIND:
         if (optDataset.isPresent ())
         {
-          request.dataset = optDataset.get ();
+          request.setDataset (optDataset.get ());
           request.setResult (Result.SUCCESS);
         }
         break;
@@ -106,7 +107,7 @@ final class DatasetCommands
   private boolean update (DatasetRequest request)
   // ---------------------------------------------------------------------------------//
   {
-    Dataset dataset = request.dataset;
+    Dataset dataset = request.getDataset ();
     Optional<Dataset> optDataset = datasets.find (dataset.getName ());
     if (optDataset.isPresent ())
     {
@@ -116,7 +117,7 @@ final class DatasetCommands
 
       currentDataset.merge (dataset);
       dataset = currentDataset;
-      request.dataset = dataset;
+      request.setDataset (dataset);
     }
     else
       cache.put (dataset);
@@ -135,7 +136,8 @@ final class DatasetCommands
   private boolean list (DatasetRequest request)
   // ---------------------------------------------------------------------------------//
   {
-    request.datasets = new ArrayList<> ();
-    return datasets.list (request.datasetName, request.datasets);
+    List<Dataset> found = new ArrayList<> ();
+    request.setDatasets (found);
+    return datasets.list (request.getDatasetName (), found);
   }
 }
