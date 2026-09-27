@@ -160,7 +160,6 @@ class ScreenConstructionTest
     assertNotNull (screen.getTransferManager ());
     assertNotNull (screen.getPen ());
     assertNotNull (screen.getScreenPositions ());
-    assertSame (pluginsStage, screen.getPluginsStage ());
     assertSame (telnetState, screen.getTelnetState ());
     assertEquals (TerminalFunction.TERMINAL, screen.getFunction ());
   }

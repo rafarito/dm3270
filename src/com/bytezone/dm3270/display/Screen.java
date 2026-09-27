@@ -495,13 +495,6 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
 
   // called by WriteCommand.process()
   // ---------------------------------------------------------------------------------//
-  public PluginsStage getPluginsStage ()
-  // ---------------------------------------------------------------------------------//
-  {
-    return pluginsStage;
-  }
-
-  // ---------------------------------------------------------------------------------//
   public TransfersStage getAssistantStage ()
   // ---------------------------------------------------------------------------------//
   {
