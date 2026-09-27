@@ -52,6 +52,32 @@ public class Console extends Application
   private final LaunchTarget stages = new Stages ();
   private LaunchCoordinator coordinator;
 
+  // O JavaFX instancia a Application por reflexao, e exige este construtor publico sem
+  // argumentos. As preferencias chegam depois, em init ().
+  public Console ()
+  {
+  }
+
+  /*
+   * As preferencias entregues prontas, sem init (). E o setimo membro de pacote desta classe,
+   * e o motivo e o que o cabecalho do TestConsole previa: "quando alguma assercao precisar do
+   * no vivo dentro do Console, a costura seria um construtor de pacote so para o prefs".
+   *
+   * init () depende de getParameters (), e portanto de Application.launch - inalcancavel num
+   * teste. Com prefs nulo, todo caminho feliz do lancamento estoura no primeiro WindowSaver.
+   * Com um no descartavel, a Screen, o ConsolePane e a ReplayStage REAIS nascem dentro do
+   * Console, e o lancamento fica observavel pelo EFEITO - que e o que faltava depois do passo
+   * 12, e o criterio de pronto do passo 13.
+   *
+   * O PLANO DIZIA QUE ISSO EXIGIRIA UMA FABRICA DE Screen, e a medicao desmentiu: a Screen ja
+   * se constroi num teste desde o passo 11. O que impedia o Console de construi-la era o prefs
+   * nulo, e nada mais.
+   */
+  Console (Preferences prefs)
+  {
+    this.prefs = prefs;
+  }
+
   @Override
   public void init () throws Exception
   {
