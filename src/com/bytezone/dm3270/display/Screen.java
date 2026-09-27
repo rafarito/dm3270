@@ -66,7 +66,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.MenuItem;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.animation.PauseTransition;
@@ -145,7 +144,8 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     cursor = new Cursor (this, screenDimensions);
     gc = getGraphicsContext2D ();
     screenSelection = new ScreenSelection (new Selection ());
-    setupMouseHandlers ();
+    new ScreenMouseInput (this, cursor, screenSelection,
+        () -> getFontManager ().getFontDetails (), this::getScreenDimensions).install ();
 
     contextManager = new ContextManager ();
     fontManager = FontManager.getInstance (this::fontChanged, prefs);
@@ -184,73 +184,6 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
 
     this.pluginsStage = pluginsStage;
     pluginsStage.setScreen (this);
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private void setupMouseHandlers ()
-  // ---------------------------------------------------------------------------------//
-  {
-    setOnMousePressed (this::handleMousePressed);
-    setOnMouseDragged (this::handleMouseDragged);
-    setOnMouseReleased (this::handleMouseReleased);
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private void handleMousePressed (MouseEvent event)
-  // ---------------------------------------------------------------------------------//
-  {
-    // Clear any previous selection
-    screenSelection.clearSelection ();
-    
-    int position = mouseToPosition (event.getX (), event.getY ());
-    if (position >= 0)
-    {
-      // Move cursor first, then start selection so selection visual takes priority
-      if (cursor.isVisible ())
-        cursor.moveTo (position);
-
-      screenSelection.startSelection (position);
-    }
-    
-    requestFocus ();
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private void handleMouseDragged (MouseEvent event)
-  // ---------------------------------------------------------------------------------//
-  {
-    int position = mouseToPosition (event.getX (), event.getY ());
-    if (position >= 0)
-      screenSelection.extendSelection (position);
-  }
-
-  // ---------------------------------------------------------------------------------//
-  private void handleMouseReleased (MouseEvent event)
-  // ---------------------------------------------------------------------------------//
-  {
-    int position = mouseToPosition (event.getX (), event.getY ());
-    if (position >= 0)
-      screenSelection.endSelection (position);
-  }
-
-  // ---------------------------------------------------------------------------------//
-  int mouseToPosition (double mouseX, double mouseY)
-  // ---------------------------------------------------------------------------------//
-  {
-    FontDetails fontDetails = fontManager.getFontDetails ();
-    if (fontDetails == null)
-      return -1;
-
-    ScreenDimensions dims = getScreenDimensions ();
-
-    int col = (int) ((mouseX - dims.xOffset) / fontDetails.width);
-    int row = (int) ((mouseY - dims.yOffset) / fontDetails.height);
-
-    // Clamp to valid range
-    col = Math.max (0, Math.min (dims.columns - 1, col));
-    row = Math.max (0, Math.min (dims.rows - 1, row));
-
-    return row * dims.columns + col;
   }
 
   // ---------------------------------------------------------------------------------//
