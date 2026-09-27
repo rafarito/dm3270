@@ -1,6 +1,5 @@
 package com.bytezone.dm3270.display;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,17 +18,11 @@ import com.bytezone.dm3270.screen.Pen;
 import com.bytezone.dm3270.screen.ScreenPosition;
 import com.bytezone.dm3270.structuredfields.SetReplyModeSF;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 // -----------------------------------------------------------------------------------//
 class ScreenPacker implements ScreenChangeListener
 // -----------------------------------------------------------------------------------//
 {
-  private static final Logger logger = LoggerFactory.getLogger (ScreenPacker.class);
-
   private final byte[] buffer = new byte[8192];
-  private final List<String> tsoCommands = new ArrayList<> ();
 
   private ScreenWatcher screenWatcher;
   private Pen pen;
@@ -206,26 +199,7 @@ class ScreenPacker implements ScreenChangeListener
     if (minCommand.isEmpty ())
       return;
 
-    tsoCommands.add (minCommand);
     notifyTSOCommandListeners (minCommand);
-  }
-
-  // ---------------------------------------------------------------------------------//
-  public String getPreviousTSOCommand ()
-  // ---------------------------------------------------------------------------------//
-  {
-    if (tsoCommands.size () > 0)
-      return tsoCommands.get (tsoCommands.size () - 1);
-    return "bollocks";
-  }
-
-  // ---------------------------------------------------------------------------------//
-  public void listTSOCommands ()
-  // ---------------------------------------------------------------------------------//
-  {
-    logger.debug ("User commands:");
-    for (String command : tsoCommands)
-      logger.debug ("[{}]", command);
   }
 
   // ---------------------------------------------------------------------------------//

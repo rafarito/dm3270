@@ -531,26 +531,12 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     return function;
   }
 
-  // ---------------------------------------------------------------------------------//
-  public String getPreviousTSOCommand ()
-  // ---------------------------------------------------------------------------------//
-  {
-    return screenPacker.getPreviousTSOCommand ();
-  }
-
   // called from AIDCommand.process()
   // ---------------------------------------------------------------------------------//
   public void addTSOCommand (String command)
   // ---------------------------------------------------------------------------------//
   {
     screenPacker.addTSOCommand (command);
-  }
-
-  // ---------------------------------------------------------------------------------//
-  public void listTSOCommands ()
-  // ---------------------------------------------------------------------------------//
-  {
-    screenPacker.listTSOCommands ();
   }
 
   // display a message on the screen - only used when logging off
