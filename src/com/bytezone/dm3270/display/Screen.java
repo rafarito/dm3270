@@ -5,15 +5,12 @@ import static com.bytezone.dm3270.commands.AIDCommand.NO_AID_SPECIFIED;
 
 import java.awt.Toolkit;
 import java.io.UnsupportedEncodingException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 
 import com.bytezone.dm3270.runtime.TerminalFunction;
-import com.bytezone.dm3270.screen.KeyboardStatusChangedEvent;
 import com.bytezone.dm3270.screen.KeyboardStatusListener;
 import com.bytezone.dm3270.assistant.TransfersStage;
 import com.bytezone.dm3270.attributes.Attribute;
@@ -122,8 +119,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   private byte[] replyTypes = new byte[0];
 
   private int insertedCursorPosition = -1;
-  private boolean keyboardLocked;
-  private boolean insertMode;
+  private final KeyboardStatus keyboardStatus = new KeyboardStatus ();
   private boolean readModifiedAll = false;
 
   // ---------------------------------------------------------------------------------//
@@ -602,8 +598,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   public void resetInsertMode ()
   // ---------------------------------------------------------------------------------//
   {
-    if (insertMode)
-      toggleInsertMode ();
+    keyboardStatus.resetInsertMode ();
   }
 
   // called from ConsoleKeyPress.handle()
@@ -612,8 +607,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   public void toggleInsertMode ()
   // ---------------------------------------------------------------------------------//
   {
-    insertMode = !insertMode;
-    fireKeyboardStatusChange ("");
+    keyboardStatus.toggleInsertMode ();
   }
 
   // called from Cursor.typeChar()
@@ -622,7 +616,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   public boolean isInsertMode ()
   // ---------------------------------------------------------------------------------//
   {
-    return insertMode;
+    return keyboardStatus.isInsertMode ();
   }
 
   // called from EraseAllUnprotectedCommand.process()
@@ -1002,16 +996,14 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   {
     setAID (NO_AID_SPECIFIED);
     cursor.setVisible (true);
-    keyboardLocked = false;
-    fireKeyboardStatusChange ("");
+    keyboardStatus.unlock ();
   }
 
   // ---------------------------------------------------------------------------------//
   public void lockKeyboard (String keyName)
   // ---------------------------------------------------------------------------------//
   {
-    keyboardLocked = true;
-    fireKeyboardStatusChange (keyName);
+    keyboardStatus.lock (keyName);
 
     if (function == TERMINAL)
       cursor.setVisible (false);
@@ -1028,38 +1020,25 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   public boolean isKeyboardLocked ()
   // ---------------------------------------------------------------------------------//
   {
-    return keyboardLocked;
+    return keyboardStatus.isLocked ();
   }
 
   // ---------------------------------------------------------------------------------//
   // Listener events
   // ---------------------------------------------------------------------------------//
 
-  private final Set<KeyboardStatusListener> keyboardChangeListeners = new HashSet<> ();
-
-  // ---------------------------------------------------------------------------------//
-  private void fireKeyboardStatusChange (String keyName)
-  // ---------------------------------------------------------------------------------//
-  {
-    KeyboardStatusChangedEvent evt =
-        new KeyboardStatusChangedEvent (insertMode, keyboardLocked, keyName);
-    keyboardChangeListeners.forEach (l -> l.keyboardStatusChanged (evt));
-  }
-
   // ---------------------------------------------------------------------------------//
   public void addKeyboardStatusChangeListener (KeyboardStatusListener listener)
   // ---------------------------------------------------------------------------------//
   {
-    if (!keyboardChangeListeners.contains (listener))
-      keyboardChangeListeners.add (listener);
+    keyboardStatus.addKeyboardStatusChangeListener (listener);
   }
 
   // ---------------------------------------------------------------------------------//
   public void removeKeyboardStatusChangeListener (KeyboardStatusListener listener)
   // ---------------------------------------------------------------------------------//
   {
-    if (keyboardChangeListeners.contains (listener))
-      keyboardChangeListeners.remove (listener);
+    keyboardStatus.removeKeyboardStatusChangeListener (listener);
   }
 
   // ---------------------------------------------------------------------------------//
@@ -1073,8 +1052,8 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     if (historyManager.size () == 0)
       return Optional.empty ();
 
-    historyManager.pause (keyboardLocked);
-    keyboardLocked = true;
+    historyManager.pause (keyboardStatus.isLocked ());
+    keyboardStatus.setLockedQuietly (true);
 
     return Optional.of (historyManager);
   }
@@ -1083,6 +1062,6 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   public void resume ()                     // also triggered by cmd-s
   // ---------------------------------------------------------------------------------//
   {
-    keyboardLocked = historyManager.resume ();
+    keyboardStatus.setLockedQuietly (historyManager.resume ());
   }
 }
