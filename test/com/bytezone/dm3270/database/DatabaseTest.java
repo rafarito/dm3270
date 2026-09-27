@@ -536,8 +536,8 @@ class DatabaseTest
     void describesDatabaseRequest ()
     {
       DatabaseRequest request = new DatabaseRequest (initiator, Command.OPEN);
-      request.databaseName = "teste.db";
-      request.result = Result.SUCCESS;
+      request.setDatabaseName ("teste.db");
+      request.setResult (Result.SUCCESS);
 
       String report = request.toString ();
 
@@ -703,8 +703,8 @@ class DatabaseTest
     {
       DatabaseRequest request = open ();
 
-      assertEquals (Result.SUCCESS, request.result);
-      assertEquals ("teste.db", request.databaseName);
+      assertEquals (Result.SUCCESS, request.getResult ());
+      assertEquals ("teste.db", request.getDatabaseName ());
     }
 
     @Test
@@ -714,7 +714,7 @@ class DatabaseTest
     {
       open ();
 
-      assertEquals (Result.SUCCESS, open ().result);
+      assertEquals (Result.SUCCESS, open ().getResult ());
     }
 
     @Test
@@ -726,14 +726,14 @@ class DatabaseTest
       execute (new DatasetRequest (null, Command.ADD, sampleDataset ("MEU.DATASET")));
 
       assertEquals (Result.SUCCESS,
-                    execute (new DatabaseRequest (null, Command.CREATE)).result);
+                    execute (new DatabaseRequest (null, Command.CREATE)).getResult ());
 
       // depois do CREATE o dataset ja nao esta la
       DatasetRequest find =
           (DatasetRequest) execute (new DatasetRequest (null, Command.FIND,
                                                        "MEU.DATASET"));
 
-      assertEquals (Result.FAILURE, find.result);
+      assertEquals (Result.FAILURE, find.getResult ());
     }
 
     @Test
@@ -744,7 +744,7 @@ class DatabaseTest
       open ();
 
       assertEquals (Result.SUCCESS,
-                    execute (new DatabaseRequest (null, Command.DROP)).result);
+                    execute (new DatabaseRequest (null, Command.DROP)).getResult ());
     }
 
     @Test
@@ -756,10 +756,10 @@ class DatabaseTest
 
       assertEquals (Result.SUCCESS,
                     execute (new DatasetRequest (null, Command.ADD,
-                                                 sampleDataset ("MEU.DATASET"))).result);
+                                                 sampleDataset ("MEU.DATASET"))).getResult ());
       assertEquals (Result.FAILURE,
                     execute (new DatasetRequest (null, Command.ADD,
-                                                 sampleDataset ("MEU.DATASET"))).result);
+                                                 sampleDataset ("MEU.DATASET"))).getResult ());
     }
 
     @Test
@@ -774,7 +774,7 @@ class DatabaseTest
           (DatasetRequest) execute (new DatasetRequest (null, Command.FIND,
                                                        "MEU.DATASET"));
 
-      assertEquals (Result.SUCCESS, found.result);
+      assertEquals (Result.SUCCESS, found.getResult ());
       assertNotNull (found.dataset);
       assertEquals ("MEU.DATASET", found.dataset.getName ());
       assertTrue (found.dataset.isPartitioned ());
@@ -791,7 +791,7 @@ class DatabaseTest
 
       assertEquals (Result.FAILURE,
                     execute (new DatasetRequest (null, Command.FIND, "NAO.EXISTE"))
-                        .result);
+                        .getResult ());
     }
 
     @Test
@@ -803,10 +803,10 @@ class DatabaseTest
 
       assertEquals (Result.SUCCESS,
                     execute (new DatasetRequest (null, Command.UPDATE,
-                                                 sampleDataset ("NOVO.DATASET"))).result);
+                                                 sampleDataset ("NOVO.DATASET"))).getResult ());
       assertEquals (Result.SUCCESS,
                     execute (new DatasetRequest (null, Command.FIND, "NOVO.DATASET"))
-                        .result);
+                        .getResult ());
     }
 
     @Test
@@ -818,14 +818,14 @@ class DatabaseTest
 
       assertEquals (Result.FAILURE,
                     execute (new DatasetRequest (null, Command.MODIFY,
-                                                 sampleDataset ("NAO.EXISTE"))).result);
+                                                 sampleDataset ("NAO.EXISTE"))).getResult ());
 
       execute (new DatasetRequest (null, Command.ADD, sampleDataset ("MEU.DATASET")));
       Dataset changed = sampleDataset ("MEU.DATASET");
       changed.setSpace (99, 9, 9, 99);
 
       assertEquals (Result.SUCCESS,
-                    execute (new DatasetRequest (null, Command.MODIFY, changed)).result);
+                    execute (new DatasetRequest (null, Command.MODIFY, changed)).getResult ());
     }
 
     @Test
@@ -838,10 +838,10 @@ class DatabaseTest
 
       assertEquals (Result.SUCCESS,
                     execute (new DatasetRequest (null, Command.DELETE, "MEU.DATASET"))
-                        .result);
+                        .getResult ());
       assertEquals (Result.FAILURE,
                     execute (new DatasetRequest (null, Command.DELETE, "MEU.DATASET"))
-                        .result);
+                        .getResult ());
     }
 
     @Test
@@ -856,7 +856,7 @@ class DatabaseTest
       DatasetRequest list =
           (DatasetRequest) execute (new DatasetRequest (null, Command.LIST, "*"));
 
-      assertEquals (Result.SUCCESS, list.result);
+      assertEquals (Result.SUCCESS, list.getResult ());
       assertNotNull (list.datasets);
       assertEquals (2, list.datasets.size ());
     }
@@ -917,9 +917,9 @@ class DatabaseTest
       member.setDates ("2024/01/15", "2025/06/01 14:30:00");
 
       assertEquals (Result.SUCCESS,
-                    execute (new MemberRequest (null, Command.ADD, member)).result);
+                    execute (new MemberRequest (null, Command.ADD, member)).getResult ());
       assertEquals (Result.FAILURE,
-                    execute (new MemberRequest (null, Command.ADD, member)).result);
+                    execute (new MemberRequest (null, Command.ADD, member)).getResult ());
     }
 
     @Test
@@ -939,7 +939,7 @@ class DatabaseTest
       MemberRequest found =
           (MemberRequest) execute (new MemberRequest (null, Command.FIND, member));
 
-      assertEquals (Result.SUCCESS, found.result);
+      assertEquals (Result.SUCCESS, found.getResult ());
       assertNotNull (found.member);
       assertEquals ("IEFBR14", found.member.getName ());
     }
@@ -957,12 +957,12 @@ class DatabaseTest
       member.setSize (10);
 
       assertEquals (Result.SUCCESS,
-                    execute (new MemberRequest (null, Command.UPDATE, member)).result);
+                    execute (new MemberRequest (null, Command.UPDATE, member)).getResult ());
 
       member.setSize (20);
 
       assertEquals (Result.SUCCESS,
-                    execute (new MemberRequest (null, Command.UPDATE, member)).result);
+                    execute (new MemberRequest (null, Command.UPDATE, member)).getResult ());
     }
 
     @Test
@@ -977,7 +977,7 @@ class DatabaseTest
       Member member = new Member (dataset, "NAO.EXISTE");
 
       assertEquals (Result.FAILURE,
-                    execute (new MemberRequest (null, Command.MODIFY, member)).result);
+                    execute (new MemberRequest (null, Command.MODIFY, member)).getResult ());
     }
 
     @Test
@@ -994,11 +994,11 @@ class DatabaseTest
       execute (new MemberRequest (null, Command.ADD, member));
 
       assertEquals (Result.SUCCESS,
-                    execute (new MemberRequest (null, Command.DELETE, member)).result);
+                    execute (new MemberRequest (null, Command.DELETE, member)).getResult ());
 
       // o membro saiu do banco, entao um segundo DELETE nao encontra nada
       assertEquals (Result.FAILURE,
-                    execute (new MemberRequest (null, Command.DELETE, member)).result);
+                    execute (new MemberRequest (null, Command.DELETE, member)).getResult ());
     }
 
     @Test
@@ -1040,7 +1040,7 @@ class DatabaseTest
       MemberRequest list =
           (MemberRequest) execute (new MemberRequest (null, Command.LIST, dataset, ""));
 
-      assertEquals (Result.SUCCESS, list.result);
+      assertEquals (Result.SUCCESS, list.getResult ());
       assertNotNull (list.members);
       assertEquals (3, list.members.size ());
     }
@@ -1062,7 +1062,7 @@ class DatabaseTest
       MemberRequest found =
           (MemberRequest) execute (new MemberRequest (null, Command.FIND, member));
 
-      assertEquals (Result.SUCCESS, found.result);
+      assertEquals (Result.SUCCESS, found.getResult ());
       assertNotNull (found.member);
       assertNull (found.members, "o FIND nao deveria montar a lista");
     }
@@ -1075,7 +1075,7 @@ class DatabaseTest
       open ();
 
       assertEquals (Result.SUCCESS,
-                    execute (new DatabaseRequest (null, Command.CLOSE)).result);
+                    execute (new DatabaseRequest (null, Command.CLOSE)).getResult ());
 
       thread.join (5000);
 
@@ -1090,7 +1090,7 @@ class DatabaseTest
       open ();
 
       assertEquals (Result.FAILURE,
-                    execute (new DatabaseRequest (null, Command.FIND)).result);
+                    execute (new DatabaseRequest (null, Command.FIND)).getResult ());
     }
 
     // -------------------------------------------------------------------------------//
@@ -1270,7 +1270,7 @@ class DatabaseTest
 
       Member member = new Member (new Dataset ("NUNCA.VISTO"), "UM");
       assertEquals (Result.SUCCESS,
-                    execute (new MemberRequest (null, Command.ADD, member)).result);
+                    execute (new MemberRequest (null, Command.ADD, member)).getResult ());
 
       try (Connection connection = openDatabaseFile ();
           Statement statement = connection.createStatement ();
@@ -1321,8 +1321,8 @@ class DatabaseTest
       DatabaseRequest done =
           execute (new DatasetRequest (null, Command.UPDATE, changed));
 
-      assertEquals (Result.SUCCESS, done.result);
-      assertTrue (done.databaseUpdated, "o espaco mudou, entao houve escrita");
+      assertEquals (Result.SUCCESS, done.getResult ());
+      assertTrue (done.isDatabaseUpdated (), "o espaco mudou, entao houve escrita");
     }
 
     @Test
@@ -1336,8 +1336,8 @@ class DatabaseTest
       DatabaseRequest done = execute (
           new DatasetRequest (null, Command.UPDATE, datasetWithoutDates ("MEU.DATASET")));
 
-      assertEquals (Result.SUCCESS, done.result, "nada a fazer tambem e sucesso");
-      assertFalse (done.databaseUpdated,
+      assertEquals (Result.SUCCESS, done.getResult (), "nada a fazer tambem e sucesso");
+      assertFalse (done.isDatabaseUpdated (),
                    "differsFrom devolveu false: updateDataset sai antes de escrever");
     }
 
@@ -1355,7 +1355,7 @@ class DatabaseTest
       partial.setSpace (99, 9, 9, 99);
 
       assertEquals (Result.SUCCESS,
-                    execute (new DatasetRequest (null, Command.MODIFY, partial)).result);
+                    execute (new DatasetRequest (null, Command.MODIFY, partial)).getResult ());
 
       try (Connection connection = openDatabaseFile ();
           Statement statement = connection.createStatement ();
@@ -1393,7 +1393,7 @@ class DatabaseTest
       partial.setSize (999);
 
       assertEquals (Result.SUCCESS,
-                    execute (new MemberRequest (null, Command.MODIFY, partial)).result);
+                    execute (new MemberRequest (null, Command.MODIFY, partial)).getResult ());
 
       try (Connection connection = openDatabaseFile ();
           Statement statement = connection.createStatement ();
@@ -1425,7 +1425,7 @@ class DatabaseTest
 
       assertEquals (Result.SUCCESS,
                     execute (new DatasetRequest (null, Command.DELETE, "SYS1.PROCLIB"))
-                        .result);
+                        .getResult ());
 
       // A cascata acontece numa transacao propria, com os membros apagados ANTES do dataset.
       try (Connection connection = openDatabaseFile ();
@@ -1447,7 +1447,7 @@ class DatabaseTest
 
       assertEquals (Result.FAILURE,
                     execute (new MemberRequest (null, Command.LIST,
-                                                new Dataset ("NAO.EXISTE"), "*")).result);
+                                                new Dataset ("NAO.EXISTE"), "*")).getResult ());
     }
 
     /*
@@ -1477,10 +1477,10 @@ class DatabaseTest
       // Controle: o curinga sozinho fica na posicao zero, o ramo do prefixo nao roda, e a
       // query sai valida. E o mesmo builder do caso negativo abaixo.
       assertEquals (Result.SUCCESS,
-                    execute (new MemberRequest (null, Command.LIST, dataset, "*")).result);
+                    execute (new MemberRequest (null, Command.LIST, dataset, "*")).getResult ());
 
       assertEquals (Result.FAILURE,
-                    execute (new MemberRequest (null, Command.LIST, dataset, "IEF*")).result,
+                    execute (new MemberRequest (null, Command.LIST, dataset, "IEF*")).getResult (),
                     "dois where na mesma query");
     }
   }

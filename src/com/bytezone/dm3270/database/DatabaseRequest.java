@@ -26,11 +26,18 @@ public class DatabaseRequest
     SUCCESS, FAILURE
   }
 
+  /*
+   * O comando e o Initiator sao final e ficam publicos. Os tres campos de resultado sao
+   * escritos pelo DatabaseThread e pelos *Commands, e so por eles: o setter e de pacote, e o
+   * getter publico serve a quem implementa o Initiator. Nao ha sincronizacao, e nao precisa
+   * haver: todo leitor roda na thread do worker, depois da escrita (item 7 do
+   * BACKLOG-DEFEITOS.md).
+   */
   public final Command command;
   public final Initiator initiator;
-  public Result result;
-  public String databaseName;
-  public boolean databaseUpdated;
+  private Result result;
+  private String databaseName;
+  private boolean databaseUpdated;
 
   // ---------------------------------------------------------------------------------//
   public DatabaseRequest (Initiator initiator, Command command)
@@ -38,6 +45,48 @@ public class DatabaseRequest
   {
     this.initiator = initiator;
     this.command = command;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public Result getResult ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return result;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  void setResult (Result result)
+  // ---------------------------------------------------------------------------------//
+  {
+    this.result = result;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public String getDatabaseName ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return databaseName;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  void setDatabaseName (String databaseName)
+  // ---------------------------------------------------------------------------------//
+  {
+    this.databaseName = databaseName;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public boolean isDatabaseUpdated ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return databaseUpdated;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  void markDatabaseUpdated ()
+  // ---------------------------------------------------------------------------------//
+  {
+    this.databaseUpdated = true;
   }
 
   // ---------------------------------------------------------------------------------//

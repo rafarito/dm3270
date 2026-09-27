@@ -44,22 +44,22 @@ final class DatabaseCommands
     {
       case OPEN:
         if (schema.create ())                       // create if not already there
-          request.result = Result.SUCCESS;
+          request.setResult (Result.SUCCESS);
         break;
 
       case DROP:
         if (dropTables ())
-          request.result = Result.SUCCESS;
+          request.setResult (Result.SUCCESS);
         break;
 
       case CREATE:
         if (dropTables () && schema.create ())
-          request.result = Result.SUCCESS;
+          request.setResult (Result.SUCCESS);
         break;
 
       case CLOSE:
         onClose.run ();
-        request.result = Result.SUCCESS;
+        request.setResult (Result.SUCCESS);
         break;
 
       default:

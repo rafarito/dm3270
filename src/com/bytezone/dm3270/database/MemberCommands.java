@@ -54,43 +54,43 @@ final class MemberCommands
       case ADD:
         if (!optMember.isPresent ()
             && members.insert (request.datasetName, request.member))
-          request.result = Result.SUCCESS;
+          request.setResult (Result.SUCCESS);
         break;
 
       case UPDATE:
         if (optMember.isPresent ())
         {
           if (update (request))
-            request.result = Result.SUCCESS;
+            request.setResult (Result.SUCCESS);
         }
         else
         {
           if (members.insert (request.datasetName, request.member))
-            request.result = Result.SUCCESS;
+            request.setResult (Result.SUCCESS);
         }
         break;
 
       case MODIFY:
         if (optMember.isPresent () && update (request))
-          request.result = Result.SUCCESS;
+          request.setResult (Result.SUCCESS);
         break;
 
       case DELETE:
         if (optMember.isPresent () && members.delete (optMember.get ()))
-          request.result = Result.SUCCESS;
+          request.setResult (Result.SUCCESS);
         break;
 
       case FIND:
         if (optMember.isPresent ())
         {
           request.member = optMember.get ();
-          request.result = Result.SUCCESS;
+          request.setResult (Result.SUCCESS);
         }
         break;
 
       case LIST:
         if (list (request))
-          request.result = Result.SUCCESS;
+          request.setResult (Result.SUCCESS);
         break;
 
       default:
@@ -139,7 +139,7 @@ final class MemberCommands
     if (!members.update (member))
       return false;
 
-    request.databaseUpdated = true;
+    request.markDatabaseUpdated ();
 
     return true;
   }

@@ -94,8 +94,8 @@ public class DatabaseThread extends Thread
       {
         DatabaseRequest request = queue.take ();
 
-        request.result = Result.FAILURE;
-        request.databaseName = databaseName;
+        request.setResult (Result.FAILURE);
+        request.setDatabaseName (databaseName);
 
         if (request instanceof DatasetRequest)
           datasetCommands.execute ((DatasetRequest) request);

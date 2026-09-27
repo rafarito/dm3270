@@ -49,43 +49,43 @@ final class DatasetCommands
     {
       case ADD:
         if (!optDataset.isPresent () && datasets.insert (request.dataset))
-          request.result = Result.SUCCESS;
+          request.setResult (Result.SUCCESS);
         break;
 
       case UPDATE:
         if (optDataset.isPresent ())
         {
           if (update (request))
-            request.result = Result.SUCCESS;
+            request.setResult (Result.SUCCESS);
         }
         else
         {
           if (datasets.insert (request.dataset))
-            request.result = Result.SUCCESS;
+            request.setResult (Result.SUCCESS);
         }
         break;
 
       case MODIFY:
         if (optDataset.isPresent () && update (request))
-          request.result = Result.SUCCESS;
+          request.setResult (Result.SUCCESS);
         break;
 
       case DELETE:
         if (optDataset.isPresent () && datasets.delete (optDataset.get ()))
-          request.result = Result.SUCCESS;
+          request.setResult (Result.SUCCESS);
         break;
 
       case FIND:
         if (optDataset.isPresent ())
         {
           request.dataset = optDataset.get ();
-          request.result = Result.SUCCESS;
+          request.setResult (Result.SUCCESS);
         }
         break;
 
       case LIST:
         if (list (request))
-          request.result = Result.SUCCESS;
+          request.setResult (Result.SUCCESS);
         break;
 
       default:
@@ -124,7 +124,7 @@ final class DatasetCommands
     if (!datasets.update (dataset))
       return false;
 
-    request.databaseUpdated = true;
+    request.markDatabaseUpdated ();
     cache.replaceDataset (dataset);
 
     return true;
