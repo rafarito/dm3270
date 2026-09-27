@@ -581,9 +581,9 @@ class DatabaseTest
 
       MemberRequest request = new MemberRequest (initiator, Command.ADD, member);
 
-      assertEquals ("SYS1.PROCLIB", request.datasetName);
-      assertEquals ("IEFBR14", request.memberName);
-      assertSame (member, request.member);
+      assertEquals ("SYS1.PROCLIB", request.getDatasetName ());
+      assertEquals ("IEFBR14", request.getMemberName ());
+      assertSame (member, request.getMember ());
 
       String report = request.toString ();
 
@@ -600,9 +600,9 @@ class DatabaseTest
       MemberRequest request =
           new MemberRequest (initiator, Command.FIND, dataset, "IEFBR14");
 
-      assertSame (dataset, request.dataset);
-      assertNull (request.member);
-      assertEquals ("IEFBR14", request.memberName);
+      assertSame (dataset, request.getDataset ());
+      assertNull (request.getMember ());
+      assertEquals ("IEFBR14", request.getMemberName ());
     }
 
     @Test
@@ -672,10 +672,10 @@ class DatabaseTest
                                   datasetRequest.getDatasetName ());
 
       if (request instanceof MemberRequest memberRequest)
-        return memberRequest.member != null
-            ? new MemberRequest (initiator, request.command, memberRequest.member)
-            : new MemberRequest (initiator, request.command, memberRequest.dataset,
-                                 memberRequest.memberName);
+        return memberRequest.getMember () != null
+            ? new MemberRequest (initiator, request.command, memberRequest.getMember ())
+            : new MemberRequest (initiator, request.command, memberRequest.getDataset (),
+                                 memberRequest.getMemberName ());
 
       return new DatabaseRequest (initiator, request.command);
     }
@@ -940,8 +940,8 @@ class DatabaseTest
           (MemberRequest) execute (new MemberRequest (null, Command.FIND, member));
 
       assertEquals (Result.SUCCESS, found.getResult ());
-      assertNotNull (found.member);
-      assertEquals ("IEFBR14", found.member.getName ());
+      assertNotNull (found.getMember ());
+      assertEquals ("IEFBR14", found.getMember ().getName ());
     }
 
     @Test
@@ -1018,7 +1018,7 @@ class DatabaseTest
       MemberRequest list =
           (MemberRequest) execute (new MemberRequest (null, Command.LIST, dataset, ""));
 
-      assertEquals (0, list.members.size ());
+      assertEquals (0, list.getMembers ().size ());
     }
 
     @Test
@@ -1041,8 +1041,8 @@ class DatabaseTest
           (MemberRequest) execute (new MemberRequest (null, Command.LIST, dataset, ""));
 
       assertEquals (Result.SUCCESS, list.getResult ());
-      assertNotNull (list.members);
-      assertEquals (3, list.members.size ());
+      assertNotNull (list.getMembers ());
+      assertEquals (3, list.getMembers ().size ());
     }
 
     @Test
@@ -1063,8 +1063,8 @@ class DatabaseTest
           (MemberRequest) execute (new MemberRequest (null, Command.FIND, member));
 
       assertEquals (Result.SUCCESS, found.getResult ());
-      assertNotNull (found.member);
-      assertNull (found.members, "o FIND nao deveria montar a lista");
+      assertNotNull (found.getMember ());
+      assertNull (found.getMembers (), "o FIND nao deveria montar a lista");
     }
 
     @Test

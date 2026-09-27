@@ -3,6 +3,7 @@ package com.bytezone.dm3270.database;
 import static com.bytezone.dm3270.database.DatabaseRequest.Command.LIST;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -47,13 +48,14 @@ final class MemberCommands
   {
     Optional<Member> optMember = null;
     if (request.command != LIST)
-      optMember = members.find (request.member.getDataset (), request.member.getName ());
+      optMember = members.find (request.getMember ().getDataset (),
+          request.getMember ().getName ());
 
     switch (request.command)
     {
       case ADD:
         if (!optMember.isPresent ()
-            && members.insert (request.datasetName, request.member))
+            && members.insert (request.getDatasetName (), request.getMember ()))
           request.setResult (Result.SUCCESS);
         break;
 
@@ -65,7 +67,7 @@ final class MemberCommands
         }
         else
         {
-          if (members.insert (request.datasetName, request.member))
+          if (members.insert (request.getDatasetName (), request.getMember ()))
             request.setResult (Result.SUCCESS);
         }
         break;
@@ -83,7 +85,7 @@ final class MemberCommands
       case FIND:
         if (optMember.isPresent ())
         {
-          request.member = optMember.get ();
+          request.setMember (optMember.get ());
           request.setResult (Result.SUCCESS);
         }
         break;
@@ -110,7 +112,7 @@ final class MemberCommands
   private boolean update (MemberRequest request)
   // ---------------------------------------------------------------------------------//
   {
-    Member member = request.member;
+    Member member = request.getMember ();
     Optional<Dataset> optDataset = datasets.find (member.getDataset ().getName ());
     Optional<Member> optMember = members.find (member.getDataset (), member.getName ());
     if (optMember.isPresent ())
@@ -121,7 +123,7 @@ final class MemberCommands
 
       currentMember.merge (member);
       member = currentMember;
-      request.member = member;
+      request.setMember (member);
 
       cache.putMember (optDataset.get (), currentMember);
     }
@@ -148,7 +150,8 @@ final class MemberCommands
   private boolean list (MemberRequest request)
   // ---------------------------------------------------------------------------------//
   {
-    request.members = new ArrayList<> ();
-    return members.list (request.datasetName, request.memberName, request.members);
+    List<Member> found = new ArrayList<> ();
+    request.setMembers (found);
+    return members.list (request.getDatasetName (), request.getMemberName (), found);
   }
 }

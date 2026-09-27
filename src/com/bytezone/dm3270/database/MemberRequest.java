@@ -9,11 +9,16 @@ import java.util.List;
 public class MemberRequest extends DatabaseRequest
 // -----------------------------------------------------------------------------------//
 {
-  public Member member;
-  public String memberName;
-  public Dataset dataset;
-  public String datasetName;
-  public List<Member> members;
+  /*
+   * Os nomes e o dataset nunca mudam depois do construtor. O dataset so e guardado na
+   * requisicao por nome; na por objeto ele fica nulo, e o dataset e o do proprio membro. O
+   * membro e a lista sao a resposta do worker.
+   */
+  private Member member;
+  private final String memberName;
+  private final Dataset dataset;
+  private final String datasetName;
+  private List<Member> members;
 
   // ---------------------------------------------------------------------------------//
   public MemberRequest (Initiator initiator, Command command, Member member)
@@ -21,6 +26,7 @@ public class MemberRequest extends DatabaseRequest
   {
     super (initiator, command);
     this.member = member;
+    this.dataset = null;
     this.datasetName = member.getDataset ().getName ();
     this.memberName = member.getName ();
   }
@@ -34,6 +40,55 @@ public class MemberRequest extends DatabaseRequest
     this.dataset = dataset;
     this.datasetName = dataset.getName ();
     this.memberName = memberName;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public Member getMember ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return member;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  void setMember (Member member)
+  // ---------------------------------------------------------------------------------//
+  {
+    this.member = member;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public String getMemberName ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return memberName;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public Dataset getDataset ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return dataset;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public String getDatasetName ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return datasetName;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  public List<Member> getMembers ()
+  // ---------------------------------------------------------------------------------//
+  {
+    return members;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  void setMembers (List<Member> members)
+  // ---------------------------------------------------------------------------------//
+  {
+    this.members = members;
   }
 
   // ---------------------------------------------------------------------------------//
