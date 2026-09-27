@@ -107,45 +107,39 @@ maiúsculas (com e sem prefixo `AUTOSAVE`) que o `ShowDataset` não tem.
 
 ---
 
-## 3. `DefaultReportMaker` devolve a string `"Not possible"`
+## 3. `AsaReport` e `NatloadReport` mostram `"Not possible"` no lugar de um registro partido
 
-**Arquivo:** [reporter/reports/DefaultReportMaker.java:51-73](src/com/bytezone/reporter/reports/DefaultReportMaker.java#L51-L73)
-(desde o Passo 4 o primeiro parâmetro é `ReportContext`, não `ReportScore`)
+**Arquivos:** [reporter/reports/AsaReport.java](src/com/bytezone/reporter/reports/AsaReport.java)
+e [reporter/reports/NatloadReport.java](src/com/bytezone/reporter/reports/NatloadReport.java),
+na sobrecarga `getFormattedRecord (context, record, offset, length)`.
 
 ```java
 @Override
-public String getFormattedRecord (ReportContext context, Record record)
+public String getFormattedRecord (ReportContext context, Record record, int offset,
+    int length)
 {
   return "Not possible";        // string mágica no lugar de dado
 }
-
-// e o mesmo na sobrecarga (context, record, offset, length)
-
-@Override
-public boolean test (Record record, TextMaker textMaker)
-{
-  return false;
-}
 ```
 
-Uma subclasse que esqueça de sobrescrever produz relatórios com a literal `"Not possible"`
-no lugar do conteúdo — sem exceção, sem log, sem falha visível até alguém abrir o relatório.
-O `test()` devolvendo `false` por padrão faz um `ReportMaker` mal configurado nunca ser
-escolhido pelo scoring, também em silêncio.
+Os dois relatórios formatam um registro inteiro, mas não um pedaço dele, e o
+`ReportScore.getSubrecord` pede o pedaço em dois casos: quando a página começa ou termina no
+meio de um registro (o `AsaReport` parte registros quando `allowSplitRecords`) e **sempre que a
+página tem um registro só** (`firstRecord == lastRecord`). Nesses casos o relatório mostra a
+literal `"Not possible"` no lugar do conteúdo — sem exceção, sem log. O `PartialRecordTest`
+prova os três caminhos: ASA com página de um registro, ASA com registro partido entre duas
+páginas, e Natload com página de um registro.
 
-**Não é só hipotético, e isto foi medido em 2026-09-27:** `AsaReport` e `NatloadReport`
-sobrescrevem a sobrecarga de dois argumentos, mas **não** a de quatro, e o
-`ReportScore.getSubrecord` chama a de quatro em dois casos — quando a página começa ou termina
-no meio de um registro (o `AsaReport` parte registros quando `allowSplitRecords`) e **sempre
-que a página tem um registro só** (`firstRecord == lastRecord`). Nesses casos os dois
-relatórios devem mostrar `"Not possible"` no lugar do conteúdo. Ainda não há caso que o prove:
-o ciclo C8 do `PLANO-SOLID-2.md` escreve esse caso antes de tornar os métodos `abstract`, e
-preserva o literal nas duas subclasses.
+**Até o ciclo C8 da Rodada SOLID 2 a literal morava no `DefaultReportMaker`**, junto de um
+`test ()` que devolvia `false`, e as duas subclasses a herdavam em silêncio. A base não tem mais
+esses métodos (o compilador cobra de toda subclasse nova), e a literal ficou declarada nas duas
+subclasses, com comentário apontando para cá. O defeito é o mesmo; só deixou de ser herdado.
 
-**Correção sugerida:** declarar os métodos `abstract` na classe base. Se alguma implementação
-genuinamente não suporta formatação parcial, o contrato deve expor isso
-(`boolean supportsPartialRecords ()`) ou lançar `UnsupportedOperationException` — nunca
-devolver uma string que se parece com dado.
+**Correção sugerida:** formatar o trecho `offset`/`length` do registro, como o `TextReport` e o
+`HexReport` já fazem. Se algum relatório genuinamente não suporta formatação parcial, o contrato
+deve expor isso (`boolean supportsPartialRecords ()`) ou lançar `UnsupportedOperationException`
+— nunca devolver uma string que se parece com dado. Qualquer das saídas muda o que o usuário vê
+e exige autorização (Regra 1); o `PartialRecordTest` muda no mesmo commit do `fix`.
 
 ---
 
