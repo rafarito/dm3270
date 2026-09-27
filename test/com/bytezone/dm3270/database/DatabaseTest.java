@@ -12,6 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -611,6 +614,30 @@ class DatabaseTest
     {
       assertEquals (10, Command.values ().length);
       assertEquals (2, Result.values ().length);
+    }
+
+    /*
+     * Ciclo C9 da Rodada SOLID 2 (item 7 do backlog): a resposta que o worker escreve nas
+     * requisicoes so e escrita de dentro de database. Um campo publico nao final, ou um
+     * setter publico, reabriria a escrita de fora - e com ela a leitura fora da thread do
+     * worker que o item 7 descreve. O filtro de isSynthetic tira o $jacocoInit.
+     */
+    @ParameterizedTest
+    @ValueSource (classes = { DatabaseRequest.class, DatasetRequest.class,
+                              MemberRequest.class })
+    @DisplayName ("a resposta do worker nao e escrita de fora do pacote")
+    void responseIsWrittenOnlyInsideThePackage (Class<?> type)
+    {
+      for (Field field : type.getDeclaredFields ())
+        if (!field.isSynthetic () && Modifier.isPublic (field.getModifiers ()))
+          assertTrue (Modifier.isFinal (field.getModifiers ()),
+                      type.getSimpleName () + "." + field.getName ());
+
+      for (Method method : type.getDeclaredMethods ())
+        if (!method.isSynthetic () && Modifier.isPublic (method.getModifiers ()))
+          assertFalse (method.getName ().startsWith ("set")
+                           || method.getName ().startsWith ("mark"),
+                       type.getSimpleName () + "." + method.getName ());
     }
   }
 
