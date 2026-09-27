@@ -738,8 +738,10 @@ O `try/catch` existe justamente para que um plugin quebrado não derrube os outr
 isso para `Exception`. Mas um `Error` — `StackOverflowError` numa recursão do plugin,
 `NoClassDefFoundError` numa classe que falta no JAR dele, `AssertionError` de um `assert` do
 próprio plugin — **escapa do laço**, cancela os plugins que ainda não rodaram e sobe até
-[commands/WriteCommand.java:127](src/com/bytezone/dm3270/commands/WriteCommand.java#L127),
-que é quem chama `processPluginAuto ()` logo depois de destravar o teclado.
+[commands/WriteCommand.java:120](src/com/bytezone/dm3270/commands/WriteCommand.java#L120),
+que logo depois de destravar o teclado avisa a tela (`hostWriteCompleted`), e a tela chama
+`processPluginAuto ()` pela `screen.HostWriteCompletion`. Desde o ciclo C2 o `Error` atravessa
+esses dois degraus a mais, sem que nenhum o capture.
 
 `NoClassDefFoundError` é o caso realista: é exatamente o que um JAR de plugin incompleto
 produz, e o subsistema de plugins carrega classes de JARs de terceiros por reflexão.
