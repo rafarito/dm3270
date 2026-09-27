@@ -317,10 +317,11 @@ reaprovado — o que exige justificativa no commit, nunca um `rm` silencioso.
 tres tem teste desde o Passo 11**. A extensao `JavaFxToolkit` liga o toolkit uma vez por JVM;
 use com `@ExtendWith (JavaFxToolkit.class)`.
 
-**Sao QUINZE as classes de teste que usam a extensao no nivel de topo desde o ciclo C4 da
+**Sao DEZESSEIS as classes de teste que usam a extensao no nivel de topo desde o ciclo C5 da
 Rodada SOLID 2**: as treze do Passo 13, o `ScreenMouseTest` (C3), que dispara `MouseEvent` no
-Canvas de uma `Screen` construida, e o `ScreenKeyboardTest` (C4), que trava, destrava e ouve o
-teclado de uma `Screen` construida. No Passo 13 as duas novas tinham sido `FontManagerType1Test` e
+Canvas de uma `Screen` construida, o `ScreenKeyboardTest` (C4), que trava, destrava e ouve o
+teclado de uma `Screen` construida, e o `ScreenReplyTest` (C5), que le as respostas Read Buffer
+e Read Modified de uma `Screen` construida. No Passo 13 as duas novas tinham sido `FontManagerType1Test` e
 `ConsoleReplayLaunchTest`. A terceira classe
 nova do passo, `ScreenSelectionTest`, roda SEM toolkit contra a porta `SelectionHost`, e so a
 classe aninhada do `flashSelection` pede a extensao, porque a `PauseTransition` le o timer da
