@@ -27,8 +27,11 @@ em paralelo sem antes isolar esses casos.
 Este documento acompanha a refatoracao estrutural da branch `refactor/solid-architecture`, e
 ficou defasado entre a Onda 1 e o Passo 5.
 
-**Remedido no Passo 12, e portanto confiavel:** "Rede de seguranca" e "Testes que exigem
-JavaFX". A suite esta em **1.703** casos e **67** classes, medidos com `mvn clean test`.
+**Remedido no Passo 13, e portanto confiavel:** "Situacao atual" (testes e cobertura) e
+"Testes que exigem JavaFX". A suite esta em **1.727** casos e **70** classes, medidos com
+`mvn clean test`.
+
+**Remedido no Passo 12, e ainda confiavel:** "Rede de seguranca".
 
 **Remedido no Passo 11, e ainda confiavel:** a secao "Mostrar uma janela num teste desliga o
 toolkit", que e a armadilha mais cara registrada aqui.
@@ -121,13 +124,21 @@ e o que diz se os testes escritos valem alguma coisa.
 
 | | `dm3270` | `dm3270-plugins` |
 |---|---:|---:|
-| Testes | **1.703** (Passo 12) | 248 (63 no `UploadDataset`) |
-| Cobertura de instrucoes (projeto todo) | **64%** (Passo 11) | — |
-| Cobertura de ramos | **56%** (Passo 11) | — |
+| Testes | **1.727** (Passo 13) | 248 (63 no `UploadDataset`) |
+| Cobertura de instrucoes (projeto todo) | **70%** (Passo 13) | — |
+| Cobertura de ramos | **60%** (Passo 13) | — |
 | Mutantes gerados | 4.024 (Passo 8) | — |
 | Mutation coverage | 66% (2.647/4.024) (Passo 8) | — |
 | **Test strength** | **86%** (Passo 8) | — |
 | Classes no `targetClasses` | **166** (Passo 12) | — |
+
+**O Passo 13 NAO mexeu no `targetClasses`, e a cobertura subiu seis e quatro pontos.** O salto
+vem quase todo do `ConsoleReplayLaunchTest`, que lanca um replay com `Console`, `Screen`,
+`ConsolePane` e `ReplayStage` REAIS e arrasta o grafo de UI inteiro atras. E o mesmo efeito do
+Passo 11, pelo mesmo motivo. Medido com `target/site/jacoco/index.html`: **17.393 instrucoes
+perdidas de 59.668, e 1.938 ramos de 4.866**. A `ScreenSelection` e o `FontManagerType1`
+ganharam rede, mas ficaram fora do PIT: sao classes de `display` com JavaFX, a mesma razao da
+`Screen`.
 
 **O Passo 12 acrescentou UMA classe ao `targetClasses`: o `application.LaunchCoordinator`.** E
 a primeira de `application` a entrar, e o criterio e o de sempre e nao uma excecao - o pacote
@@ -285,7 +296,13 @@ reaprovado — o que exige justificativa no commit, nunca um `rm` silencioso.
 tres tem teste desde o Passo 11**. A extensao `JavaFxToolkit` liga o toolkit uma vez por JVM;
 use com `@ExtendWith (JavaFxToolkit.class)`.
 
-**Sao ONZE as classes de teste que usam a extensao desde o Passo 11** - eram sete. As quatro
+**Sao TREZE as classes de teste que usam a extensao no nivel de topo desde o Passo 13** - eram
+onze. As duas novas sao `FontManagerType1Test` e `ConsoleReplayLaunchTest`. A terceira classe
+nova do passo, `ScreenSelectionTest`, roda SEM toolkit contra a porta `SelectionHost`, e so a
+classe aninhada do `flashSelection` pede a extensao, porque a `PauseTransition` le o timer da
+plataforma. Confira com `grep -rlc "^@ExtendWith (JavaFxToolkit.class)" test/ | wc -l`.
+
+**No Passo 11 eram ONZE** - eram sete antes. As quatro
 novas sao a do construtor da `Screen` (`ScreenConstructionTest`) e as tres do caminho de
 lancamento (`ConsoleStartTest`, `ConsoleLaunchErrorsTest`, `ConsoleShutdownTest`). **O Passo 12
 nao acrescentou nenhuma, e isso e o resultado dele, nao um descuido** - ver logo abaixo.
@@ -794,7 +811,7 @@ classes que sao genuinamente visuais, como `Site`, cujos campos sao widgets.
 
 ## Cobertura atual
 
-### `dm3270` — 67 classes de teste, 1.703 testes
+### `dm3270` — 70 classes de teste, 1.727 testes
 
 **A TABELA ABAIXO E UM INSTANTANEO DO PASSO 8 e lista 54 classes, nao 67.** Faltam as sete que
 o Passo 9 acrescentou, todas em `test/com/bytezone/dm3270/plugins/`: `PluginsStageDispatchTest`
@@ -802,14 +819,15 @@ o Passo 9 acrescentou, todas em `test/com/bytezone/dm3270/plugins/`: `PluginsSta
 (2), `PluginApiShapeTest` (9), `DefaultPluginTest` (10) e `PluginDigestTest` (4); as cinco do
 Passo 11, em `application` e `display` (`ConsoleStartTest` 6, `ConsoleLaunchErrorsTest` 8,
 `ConsoleShutdownTest` 3, `ConsoleModelTest` 13, `ScreenConstructionTest` 10); e a do Passo 12,
-`LaunchCoordinatorPathsTest` (22). **O total de 1.703 esta certo; a tabela e que nao foi
+`LaunchCoordinatorPathsTest` (22); e as tres do Passo 13, `ScreenSelectionTest` (13),
+`FontManagerType1Test` (7) e `ConsoleReplayLaunchTest` (4). **O total de 1.727 esta certo; a tabela e que nao foi
 regenerada** - regenere com o comando abaixo antes de citar qualquer linha dela.
 
 **Remedida no Passo 8**, contando elementos `<testcase>` nos relatorios do Surefire, que e a
 unica contagem que fecha (ver "Ler o resultado da suite", no `RELATORIO-REFATORACAO.md` §5.18):
 
 ```bash
-grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.703
+grep -ho "<testcase" target/surefire-reports/*.xml | wc -l          # 1.727
 ```
 
 | Classe de teste | Testes |
@@ -1065,6 +1083,13 @@ que cairam e o argumento de que o metodo funciona:
    proprio** - o que sobra nele e construcao, e isso e o composition root.
 
 O que continua aberto, em ordem de retorno medido:
+
+**O Passo 13 fechou o composition root no que ele tinha de medivel.** Os onze vazamentos de
+`this` do construtor da `Screen` vao por porta (`SelectionHost` e `FontChangeTarget` foram as
+duas ultimas), e o REPLAY e o primeiro caminho feliz observado por EFEITO
+(`ConsoleReplayLaunchTest`). Ficaram de fora, por decisao medida: os oito registros de ouvinte
+do construtor (o colaborador de fiacao sairia com uns onze parametros) e os ramos TERMINAL, SPY
+e TEST por efeito, que abrem socket e exigem um host falso.
 
 1. **O composition root.** Continua sendo o maior item estrutural que sobra, e o mais caro -
    mas **nao e mais o unico caminho, e esta lista ja disse que era**. Ela afirmava que "seis
