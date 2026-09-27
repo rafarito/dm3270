@@ -817,10 +817,11 @@ O que ainda falta, e por que:
   que a tela **nao e desenhada durante a construcao** - `eraseScreen ()` e `draw ()` ficam
   atras de `if (screenPositions != null)`, e o vetor so nasce depois da chamada reentrante do
   `FontManager`. Reordenar essas linhas muda comportamento observavel.
-- **`FieldManager`** ainda exige a `Screen` concreta no construtor, onde sobe uma thread
-  SQLite. Por isso o `HeadlessScreenTarget` devolve zero campos, e os ramos de
-  `WriteCommand.process` que dependem de haver campos nao sao percorridos. Esta escrito no
-  topo da classe, nao escondido.
+- **`FieldManager`** ja recebe as portas `FieldHost` e `DatasetStore`, entao o
+  `HeadlessScreenTarget` monta campos reais e o que depende deles e percorrido. Gravar a tela
+  e rodar plugins continuam anotados em `calls`, nao executados - mas a DECISAO de chama-los e
+  a real, porque o dublê delega a mesma `screen.HostWriteCompletion` que a `Screen`. Esta
+  escrito no topo da classe, nao escondido.
 - **`Cursor`** ja fala com uma porta (`CursorHost`) e portanto e instanciavel headless, mas
   nenhum teste verifica comportamento de cursor — 117 mutantes, zero mortos. Por isso ficou
   fora do `targetClasses` do PIT.
