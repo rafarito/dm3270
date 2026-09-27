@@ -243,16 +243,18 @@ leitura.
 | [DatasetRequest](src/com/bytezone/dm3270/database/DatasetRequest.java#L9-L11) | `dataset`, `datasetName`, `datasets` |
 | [MemberRequest](src/com/bytezone/dm3270/database/MemberRequest.java#L9-L13) | `member`, `memberName`, `dataset`, `datasetName`, `members` |
 
-O `DatabaseThread` escreve nesses campos na sua própria thread e a thread da UI os lê depois
-de `processResult()`, **sem `volatile` nem sincronização**. A entrega via `BlockingQueue`
-estabelece uma barreira de memória na ida, mas não na volta.
+**A corrida que este item descrevia não existe mais, e isto foi medido em 2026-09-27.** O
+texto original dizia que a thread da UI lia esses campos depois de `processResult ()`. Depois
+da Onda 3 e do Passo 2 isso não acontece: o `DatabaseThread` chama
+`request.initiator.processResult (request)` **na própria thread do worker**, o
+`QueuedDatasetStore` transforma o resultado em `listener.storeCompleted (request.toString ())`
+ainda nessa thread, e os únicos ouvintes (`FieldManager`) só fazem `logger.debug` com a
+`String`. Nenhum campo é lido de outra thread depois da construção. Os testes leem os campos
+depois de esperar num `CountDownLatch`, que estabelece o *happens-before*.
 
-É uma corrida de dados real. Não se manifesta com frequência porque a JVM em x86 raramente
-reordena essas leituras, mas não há garantia nenhuma pelo modelo de memória do Java.
-
-**Nota:** a refatoração da onda 3 torna esses campos privados e devolve respostas imutáveis,
-o que fecha a corrida — mas isso é consequência da reorganização, não uma correção
-deliberada. Se a onda 3 não acontecer, o defeito continua.
+**O que sobra é encapsulamento, não defeito:** os campos continuam públicos e mutáveis, e
+qualquer código novo que os lesse fora do worker reabriria a corrida. Fechá-los é o ciclo C9 do
+`PLANO-SOLID-2.md`, como `refactor`. O item fica aqui até lá, para não se perder.
 
 ---
 
