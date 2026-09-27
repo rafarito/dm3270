@@ -22,10 +22,11 @@ import com.bytezone.dm3270.database.DatabaseRequest.Result;
  *
  * A cadeia de instanceof do laco ficou de proposito. A alternativa seria um Visitor, com um
  * execute () declarado em cada tipo de requisicao, e ele removeria os tres ramos ao custo de
- * por comportamento nas requisicoes - que sao dados mutaveis atravessando fronteira de thread
- * sem sincronizacao (item 7 do BACKLOG-DEFEITOS.md). Manter as requisicoes como dado puro, e o
- * despacho fora delas, e a forma mais segura enquanto esse defeito existir. Sao tres ramos
- * sobre uma hierarquia fechada, e eles cabem em cinco linhas.
+ * por comportamento nas requisicoes - que atravessam a fronteira de thread sem sincronizacao.
+ * Hoje isso nao e corrida: a resposta so e escrita de dentro deste pacote, e so lida na thread
+ * do worker (item 7 do BACKLOG-DEFEITOS.md). Manter as requisicoes como dado puro, e o despacho
+ * fora delas, e o que mantem essa conta simples. Sao tres ramos sobre uma hierarquia fechada, e
+ * eles cabem em cinco linhas.
  */
 // -----------------------------------------------------------------------------------//
 public class DatabaseThread extends Thread
