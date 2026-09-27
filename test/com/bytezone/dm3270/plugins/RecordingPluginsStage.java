@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.Preferences;
 
+import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 
 /*
@@ -25,6 +26,10 @@ import com.bytezone.dm3270.screen.ScreenDimensions;
  * dela. Isso so funciona porque setCurrentScreen (ScreenOption.DEFAULT) roda tres linhas
  * antes, em :178, e nenhum comentario do codigo diz que essa ordem e obrigatoria. Gravar o
  * valor visto aqui e o que torna a restricao verificavel.
+ *
+ * Grava tambem processPluginAuto (), a unica chamada que a Screen faz ao PluginsStage depois
+ * de construida: e por ela que um teste prova que a tela guardou O stage que recebeu, sem
+ * pedir o stage de volta a ela.
  *
  * O super.setScreen e chamado de proposito: a subclasse grava o despacho e PRESERVA a
  * semantica, que e o idioma do RecordingCursor do ConsoleKeyPressTest.
@@ -67,6 +72,16 @@ public class RecordingPluginsStage extends PluginsStage
     calls.add ("pluginsStage.closeClassLoader");
 
     super.closeClassLoader ();
+  }
+
+  // ---------------------------------------------------------------------------------//
+  @Override
+  public AIDCommand processPluginAuto ()
+  // ---------------------------------------------------------------------------------//
+  {
+    calls.add ("processPluginAuto");
+
+    return super.processPluginAuto ();
   }
 
   // ---------------------------------------------------------------------------------//

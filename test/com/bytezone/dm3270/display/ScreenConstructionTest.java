@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.bytezone.dm3270.commands.Command;
 import com.bytezone.dm3270.datasets.Dataset;
 import com.bytezone.dm3270.datasets.DatasetStore;
 import com.bytezone.dm3270.datasets.Member;
@@ -83,6 +84,11 @@ class ScreenConstructionTest
 // -----------------------------------------------------------------------------------//
 {
   private static final ScreenDimensions MODEL_2 = new ScreenDimensions (24, 80);
+
+  private static final byte ERASE_WRITE = 0x05;
+  private static final byte WCC_RESET_KEYBOARD = (byte) 0xC2;
+  private static final byte SF = 0x1D;
+  private static final byte UNPROTECTED = 0x00;
 
   @TempDir
   private Path pluginsDirectory;
@@ -189,6 +195,32 @@ class ScreenConstructionTest
 
     assertEquals (List.of ("setScreen"), pluginsStage.calls);
     assertSame (MODEL_2, pluginsStage.dimensionsSeenDuringConstruction);
+  }
+
+  /*
+   * O PluginsStage recebido no construtor e o que roda os plugins quando o host termina de
+   * escrever - provado pelo efeito, sem pedir o stage de volta a tela. Um Erase Write com um
+   * campo e o WCC que destrava o teclado satisfaz as duas condicoes do HostWriteCompletion
+   * (ha campo, o teclado esta livre); a pasta de plugins e vazia, entao processPluginAuto ()
+   * devolve null e nada e enviado.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Test
+  @DisplayName ("o PluginsStage recebido e o que roda os plugins depois de uma escrita")
+  void theReceivedPluginsStageRunsThePluginsAfterAHostWrite ()
+  // ---------------------------------------------------------------------------------//
+  {
+    Screen screen = screen (null);
+    byte[] buffer = { ERASE_WRITE, WCC_RESET_KEYBOARD, SF, UNPROTECTED, (byte) 0xC1 };
+
+    JavaFxToolkit.onFxThread ( () ->
+    {
+      Command.getCommand (buffer, 0, buffer.length).process (screen);
+      return null;
+    });
+
+    assertEquals (1, screen.getFieldCount ());
+    assertEquals (List.of ("setScreen", "processPluginAuto"), pluginsStage.calls);
   }
 
   // ---------------------------------------------------------------------------------//
