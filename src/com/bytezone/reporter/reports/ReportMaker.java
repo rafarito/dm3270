@@ -1,12 +1,10 @@
 package com.bytezone.reporter.reports;
 
-import java.awt.print.Printable;
-
 import com.bytezone.reporter.record.Record;
 import com.bytezone.reporter.text.TextMaker;
 
 // -----------------------------------------------------------------------------------//
-public interface ReportMaker extends Printable
+public interface ReportMaker
 // -----------------------------------------------------------------------------------//
 {
   public boolean test (Record record, TextMaker textMaker);
