@@ -190,7 +190,7 @@ class ScreenPacker implements ScreenChangeListener
     return ptr;
   }
 
-  // called from the constructor above, and also from Screen in replay mode
+  // called from readModifiedFields() above, and from Screen.addTSOCommand()
   // ---------------------------------------------------------------------------------//
   void addTSOCommand (String command)
   // ---------------------------------------------------------------------------------//

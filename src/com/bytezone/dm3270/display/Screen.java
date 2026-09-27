@@ -531,7 +531,9 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     screenPacker.addTSOCommand (command);
   }
 
-  // display a message on the screen - only used when logging off
+  // display a message on the screen
+  // called from TelnetListener.close() - when the connection closes
+  // called from ConsolePane - when the connection fails
   // ---------------------------------------------------------------------------------//
   public void displayText (String text)
   // ---------------------------------------------------------------------------------//
@@ -620,8 +622,8 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   }
 
   // called from this.eraseAllUnprotected()
-  // called from this.resize()
-  // called from Write.process()
+  // called from this.fontChanged()
+  // called from WriteCommand.process()
   // ---------------------------------------------------------------------------------//
   public void draw ()
   // ---------------------------------------------------------------------------------//
@@ -863,7 +865,8 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   // Convert screen contents to an AID command
   // ---------------------------------------------------------------------------------//
 
-  // called from ConsoleKeyPress.handle() in response to a user command
+  // called from ConsolePane.sendAID() in response to a user command
+  // called from PluginsStage.processReply()
 
   // ---------------------------------------------------------------------------------//
   public AIDCommand readModifiedFields ()
@@ -874,8 +877,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
 
   // Called from:
   //      ReadCommand.process() in response to a ReadBuffer (F2) command
-  //      ReadPartitionSF.process() in response to a ReadBuffer (F2) command
-  //      ScreenHistory.requestScreen()
+  //      ReadPartitionSF.process(), through the ReadCommand it wraps
   // ---------------------------------------------------------------------------------//
   public AIDCommand readBuffer ()
   // ---------------------------------------------------------------------------------//
@@ -885,8 +887,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
 
   // Called from ReadCommand.process() in response to a ReadModified (F6)
   // or a ReadModifiedAll (6E) command
-  // Called from ReadPartitionSF.process() in response to a ReadModified (F6)
-  // or a ReadModifiedAll (6E) command
+  // Called from ReadPartitionSF.process(), through the ReadCommand it wraps
   // ---------------------------------------------------------------------------------//
   public AIDCommand readModifiedFields (byte type)
   // ---------------------------------------------------------------------------------//
