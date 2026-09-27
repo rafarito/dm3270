@@ -999,6 +999,38 @@ os dois ramos como estão, inclusive a mensagem exata do NPE, para que a decompo
 
 ---
 
+## 26. `UploadDataset`: uma segunda requisição recusada derruba o upload em andamento com uma mensagem enganosa
+
+**Arquivo:** `../dm3270-plugins/UploadDataset/src/com/bytezone/plugins/UploadDataset.java`,
+método `processRequest`
+
+O item de menu do plugin continua disponível durante um upload. Se o usuário o aciona de novo e
+confirma o diálogo, `processRequest` faz `context = result.get ()` **antes** de validar o
+arquivo, sobrescrevendo o contexto do upload em andamento. Se a validação recusa o arquivo novo
+(erro de LRECL, arquivo ilegível, tela sem campo de comando), cada recusa faz `context = null`,
+e **nenhuma** delas mexe em `state` nem em `doesAuto`.
+
+O resultado é um upload antigo com `doesAuto` ligado e sem contexto. Na tela seguinte o
+`processAuto` o encerra com `Estado interno inconsistente: nenhum upload em andamento.`, uma
+mensagem que não diz ao usuário que foi a segunda requisição que interrompeu a primeira. Se o
+modo era REPLACE, o aviso ainda omite que o `DELETE ALL` já tinha sido executado, porque o
+aborto só acrescenta esse aviso quando há contexto.
+
+Cancelar o diálogo da segunda requisição não causa nada: o `return` vem antes da atribuição.
+
+**Correção sugerida:** validar numa variável local e só trocar o contexto quando o novo upload
+de fato começa, ou recusar a requisição enquanto `doesAuto ()` estiver ligado.
+
+**Por que não foi corrigido:** Regra 1. Os casos `DuringAnUpload` do
+`UploadDatasetRequestTest` congelam os dois caminhos: o cancelamento, que preserva tudo, e a
+recusa, que zera só o contexto.
+
+**Como foi achado:** medindo o `processRequest` antes de tirar dele a máquina de estados, na
+decomposição do `UploadDataset` (Passo 14). A extração natural, validar numa variável local,
+teria corrigido o defeito de carona.
+
+---
+
 ## Onde estão os defeitos que a refatoração *vai* resolver
 
 Estes não estão nesta lista porque não são mudança de comportamento:
