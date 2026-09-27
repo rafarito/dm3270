@@ -11,6 +11,23 @@ cd ../dm3270 && mvn install -DskipTests
 cd ../dm3270-plugins && mvn test
 ```
 
+**Para saber se a suite passou, use o codigo de saida do `mvn` ou os `.xml` do Surefire, nunca
+os `.txt`:**
+
+```bash
+mvn clean test; echo "exit=$?"                                              # 0 = verde
+grep -c "<failure\|<error" target/surefire-reports/*.xml | grep -v ":0$"   # vazio = sem falha
+grep -ho "<testcase" target/surefire-reports/*.xml | wc -l                # quantos casos rodaram
+```
+
+Os `.txt` (e o atributo `tests=` dos `.xml`) contam so os metodos da classe de fora. Uma classe
+cujos testes estao todos em classes `@Nested` aparece la como `Tests run: 0` - o Surefire 3.5 com
+o JUnit 5.12 registra os casos aninhados sob o `@DisplayName` do container, no mesmo `.xml`.
+Por isso `grep "Tests run" *.txt | grep -v "Failures: 0, Errors: 0"` sai vazio mesmo quando um
+caso aninhado falhou: foi o que aconteceu com uma execucao que terminou em
+`Tests run: 1727, Failures: 0, Errors: 1` (a falha intermitente do `@TempDir`, mais abaixo, no
+`SessionReaderTest`, que so tem classes aninhadas).
+
 As classes de protocolo validam os buffers com `assert`, por isso o Surefire roda com
 `-ea` habilitado nos dois projetos. Rodar os testes com assertions desligadas esconde
 parte das verificacoes.
