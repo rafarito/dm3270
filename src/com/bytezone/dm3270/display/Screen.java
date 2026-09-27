@@ -139,7 +139,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
 
     cursor = new Cursor (this, screenDimensions);
     gc = getGraphicsContext2D ();
-    screenSelection = new ScreenSelection (this);
+    screenSelection = new ScreenSelection (new Selection ());
     setupMouseHandlers ();
 
     contextManager = new ContextManager ();
@@ -269,6 +269,39 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     int from = Math.min (oldMin, newMin);
     int to = Math.max (oldMax, newMax);
     redrawRange (from, to);
+  }
+
+  /*
+   * A porta da ScreenSelection. Interna e privada para que redrawRange e redrawSelection
+   * continuem de pacote - ver o cabecalho de SelectionHost.
+   */
+  // ---------------------------------------------------------------------------------//
+  private final class Selection implements SelectionHost
+  // ---------------------------------------------------------------------------------//
+  {
+    @Override
+    public ScreenDimensions getScreenDimensions ()
+    {
+      return Screen.this.getScreenDimensions ();
+    }
+
+    @Override
+    public ScreenPosition getScreenPosition (int position)
+    {
+      return Screen.this.getScreenPosition (position);
+    }
+
+    @Override
+    public void redrawRange (int from, int to)
+    {
+      Screen.this.redrawRange (from, to);
+    }
+
+    @Override
+    public void redrawSelection (int oldMin, int oldMax, int newMin, int newMax)
+    {
+      Screen.this.redrawSelection (oldMin, oldMax, newMin, newMax);
+    }
   }
 
   // ---------------------------------------------------------------------------------//

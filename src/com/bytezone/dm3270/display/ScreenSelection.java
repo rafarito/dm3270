@@ -12,13 +12,13 @@ import javafx.util.Duration;
  */
 public class ScreenSelection
 {
-  private final Screen screen;
+  private final SelectionHost screen;
   
   private int selectionStart = -1;   // linear position where drag started
   private int selectionEnd = -1;     // linear position where drag currently is
   private boolean active = false;    // true during an active drag
   
-  public ScreenSelection (Screen screen)
+  ScreenSelection (SelectionHost screen)
   {
     this.screen = screen;
   }
