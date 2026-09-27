@@ -21,7 +21,7 @@ autorização foi do usuário, pedida explicitamente antes de tocar no código:
    Regra 1 foi dispensada a pedido dele.
 
 O item corrigido **continua nesta lista**, marcado, e não é renumerado: os comentários do código
-e dos testes citam o número. Hoje estão nessa situação os **itens 17 e 22**.
+e dos testes citam o número. Hoje estão nessa situação os **itens 17 e 22**. O **item 23** também continua na lista, marcado como **não é defeito**: a correção foi autorizada, e a medição anterior ao `fix` mostrou que o comportamento está certo.
 
 **Os três commits `fix` da branch são `cfc95f18`, `da0e89a8` e o do item 22, no Passo 12** —
 são os únicos pontos em que um `git bisect` procurando mudança de comportamento pode parar.
@@ -852,7 +852,7 @@ duas pontas.
 
 ---
 
-## 23. O construtor da `Screen` dimensiona o canvas com uma geometria e a reporta com outra
+## 23. O construtor da `Screen` dimensiona o canvas com uma geometria e a reporta com outra — **NÃO É DEFEITO**, reclassificado no Passo 13
 
 **Arquivo:** [display/Screen.java](src/com/bytezone/dm3270/display/Screen.java)
 
@@ -884,6 +884,31 @@ canvas e o acessor lerem a mesma decisão.
 que é exatamente o alvo do composition root. O caso
 `theCanvasIsSizedByTheAlternateWhileTheAccessorReportsTheDefault` do `ScreenConstructionTest`
 congela as duas respostas.
+
+**RECLASSIFICADO NO PASSO 13: não é defeito, e não foi corrigido.** A correção estava
+autorizada, e a medição feita antes do `fix` mostrou que as duas respostas estão certas, cada
+uma pelo próprio contrato:
+
+- **o canvas usa a maior geometria de propósito.** O comentário está em `Screen.fontChanged`:
+  `// always use the largest available screen`. Assim a janela não muda de tamanho quando o
+  host alterna entre Erase Write e Erase Write Alternate;
+- **o acessor reporta a partição corrente, e ela começa na padrão.** Pelo protocolo 3270, o
+  terminal começa na partição de tamanho padrão e só um Erase Write Alternate
+  (`WriteCommand:99`) o leva à alternativa. O `setCurrentScreen (DEFAULT)` do fim do construtor
+  redimensiona cursor, pen, histórico, campos e mensagem para a partição em que o host vai
+  escrever primeiro. Isso é o comportamento correto, e não uma "reversão silenciosa".
+
+As duas correções propostas eram regressões. A **(a)**, em que o acessor passa a concordar com o
+canvas, faria a tela nascer na partição alternativa: um `Write` sem erase antes do primeiro EW
+endereçaria com 132 colunas. A **(b)**, em que o canvas passa a concordar com o acessor, faria a
+janela crescer a cada EWA, justamente o que o comentário do `fontChanged` evita. **O usuário
+decidiu não corrigir.**
+
+O que a medição achou de lado: a largura global `BufferAddress.setScreenWidth` só é lida no
+`BufferAddress.toString` (a coluna de comandos do replay e o log). Não afeta endereçamento.
+
+O caso de caracterização continua, com o comentário corrigido. Agora ele congela a divisão
+entre os dois contratos, e não mais um "defeito".
 
 ---
 
