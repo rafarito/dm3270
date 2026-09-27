@@ -164,7 +164,6 @@ public class Field implements Iterable<ScreenPosition>
     return position >= startPosition || position <= endPosition;
   }
 
-  // called from Screen.setFieldText()
   // called from Cursor.typeChar()
   // called from Cursor.backspace()
   // called from Cursor.delete()
@@ -285,7 +284,6 @@ public class Field implements Iterable<ScreenPosition>
     }
   }
 
-  // called from Screen.setFieldText()
   // called from PluginsStage.processReply()
   // called from AIDCommand.process()
   public void setText (byte[] buffer)

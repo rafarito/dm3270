@@ -4,7 +4,6 @@ import static com.bytezone.dm3270.runtime.TerminalFunction.TERMINAL;
 import static com.bytezone.dm3270.commands.AIDCommand.NO_AID_SPECIFIED;
 
 import java.awt.Toolkit;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -746,22 +745,6 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   // ---------------------------------------------------------------------------------//
   {
     screenReply.setReplyMode (replyMode, replyTypes);
-  }
-
-  // ---------------------------------------------------------------------------------//
-  public void setFieldText (Field field, String text)
-  // ---------------------------------------------------------------------------------//
-  {
-    try
-    {
-      field.setText (text.getBytes ("CP1047"));
-      field.setModified (true);
-      field.draw ();                      // draws the field without a cursor
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      logger.error ("Unsupported encoding exception while setting text", e);
-    }
   }
 
   // ---------------------------------------------------------------------------------//
