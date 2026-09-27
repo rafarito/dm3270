@@ -109,14 +109,17 @@ maiúsculas (com e sem prefixo `AUTOSAVE`) que o `ShowDataset` não tem.
 
 ## 3. `DefaultReportMaker` devolve a string `"Not possible"`
 
-**Arquivo:** [reporter/reports/DefaultReportMaker.java:50-72](src/com/bytezone/reporter/reports/DefaultReportMaker.java#L50-L72)
+**Arquivo:** [reporter/reports/DefaultReportMaker.java:51-73](src/com/bytezone/reporter/reports/DefaultReportMaker.java#L51-L73)
+(desde o Passo 4 o primeiro parâmetro é `ReportContext`, não `ReportScore`)
 
 ```java
 @Override
-public String getFormattedRecord (ReportScore reportScore, Record record)
+public String getFormattedRecord (ReportContext context, Record record)
 {
   return "Not possible";        // string mágica no lugar de dado
 }
+
+// e o mesmo na sobrecarga (context, record, offset, length)
 
 @Override
 public boolean test (Record record, TextMaker textMaker)
@@ -129,6 +132,15 @@ Uma subclasse que esqueça de sobrescrever produz relatórios com a literal `"No
 no lugar do conteúdo — sem exceção, sem log, sem falha visível até alguém abrir o relatório.
 O `test()` devolvendo `false` por padrão faz um `ReportMaker` mal configurado nunca ser
 escolhido pelo scoring, também em silêncio.
+
+**Não é só hipotético, e isto foi medido em 2026-09-27:** `AsaReport` e `NatloadReport`
+sobrescrevem a sobrecarga de dois argumentos, mas **não** a de quatro, e o
+`ReportScore.getSubrecord` chama a de quatro em dois casos — quando a página começa ou termina
+no meio de um registro (o `AsaReport` parte registros quando `allowSplitRecords`) e **sempre
+que a página tem um registro só** (`firstRecord == lastRecord`). Nesses casos os dois
+relatórios devem mostrar `"Not possible"` no lugar do conteúdo. Ainda não há caso que o prove:
+o ciclo C8 do `PLANO-SOLID-2.md` escreve esse caso antes de tornar os métodos `abstract`, e
+preserva o literal nas duas subclasses.
 
 **Correção sugerida:** declarar os métodos `abstract` na classe base. Se alguma implementação
 genuinamente não suporta formatação parcial, o contrato deve expor isso
