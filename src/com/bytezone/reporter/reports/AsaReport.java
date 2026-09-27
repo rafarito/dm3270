@@ -94,6 +94,21 @@ public class AsaReport extends DefaultReportMaker
         record.length - 1);
   }
 
+  /*
+   * O pedaco de um registro - o ReportScore.getSubrecord pede quando a pagina tem um registro
+   * so, ou comeca ou termina no meio de um. Este relatorio nunca soube formata-lo, e ate o
+   * ciclo C8 herdava esta literal da base em silencio. Agora ela esta aqui, a vista: e o item
+   * 3 do BACKLOG-DEFEITOS, e trocar o texto e mudanca de comportamento (Regra 1).
+   */
+  // ---------------------------------------------------------------------------------//
+  @Override
+  public String getFormattedRecord (ReportContext context, Record record, int offset,
+      int length)
+  // ---------------------------------------------------------------------------------//
+  {
+    return "Not possible";
+  }
+
   // ---------------------------------------------------------------------------------//
   @Override
   public boolean test (Record record, TextMaker textMaker)

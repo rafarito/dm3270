@@ -1,8 +1,5 @@
 package com.bytezone.reporter.reports;
 
-import com.bytezone.reporter.record.Record;
-import com.bytezone.reporter.text.TextMaker;
-
 // -----------------------------------------------------------------------------------//
 public abstract class DefaultReportMaker implements ReportMaker
 // -----------------------------------------------------------------------------------//
@@ -21,31 +18,6 @@ public abstract class DefaultReportMaker implements ReportMaker
     this.name = name;
     this.newlineBetweenRecords = newLine;
     this.allowSplitRecords = split;
-  }
-
-  // ---------------------------------------------------------------------------------//
-  @Override
-  public String getFormattedRecord (ReportContext context, Record record)
-  // ---------------------------------------------------------------------------------//
-  {
-    return "Not possible";
-  }
-
-  // ---------------------------------------------------------------------------------//
-  @Override
-  public String getFormattedRecord (ReportContext context, Record record, int offset,
-      int length)
-  // ---------------------------------------------------------------------------------//
-  {
-    return "Not possible";
-  }
-
-  // ---------------------------------------------------------------------------------//
-  @Override
-  public boolean test (Record record, TextMaker textMaker)
-  // ---------------------------------------------------------------------------------//
-  {
-    return false;
   }
 
   // ---------------------------------------------------------------------------------//
