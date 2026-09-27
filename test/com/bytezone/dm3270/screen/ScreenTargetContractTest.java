@@ -31,7 +31,6 @@ class ScreenTargetContractTest
       "addTSOCommand(String)",                                //
       "buildFields(WriteControlCharacter)",                   //
       "buildQueryReply()",                                    //
-      "checkRecording()",                                     //
       "clearScreen()",                                        //
       "draw()",                                               //
       "eraseAllUnprotected()",                                //
@@ -45,11 +44,11 @@ class ScreenTargetContractTest
       "getSystemMessage()",                                   //
       "getTSOCommandField()",                                 //
       "getTransferManager()",                                 //
+      "hostWriteCompleted(boolean,Consumer)",                 //
       "insertCursor(int)",                                    //
       "isKeyboardLocked()",                                   //
       "isTSOCommandScreen()",                                 //
       "lockKeyboard(String)",                                 //
-      "processPluginAuto()",                                  //
       "readBuffer()",                                         //
       "readModifiedFields(byte)",                             //
       "resetInsertMode()",                                    //
@@ -65,7 +64,7 @@ class ScreenTargetContractTest
 
   // ---------------------------------------------------------------------------------//
   @Test
-  @DisplayName ("expoe exatamente os 34 metodos que o protocolo pode chamar")
+  @DisplayName ("expoe exatamente os 33 metodos que o protocolo pode chamar")
   void exposesTheWholeContract ()
   // ---------------------------------------------------------------------------------//
   {

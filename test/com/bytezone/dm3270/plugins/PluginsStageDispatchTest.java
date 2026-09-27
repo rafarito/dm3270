@@ -403,8 +403,8 @@ class PluginsStageDispatchTest
    * O laco de processAll envolve cada plugin num try/catch e loga "Error processing auto",
    * entao um plugin que quebra nao impede os seguintes. Mas o catch e de Exception, nao de
    * Throwable: um Error escapa do laco, cancela os plugins que faltavam e sobe ate
-   * WriteCommand.process (), que e quem chama processPluginAuto () depois de destravar o
-   * teclado.
+   * WriteCommand.process (), que depois de destravar o teclado avisa a tela, e a tela chama
+   * processPluginAuto () pela HostWriteCompletion.
    *
    * Os dois casos estao aqui juntos de proposito - o que se esta congelando e a FRONTEIRA
    * entre o que e isolado e o que nao e. O bloco 1 mexe neste laco.

@@ -3,6 +3,7 @@ package com.bytezone.dm3270.display;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import com.bytezone.dm3270.assistant.BatchJobListener;
 import com.bytezone.dm3270.commands.AIDCommand;
@@ -18,6 +19,7 @@ import com.bytezone.dm3270.screen.Cursor;
 import com.bytezone.dm3270.screen.CursorHost;
 import com.bytezone.dm3270.screen.Field;
 import com.bytezone.dm3270.screen.FieldHost;
+import com.bytezone.dm3270.screen.HostWriteCompletion;
 import com.bytezone.dm3270.screen.FontMetrics;
 import com.bytezone.dm3270.screen.Pen;
 import com.bytezone.dm3270.screen.ScreenCanvas;
@@ -48,13 +50,14 @@ import com.bytezone.dm3270.streams.TelnetState;
  *   Campos: agora sao reais. O FieldManager parou de exigir a Screen concreta - recebe a
  *   porta FieldHost - e parou de subir uma thread SQLite no construtor - recebe um
  *   DatasetStore, e aqui entra o DatasetStore.NONE, que nao grava nada. Entao este dublê
- *   monta os campos de verdade a partir do buffer, e os ramos de WriteCommand.process que
- *   dependem de haver campos passaram a ser percorridos.
+ *   monta os campos de verdade a partir do buffer, e o que depende de haver campos passou a
+ *   ser percorrido.
  *
- *   O que continua dublê e o que fica DEPOIS do campo: checkRecording e processPluginAuto
- *   sao anotados em calls em vez de executados, porque o primeiro depende do HistoryManager
- *   e o segundo do class loader de plugins - os dois ainda presos a Screen. A diferenca e
- *   que agora eles sao ALCANCADOS, e o teste pode verificar que foram.
+ *   O que continua dublê e o que fica DEPOIS do campo: gravar a tela e rodar os plugins sao
+ *   anotados em calls (checkRecording, processPluginAuto) em vez de executados, porque o
+ *   primeiro depende do HistoryManager e o segundo do class loader de plugins - os dois
+ *   ainda presos a Screen. A DECISAO de chama-los, essa e real: o dublê delega a mesma
+ *   HostWriteCompletion que a Screen, e o teste verifica que foram alcancados, e em ordem.
  *
  *   TransferManager. Devolve null, porque exige um Site. Um teste que precise dele falha
  *   com NullPointerException, que e melhor do que um dublê silencioso devolvendo respostas
@@ -384,8 +387,21 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
     return replyTypes;
   }
 
+  /*
+   * A mesma politica da Screen, com as duas pontas anotadas em calls: gravar depende do
+   * HistoryManager e rodar plugins do class loader, os dois ainda presos a Screen.
+   */
+  private final HostWriteCompletion hostWriteCompletion = new HostWriteCompletion (
+      this::getFieldCount, this::isKeyboardLocked, this::checkRecording,
+      this::processPluginAuto);
+
   @Override
-  public void checkRecording ()
+  public void hostWriteCompleted (boolean freshContent, Consumer<AIDCommand> reply)
+  {
+    hostWriteCompletion.completed (freshContent, reply);
+  }
+
+  private void checkRecording ()
   {
     calls.add ("checkRecording");
   }
@@ -506,8 +522,7 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
    */
   public AIDCommand pluginReply;
 
-  @Override
-  public AIDCommand processPluginAuto ()
+  private AIDCommand processPluginAuto ()
   {
     calls.add ("processPluginAuto");
     return pluginReply;

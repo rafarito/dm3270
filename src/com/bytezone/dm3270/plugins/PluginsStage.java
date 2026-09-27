@@ -327,7 +327,8 @@ public class PluginsStage extends PreferencesStage
   // Process plugins
   // ---------------------------------------------------------------------------------//
 
-  // called from WriteCommand.process() after unlocking keyboard
+  // called from Screen.processPluginAuto(), when WriteCommand.process() has unlocked
+  // the keyboard and HostWriteCompletion decided the plugins should run
   // will eventually be called before unlocking the keyboard
   // ---------------------------------------------------------------------------------//
   public AIDCommand processPluginAuto ()

@@ -113,18 +113,13 @@ public class WriteCommand extends Command
       screenDrawRequired = true;
     }
 
+    // without a WCC nothing unlocks the keyboard, so the screen would do nothing
     if (writeControlCharacter != null)
     {
       writeControlCharacter.process (screen);       // may unlock the keyboard
-      if (screen.getFieldCount () > 0 && !screen.isKeyboardLocked ())
-        screen.checkRecording ();                   // make a copy of the screen
-    }
-
-    if (!screen.isKeyboardLocked () && screen.getFieldCount () > 0)
-    {
-      if (orders.size () > 0 || !writeControlCharacter.isResetModified ())
-        // should check for suppressDisplay
-        setReply (screen.processPluginAuto ());
+      screen.hostWriteCompleted (
+          orders.size () > 0 || !writeControlCharacter.isResetModified (),
+          this::setReply);                          // record, then run the plugins
     }
 
     if (screenDrawRequired)

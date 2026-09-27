@@ -18,8 +18,9 @@ import com.bytezone.dm3270.filetransfer.TransferManager;
  *   HostReplyTarget     ler o buffer, os campos modificados e o Query; o modo de resposta.
  *                       ReadCommand, SetReplyModeSF, ReadPartitionQuery.
  *   TsoCommandTarget    o campo de comando do TSO. So AIDCommand.
- *   ApplicationHooks    gravacao, plugins automaticos, mensagens de sistema. So
- *                       WriteCommand - e o que o ciclo C2 do plano tira de la.
+ *   ApplicationHooks    o aviso de fim de escrita e as mensagens de sistema. So
+ *                       WriteCommand, que nao decide mais quando gravar nem quando rodar
+ *                       plugins: decide a HostWriteCompletion, dentro de quem implementa.
  *   ConsoleSwitch       setIsConsole (). So SystemMessage.
  *
  * O que fica declarado aqui e o nucleo que os dois comandos grandes, WriteCommand e
@@ -42,9 +43,9 @@ import com.bytezone.dm3270.filetransfer.TransferManager;
  *       posicao. FieldManager importa database e plugins e sobe uma thread SQLite no
  *       construtor - nada disso tem a ver com processar um comando 3270.
  *
- *   getPluginsStage () -> processPluginAuto ()
- *       WriteCommand pedia a Stage do JavaFX so para chamar um metodo dela. Agora pede o
- *       resultado (ver ApplicationHooks).
+ *   getPluginsStage () -> processPluginAuto () -> hostWriteCompleted (...)
+ *       WriteCommand pedia a Stage do JavaFX so para chamar um metodo dela. Depois passou a
+ *       pedir o resultado; desde o ciclo C2 so avisa que escreveu (ver ApplicationHooks).
  */
 // -----------------------------------------------------------------------------------//
 public interface ScreenTarget extends DisplayScreen, KeyboardState, WriteControlTarget,

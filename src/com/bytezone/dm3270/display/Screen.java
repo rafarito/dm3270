@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 
 import com.bytezone.dm3270.runtime.TerminalFunction;
@@ -41,6 +42,7 @@ import com.bytezone.dm3270.screen.Cursor;
 import com.bytezone.dm3270.screen.CursorHost;
 import com.bytezone.dm3270.screen.Field;
 import com.bytezone.dm3270.screen.FieldHost;
+import com.bytezone.dm3270.screen.HostWriteCompletion;
 import com.bytezone.dm3270.screen.KeyboardTarget;
 import com.bytezone.dm3270.screen.Pen;
 import com.bytezone.dm3270.screen.ScreenDimensions;
@@ -111,6 +113,9 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   private final Pen pen;
   private final Cursor cursor;
   private final ScreenSelection screenSelection;
+  private final HostWriteCompletion hostWriteCompletion = new HostWriteCompletion (
+      this::getFieldCount, this::isKeyboardLocked, this::checkRecording,
+      this::processPluginAuto);
   private ScreenOption currentScreen;
 
   private byte currentAID;
@@ -516,9 +521,18 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     return fieldManager.getFields ();
   }
 
+  // called from WriteCommand.process()
   // ---------------------------------------------------------------------------------//
   @Override
-  public AIDCommand processPluginAuto ()
+  public void hostWriteCompleted (boolean freshContent, Consumer<AIDCommand> reply)
+  // ---------------------------------------------------------------------------------//
+  {
+    hostWriteCompletion.completed (freshContent, reply);
+  }
+
+  // called from HostWriteCompletion.completed()
+  // ---------------------------------------------------------------------------------//
+  private AIDCommand processPluginAuto ()
   // ---------------------------------------------------------------------------------//
   {
     return pluginsStage.processPluginAuto ();
@@ -700,9 +714,9 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     fieldManager.buildFields (screenPositions);        // what about resetModified?
   }
 
-  // called from WriteCommand.process()
+  // called from HostWriteCompletion.completed()
   // ---------------------------------------------------------------------------------//
-  public void checkRecording ()
+  private void checkRecording ()
   // ---------------------------------------------------------------------------------//
   {
     byte savedReplyMode = replyMode;
