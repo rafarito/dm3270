@@ -31,6 +31,10 @@ ficou defasado entre a Onda 1 e o Passo 5.
 "Testes que exigem JavaFX". A suite esta em **1.727** casos e **70** classes, medidos com
 `mvn clean test`.
 
+**Remedido no Passo 14, so do lado do `dm3270-plugins`:** a coluna dos plugins em "Situacao
+atual" e a tabela "`dm3270-plugins`". O Passo 14 decompos o `UploadDataset` e nao tocou no
+`src/` deste repositorio, entao os numeros do `dm3270` continuam os do Passo 13.
+
 **Remedido no Passo 12, e ainda confiavel:** "Rede de seguranca".
 
 **Remedido no Passo 11, e ainda confiavel:** a secao "Mostrar uma janela num teste desliga o
@@ -124,7 +128,7 @@ e o que diz se os testes escritos valem alguma coisa.
 
 | | `dm3270` | `dm3270-plugins` |
 |---|---:|---:|
-| Testes | **1.727** (Passo 13) | 248 (63 no `UploadDataset`) |
+| Testes | **1.727** (Passo 13) | **279** (94 no `UploadDataset`) (Passo 14) |
 | Cobertura de instrucoes (projeto todo) | **70%** (Passo 13) | — |
 | Cobertura de ramos | **60%** (Passo 13) | — |
 | Mutantes gerados | 4.024 (Passo 8) | — |
@@ -906,10 +910,25 @@ mutuos. E o outro lado da rede: ele nao verifica comportamento, verifica arquite
 | Logon automatico | `FanLogonTest` | 21 |
 | Logoff automatico | `FanLogoffTest` | 29 |
 | Upload de dataset | `UploadDatasetTest`, `UploadContextTest`, `NoFixedDelayTest` | 63 |
-| **Total** | | **227 anotacoes, 248 casos no Surefire** |
+| Upload: entrada, rolagem, dialogo, JavaFX | `UploadDatasetRequestTest`, `ScrollAbortTest`, `UploadStageConversionTest`, `JavaFxConfinementTest` | 31 |
+| **Total** | | **258 anotacoes, 279 casos no Surefire** |
+
+**Os dois totais, com o comando que os produz** (remedidos no Passo 14; o "227 anotacoes" que
+estava aqui nao trazia comando, e nao batia com ele nem antes do passo):
+
+```bash
+grep -rhoE "@(Test|ParameterizedTest)" --include=*Test.java */test | wc -l   # 258
+grep -ho "<testcase" */target/surefire-reports/*.xml | wc -l                  # 279
+```
+
+**O Passo 14 acrescentou 31 casos ao `UploadDataset` e nao alterou nenhum dos 63 que existiam.**
+A cobertura de linhas do modulo foi de 68,2% para **81,3%**, e a do codigo que era o
+`UploadDataset.java` (hoje repartido em sete classes) de 80,4% para **95,1%**. O que ficou
+descoberto e widget: o `FxAlerts` e o corpo do `UploadStage`.
 
 **O `UploadDataset` faltava nesta tabela**, e ele e justamente o modulo com a melhor cobertura
-do repositorio - e o unico alvo de refatoracao que sobrou la. Acrescentado no Passo 9.
+do repositorio. Acrescentado no Passo 9. Era o ultimo alvo de refatoracao de la, e foi
+decomposto no Passo 14.
 
 `DocumentPageTest`, `DocumentTest` e `ScreenBuilder` aparecem duas vezes porque
 `Document.java` e `DocumentPage.java` existem em duas copias, em `DownloadDataset` e
