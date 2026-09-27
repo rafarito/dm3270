@@ -2,61 +2,60 @@ package com.bytezone.dm3270.screen;
 
 import java.util.Optional;
 
-import com.bytezone.dm3270.commands.AIDCommand;
-import com.bytezone.dm3270.commands.ReadStructuredFieldCommand;
-import com.bytezone.dm3270.commands.SystemMessage;
 import com.bytezone.dm3270.commands.WriteControlCharacter;
 import com.bytezone.dm3270.filetransfer.TransferManager;
 
 /*
- * O que a pilha de protocolo pode pedir a uma tela.
+ * O que a pilha de protocolo pode pedir a uma tela: o parametro de todo Buffer.process.
+ * Implementam a Screen e, nos testes, o HeadlessScreenTarget.
  *
- * Antes, Buffer.process recebia a classe concreta Screen - 1.010 linhas que estendem
- * javafx.scene.canvas.Canvas, constroem o grafo de objetos da aplicacao inteira no
- * construtor e sao ao mesmo tempo widget, modelo, gerenciador de janelas e hub de eventos.
- * As 25 implementacoes de process espalhadas por commands, structuredfields, telnet,
- * extended e filetransfer dependiam de tudo isso para mexer em algumas dezenas de bytes.
+ * O CONTRATO E A SOMA DE PAPEIS. Cada grupo de metodos com um consumidor proprio e uma
+ * interface em screen, e esta os estende todos:
  *
- * Este contrato e a fronteira. Estende DisplayScreen - a abstracao do buffer de tela, que
- * ja existia no projeto e nao era usada aqui - e acrescenta as operacoes que o protocolo
- * realmente executa. O inventario foi levantado do codigo, nao imaginado: commands usa 24
- * membros, structuredfields usa um (setReplyMode), filetransfer usa um
- * (getTransferManager), e telnet, extended e replyfield nao usam nenhum.
+ *   DisplayScreen       o buffer de tela - Pen, posicoes, dimensoes. Todas as orders.
+ *   KeyboardState       isKeyboardLocked (). Tambem e a porta das abas do assistant.
+ *   WriteControlTarget  os seis sinais do WCC. So WriteControlCharacter.
+ *   HostReplyTarget     ler o buffer, os campos modificados e o Query; o modo de resposta.
+ *                       ReadCommand, SetReplyModeSF, ReadPartitionQuery.
+ *   TsoCommandTarget    o campo de comando do TSO. So AIDCommand.
+ *   ApplicationHooks    gravacao, plugins automaticos, mensagens de sistema. So
+ *                       WriteCommand - e o que o ciclo C2 do plano tira de la.
+ *   ConsoleSwitch       setIsConsole (). So SystemMessage.
  *
- * Duas travessias foram estreitadas de proposito, porque devolver o objeto inteiro so
- * disfarcaria o acoplamento:
+ * O que fica declarado aqui e o nucleo que os dois comandos grandes, WriteCommand e
+ * AIDCommand, usam juntos e cruzado: travar o teclado, montar e consultar os campos, o
+ * cursor, trocar de tela e redesenhar. Parti-lo daria papeis com os mesmos dois consumidores,
+ * que nao dizem nada a mais do que este tipo. E aqui tambem fica getTransferManager (), com o
+ * TODO que registra a aresta que ele sustenta.
+ *
+ * O LIMITE, que e de Java e nao do projeto: um override de process nao pode estreitar o tipo
+ * do parametro, entao toda implementacao de Buffer.process continua vendo o contrato
+ * inteiro. Os papeis servem a quem NAO e override - WriteControlCharacter.process e o campo
+ * do SystemMessage pedem so o seu -, a documentacao de quem usa o que, e a quem for tirar um
+ * grupo daqui. O ScreenTargetContractTest congela a soma.
+ *
+ * Duas travessias foram estreitadas quando este contrato nasceu, porque devolver o objeto
+ * inteiro so disfarcaria o acoplamento:
  *
  *   getFieldManager () -> getFieldCount () e getFieldAt (int)
  *       O protocolo usava o FieldManager apenas para contar campos e achar um campo por
- *       posicao. FieldManager, por sua vez, importa database e plugins e sobe uma thread
- *       SQLite no construtor - nada disso tem a ver com processar um comando 3270.
+ *       posicao. FieldManager importa database e plugins e sobe uma thread SQLite no
+ *       construtor - nada disso tem a ver com processar um comando 3270.
  *
  *   getPluginsStage () -> processPluginAuto ()
  *       WriteCommand pedia a Stage do JavaFX so para chamar um metodo dela. Agora pede o
- *       resultado.
- *
- * SOBRE O TAMANHO: 24 membros e uma interface gorda, e nao ha ISP nenhum em finge-la
- * pequena. Quebrar em interfaces de papel menores nao reduziria acoplamento algum aqui,
- * porque Java nao permite estreitar o tipo do parametro ao sobrescrever um metodo - toda
- * implementacao de process continuaria vendo o contrato inteiro. O ganho real desta etapa
- * esta em OUTRO lugar: nenhuma classe de protocolo conhece mais Screen, FieldManager ou
- * PluginsStage, e passa a ser possivel escrever um dublê de tela para testar comandos sem
- * toolkit grafico. A decomposicao de Screen, que e o que de fato encolhe este contrato,
- * vem depois - quando cada responsabilidade tiver um dono, os grupos abaixo viram tipos.
+ *       resultado (ver ApplicationHooks).
  */
 // -----------------------------------------------------------------------------------//
-public interface ScreenTarget extends DisplayScreen, KeyboardState
+public interface ScreenTarget extends DisplayScreen, KeyboardState, WriteControlTarget,
+    HostReplyTarget, TsoCommandTarget, ApplicationHooks, ConsoleSwitch
 // -----------------------------------------------------------------------------------//
 {
   // ---------------------------------------------------------------------------------//
-  // Teclado e estado de entrada
+  // Teclado
   // ---------------------------------------------------------------------------------//
 
   void lockKeyboard (String keyName);
-
-  void restoreKeyboard ();
-
-  void resetInsertMode ();
 
   // ---------------------------------------------------------------------------------//
   // Campos da tela
@@ -70,41 +69,7 @@ public interface ScreenTarget extends DisplayScreen, KeyboardState
 
   void eraseAllUnprotected ();
 
-  void resetModified ();
-
   Cursor getScreenCursor ();
-
-  // ---------------------------------------------------------------------------------//
-  // Montagem da resposta ao host
-  // ---------------------------------------------------------------------------------//
-
-  AIDCommand readBuffer ();
-
-  AIDCommand readModifiedFields (byte type);
-
-  void setReplyMode (byte replyMode, byte[] replyTypes);
-
-  void checkRecording ();
-
-  // ---------------------------------------------------------------------------------//
-  // Comandos TSO
-  // ---------------------------------------------------------------------------------//
-
-  boolean isTSOCommandScreen ();
-
-  Field getTSOCommandField ();
-
-  void addTSOCommand (String command);
-
-  // ---------------------------------------------------------------------------------//
-  // Sinais do WriteControlCharacter
-  // ---------------------------------------------------------------------------------//
-
-  void soundAlarm ();
-
-  void startPrinter ();
-
-  void resetPartition ();
 
   // ---------------------------------------------------------------------------------//
   // Ciclo de vida da tela
@@ -114,20 +79,9 @@ public interface ScreenTarget extends DisplayScreen, KeyboardState
 
   void draw ();
 
-  void setIsConsole ();
-
   // ---------------------------------------------------------------------------------//
-  // Colaboradores que o protocolo precisa alcancar
+  // Transferencia de arquivos
   // ---------------------------------------------------------------------------------//
-
-  SystemMessage getSystemMessage ();
-
-  /*
-   * Monta a resposta a um Read Partition (Query). Substitui getTelnetState (): o protocolo
-   * pedia o estado da negociacao telnet apenas para construir este comando a partir dele,
-   * e era o unico ponto em que o modelo de tela precisava nomear o pacote streams.
-   */
-  ReadStructuredFieldCommand buildQueryReply ();
 
   /*
    * TODO: esta e a ultima aresta do modelo de tela para fora do protocolo, e sustenta UM dos
@@ -160,10 +114,4 @@ public interface ScreenTarget extends DisplayScreen, KeyboardState
    * Sai quando o composition root assumir a fiacao e injetar o gerenciador em quem precisa.
    */
   TransferManager getTransferManager ();
-
-  /*
-   * Roda os plugins automaticos e devolve a resposta que eles produziram, se produziram.
-   * Substitui getPluginsStage (): o protocolo quer o resultado, nao a janela.
-   */
-  AIDCommand processPluginAuto ();
 }

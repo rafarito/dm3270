@@ -34,7 +34,8 @@ import com.bytezone.dm3270.utilities.Site;
  * SOBRE O TAMANHO: doze metodos e uma interface gorda, e nao ha ISP nenhum em finge-la
  * pequena. Sao exatamente as doze coisas que os quatro ramos fazem. Quebra-la em papeis
  * menores nao cortaria acoplamento algum, porque o coordenador continuaria precisando dos
- * doze. E o mesmo argumento que o ScreenTarget escreve sobre os seus 24 membros.
+ * doze. O ScreenTarget, ao contrario, e a soma de papeis porque la cada grupo de metodos tem
+ * um consumidor diferente; aqui o consumidor e um so.
  *
  * QUEM A IMPLEMENTA, e por que nao e o Console diretamente. Metodo de interface e implicitamente
  * publico, entao "Console implements LaunchTarget" tornaria estes doze metodos PUBLICOS numa
