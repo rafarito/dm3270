@@ -5,7 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.bytezone.dm3270.assistant.BatchJobListener;
-import com.bytezone.dm3270.screen.ScreenTarget;
+import com.bytezone.dm3270.screen.ConsoleSwitch;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.orders.Order;
 import com.bytezone.dm3270.orders.TextOrder;
@@ -73,7 +73,7 @@ public class SystemMessage
 
   private static final Pattern twoDigits = Pattern.compile ("\\d\\d");
 
-  private final ScreenTarget screen;
+  private final ConsoleSwitch screen;
   private final BatchJobListener batchJobListener;
   private final SystemMessageView view;
 
@@ -94,7 +94,7 @@ public class SystemMessage
     IPL, CONSOLE
   }
 
-  public SystemMessage (ScreenTarget screen, BatchJobListener batchJobListener,
+  public SystemMessage (ConsoleSwitch screen, BatchJobListener batchJobListener,
       ScreenDimensions screenDimensions, SystemMessageView view)
   {
     this.screen = screen;
