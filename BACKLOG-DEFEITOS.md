@@ -959,6 +959,46 @@ do refactor desmente o plano.
 
 ---
 
+## 25. `UploadDataset`: o aborto no meio da rolagem horizontal estoura `NullPointerException` logo depois
+
+**Arquivo:** `../dm3270-plugins/UploadDataset/src/com/bytezone/plugins/UploadDataset.java`,
+método `fillEmptyLines`
+
+Quando um bloco tem linhas mais longas que o campo de conteúdo, o plugin digita `RIGHT n` e
+depois `LEFT MAX` no campo de comando. Se o campo de comando não é encontrado na tela, ele
+chama `abort (...)`, e o aborto funciona: aviso `ERROR` ao usuário, estado `IDLE`, `doesAuto`
+desligado, **`context = null`**.
+
+Só que o `abort` não encerra o método. A última instrução de `fillEmptyLines` é um
+`logger.debug (...)` cujos argumentos incluem `context.getLinesSent ()` e
+`context.getTotalLines ()`, e **argumento de método é avaliado mesmo com o nível DEBUG
+desligado**. O resultado é um `NullPointerException` com a mensagem `Cannot invoke
+"com.bytezone.plugins.UploadContext.getLinesSent()" because "this.context" is null`.
+
+O host (`PluginsStage.dispatchAuto`) captura `Exception` e loga `Error processing auto` com a
+pilha inteira. **Para o usuário o efeito é pequeno:** o aborto já aconteceu, e o aviso já tinha
+saído. O que sobra é um erro espúrio no log, com uma pilha que aponta para o lugar errado e
+esconde o motivo real, que é o aviso de logo antes.
+
+São dois ramos, e os dois têm o mesmo defeito: o do `RIGHT` (bloco que não cabe na tela) e o do
+`LEFT MAX` (fim de um bloco que já tinha sido rolado).
+
+**Por que é latente na prática:** o campo de comando do EDIT não costuma sumir entre uma tela e
+a seguinte. Aparece quando o ISPF troca de painel no meio do upload, ou quando uma mensagem
+longa sobrepõe a linha de comando.
+
+**Correção sugerida:** `return` logo depois dos dois `abort (...)` de `fillEmptyLines`, ou o log
+de depuração ler o contexto só quando ele não é nulo.
+
+**Por que não foi corrigido:** Regra 1. O `ScrollAbortTest` do módulo `UploadDataset` congela
+os dois ramos como estão, inclusive a mensagem exata do NPE, para que a decomposição do
+`UploadDataset` não o corrija de carona nem o troque por um NPE de outra linha.
+
+**Como foi achado:** lendo o método antes de extraí-lo, na decomposição do `UploadDataset`
+(Passo 14). Nenhum dos 63 casos existentes do módulo passava por esse caminho.
+
+---
+
 ## Onde estão os defeitos que a refatoração *vai* resolver
 
 Estes não estão nesta lista porque não são mudança de comportamento:
