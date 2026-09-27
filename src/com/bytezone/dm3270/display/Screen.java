@@ -13,10 +13,8 @@ import java.util.prefs.Preferences;
 import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.screen.KeyboardStatusListener;
 import com.bytezone.dm3270.assistant.TransfersStage;
-import com.bytezone.dm3270.attributes.Attribute;
 import com.bytezone.dm3270.attributes.ColorAttribute;
 import com.bytezone.dm3270.commands.AIDCommand;
-import com.bytezone.dm3270.commands.Command;
 import com.bytezone.dm3270.commands.ConsoleLines;
 import com.bytezone.dm3270.commands.ReadStructuredFieldCommand;
 import com.bytezone.dm3270.commands.SystemMessage;
@@ -51,7 +49,6 @@ import com.bytezone.dm3270.watch.ScreenWatcher;
 import com.bytezone.dm3270.streams.SessionDisplay;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.streams.TelnetStateListener;
-import com.bytezone.dm3270.structuredfields.SetReplyModeSF;
 import com.bytezone.dm3270.utilities.Site;
 
 import org.slf4j.Logger;
@@ -79,9 +76,6 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   private static final Toolkit defaultToolkit = Toolkit.getDefaultToolkit ();
   private static final boolean SHOW_CURSOR = true;
   private static final boolean HIDE_CURSOR = false;
-  private static final byte[] saveScreenReplyTypes =
-      { Attribute.XA_HIGHLIGHTING, Attribute.XA_FGCOLOR, Attribute.XA_CHARSET,
-        Attribute.XA_BGCOLOR, Attribute.XA_TRANSPARENCY };
 
   private final TerminalFunction function;
 
@@ -114,13 +108,10 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
       this::processPluginAuto);
   private ScreenOption currentScreen;
 
-  private byte currentAID;
-  private byte replyMode;
-  private byte[] replyTypes = new byte[0];
+  private final ScreenReply screenReply;
 
   private int insertedCursorPosition = -1;
   private final KeyboardStatus keyboardStatus = new KeyboardStatus ();
-  private boolean readModifiedAll = false;
 
   // ---------------------------------------------------------------------------------//
   public Screen (ScreenDimensions defaultScreenDimensions,
@@ -162,6 +153,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
         screenDimensions);
 
     screenPacker = new ScreenPacker (pen, fieldManager);
+    screenReply = new ScreenReply (screenPacker, () -> getScreenCursor ().getLocation ());
 
     screenPacker.addTSOCommandListener (transfersStage);
     screenPacker.addTSOCommandListener (transferManager);
@@ -646,13 +638,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   private void checkRecording ()
   // ---------------------------------------------------------------------------------//
   {
-    byte savedReplyMode = replyMode;
-    byte[] savedReplyTypes = replyTypes;
-
-    setReplyMode (SetReplyModeSF.RM_CHARACTER, saveScreenReplyTypes);
-    historyManager.saveScreen (readBuffer ());
-
-    setReplyMode (savedReplyMode, savedReplyTypes);
+    screenReply.recordBuffer (historyManager::saveScreen);
   }
 
   // called from this.eraseAllUnprotected()
@@ -758,24 +744,22 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   public void setAID (byte aid)
   // ---------------------------------------------------------------------------------//
   {
-    currentAID = aid;
+    screenReply.setAID (aid);
   }
 
   // ---------------------------------------------------------------------------------//
   public byte getAID ()
   // ---------------------------------------------------------------------------------//
   {
-    return currentAID;
+    return screenReply.getAID ();
   }
 
   // called from SetReplyModeSF
-  // called from this.checkRecording()
   // ---------------------------------------------------------------------------------//
   public void setReplyMode (byte replyMode, byte[] replyTypes)
   // ---------------------------------------------------------------------------------//
   {
-    this.replyMode = replyMode;
-    this.replyTypes = replyTypes;
+    screenReply.setReplyMode (replyMode, replyTypes);
   }
 
   // ---------------------------------------------------------------------------------//
@@ -918,14 +902,12 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   // ---------------------------------------------------------------------------------//
 
   // called from ConsoleKeyPress.handle() in response to a user command
-  // called from this.readModifiedFields(0x..) below
 
   // ---------------------------------------------------------------------------------//
   public AIDCommand readModifiedFields ()
   // ---------------------------------------------------------------------------------//
   {
-    return screenPacker.readModifiedFields (currentAID, getScreenCursor ().getLocation (),
-        readModifiedAll);
+    return screenReply.readModifiedFields ();
   }
 
   // Called from:
@@ -936,8 +918,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   public AIDCommand readBuffer ()
   // ---------------------------------------------------------------------------------//
   {
-    return screenPacker.readBuffer (currentAID, getScreenCursor ().getLocation (),
-        replyMode, replyTypes);
+    return screenReply.readBuffer ();
   }
 
   // Called from ReadCommand.process() in response to a ReadModified (F6)
@@ -948,23 +929,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   public AIDCommand readModifiedFields (byte type)
   // ---------------------------------------------------------------------------------//
   {
-    switch (type)
-    {
-      case Command.READ_MODIFIED_F6:
-        return readModifiedFields ();
-
-      case Command.READ_MODIFIED_ALL_6E:
-        readModifiedAll = true;
-        AIDCommand command = readModifiedFields ();
-        readModifiedAll = false;
-        return command;
-
-      default:
-        logger.warn ("Unknown type in Screen.readModifiedFields()");
-        break;
-    }
-
-    return null;
+    return screenReply.readModifiedFields (type);
   }
 
   // ---------------------------------------------------------------------------------//
