@@ -50,7 +50,7 @@ public class ConsoleKeyEvent implements EventHandler<KeyEvent>
       return;
     }
 
-    screen.getScreenSelection ().clearSelection ();
+    screen.clearSelection ();
 
     if (ch >= 32 && ch < 0x7F)
     {

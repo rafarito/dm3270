@@ -285,7 +285,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   }
 
   // ---------------------------------------------------------------------------------//
-  public ScreenSelection getScreenSelection ()
+  ScreenSelection getScreenSelection ()
   // ---------------------------------------------------------------------------------//
   {
     return screenSelection;
