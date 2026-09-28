@@ -111,6 +111,13 @@ public class HistoryScreen extends Canvas implements DisplayScreen
     pen.clearScreen ();
   }
 
+  /*
+   * Vazio de proposito: uma tela de historico nao tem cursor. E o createScreen acima quem
+   * reaplica as ordens, e elas vem do ScreenPacker.readBuffer, que so emite SBA, SF, SFE, SA,
+   * GE e texto - um InsertCursorOrder nao chega aqui na pratica. O metodo existe porque as
+   * ordens recebem DisplayScreen; tira-lo exigiria mudar o Order.process e as doze ordens que o
+   * implementam so para levar o mesmo nada para outro lugar (item 4 do BACKLOG-DEFEITOS.md).
+   */
   @Override
   public void insertCursor (int position)
   {
