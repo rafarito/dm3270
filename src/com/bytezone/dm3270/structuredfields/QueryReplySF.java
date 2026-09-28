@@ -1,6 +1,7 @@
 package com.bytezone.dm3270.structuredfields;
 
 import com.bytezone.dm3270.replyfield.QueryReplyField;
+import com.bytezone.dm3270.screen.ScreenTarget;
 
 // -----------------------------------------------------------------------------------//
 public class QueryReplySF extends StructuredField
@@ -15,6 +16,17 @@ public class QueryReplySF extends StructuredField
     super (buffer, offset, length);
     assert data[0] == StructuredField.QUERY_REPLY;
     queryReplyField = QueryReplyField.getReplyField (data);
+  }
+
+  /*
+   * Campo de entrada: vai do terminal ao host, e o ReadStructuredFieldCommand que o carrega
+   * nao processa os seus campos. Nao ha o que fazer na tela.
+   */
+  // ---------------------------------------------------------------------------------//
+  @Override
+  public void process (ScreenTarget screen)
+  // ---------------------------------------------------------------------------------//
+  {
   }
 
   // called from ReadStructuredFieldCommand constructor via Command.getReply() (replay)

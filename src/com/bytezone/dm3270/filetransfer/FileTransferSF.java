@@ -7,7 +7,7 @@ import com.bytezone.dm3270.filetransfer.Transfer.TransferContents;
 import com.bytezone.dm3270.filetransfer.Transfer.TransferType;
 import com.bytezone.dm3270.structuredfields.StructuredField;
 
-public class FileTransferSF extends StructuredField
+public abstract class FileTransferSF extends StructuredField
 {
   protected final String direction;                 // inbound/outbound
   protected final byte rectype;

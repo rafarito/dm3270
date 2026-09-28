@@ -3,6 +3,8 @@ package com.bytezone.dm3270.filetransfer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bytezone.dm3270.screen.ScreenTarget;
+
 public class FileTransferInboundSF extends FileTransferSF
 {
   private static final Logger logger = LoggerFactory.getLogger (FileTransferInboundSF.class);
@@ -44,5 +46,12 @@ public class FileTransferInboundSF extends FileTransferSF
       logger.debug ("-----------------------------------------"
           + "------------------------------");
     }
+  }
+
+  // Campo de entrada: vai do terminal ao host, e o ReadStructuredFieldCommand que o carrega
+  // nao processa os seus campos. Quem fala com o TransferManager e o FileTransferOutboundSF.
+  @Override
+  public void process (ScreenTarget screen)
+  {
   }
 }
