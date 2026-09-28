@@ -21,7 +21,7 @@ autorização foi do usuário, pedida explicitamente antes de tocar no código:
    Regra 1 foi dispensada a pedido dele.
 
 O item corrigido **continua nesta lista**, marcado, e não é renumerado: os comentários do código
-e dos testes citam o número. Hoje estão nessa situação os **itens 17 e 22**. O **item 7** também está marcado, como **encapsulado**: não houve `fix`, porque a medição mostrou que não havia corrida, e o que sobrava foi fechado como `refactor`. O **item 23** também continua na lista, marcado como **não é defeito**: a correção foi autorizada, e a medição anterior ao `fix` mostrou que o comportamento está certo.
+e dos testes citam o número. Hoje estão nessa situação os **itens 17 e 22**. O **item 4** também está marcado como **não é defeito**, resolvido sem `fix` no ciclo C10. O **item 7** também está marcado, como **encapsulado**: não houve `fix`, porque a medição mostrou que não havia corrida, e o que sobrava foi fechado como `refactor`. O **item 23** também continua na lista, marcado como **não é defeito**: a correção foi autorizada, e a medição anterior ao `fix` mostrou que o comportamento está certo.
 
 **Os três commits `fix` da branch são `cfc95f18`, `da0e89a8` e o do item 22, no Passo 12** —
 são os únicos pontos em que um `git bisect` procurando mudança de comportamento pode parar.
@@ -143,18 +143,22 @@ e exige autorização (Regra 1); o `PartialRecordTest` muda no mesmo commit do `
 
 ---
 
-## 4. Implementações no-op que quebram o contrato
+## 4. Implementações no-op que quebram o contrato — **NÃO É DEFEITO**, resolvido no ciclo C10 da Rodada SOLID 2
 
-| Local | Código | Problema |
-|---|---|---|
-| [display/HistoryScreen.java:108-111](src/com/bytezone/dm3270/display/HistoryScreen.java#L108-L111) | `public void insertCursor (int position) { }` | Declara `implements DisplayScreen` mas ignora o método, porque uma tela de histórico é imutável |
-| [structuredfields/StructuredField.java:43](src/com/bytezone/dm3270/structuredfields/StructuredField.java#L43) | `public void process (Screen screen) { }` | O cliente chama e acredita que processou |
-| [buffers/DefaultBuffer.java:17](src/com/bytezone/dm3270/buffers/DefaultBuffer.java#L17) | `logger.warn ("Nothing to process")` | Único sinal é um WARN no log |
+| Local | Código | Medido no ciclo C10 | Decisão do usuário |
+|---|---|---|---|
+| [display/HistoryScreen.java](src/com/bytezone/dm3270/display/HistoryScreen.java) | `public void insertCursor (int position) { }` | A tela reaplica o `AIDCommand` do `ScreenPacker.readBuffer`, que só emite SBA, SF, SFE, SA, GE e texto: o `InsertCursorOrder` não chega nela. Uma tela de histórico não tem cursor | **Null Object.** O método ficou, comentado com o porquê (`45fc3a01`) |
+| [structuredfields/StructuredField.java](src/com/bytezone/dm3270/structuredfields/StructuredField.java) | `public void process (Screen screen) { }` na base | Só `QueryReplySF` e `FileTransferSF` (via `FileTransferInboundSF`) herdavam, e os dois são de entrada: o `ReadStructuredFieldCommand` que os carrega tem `process` vazio e nunca os chama | **`abstract`** (`32191988`): cada campo de entrada declara o próprio corpo vazio, com o motivo |
+| `buffers/DefaultBuffer.java` | `logger.warn ("Nothing to process")` | Nenhuma referência em `src`, `test` nem nos plugins | **Apagado** (`97c674d1`, `chore`) |
 
-**Correção sugerida:** segregar o que é processável do que não é. `HistoryScreen` deveria
-implementar uma `ReadOnlyScreen` (subconjunto sem `insertCursor`/`clearScreen`), e
-`DisplayScreen` estender essa. `StructuredField` deveria ser abstrata sem implementação de
-`process`, forçando cada subclasse a decidir.
+Nenhum dos três mudava resultado: dois não eram alcançados, e o terceiro faz o nada certo. Nenhum
+commit do ciclo mudou comportamento.
+
+**A sugestão original não fechava.** Ela propunha uma `ReadOnlyScreen` sem `insertCursor` nem
+`clearScreen` para a `HistoryScreen`. Só que o `clearScreen` dela **não** é no-op (o
+`createScreen` o usa para pintar o fundo), e o `InsertCursorOrder.process` recebe
+`DisplayScreen`: tirar o método exigiria mudar o `Order.process` e as doze ordens que o
+implementam, e pôr um `instanceof` no `InsertCursorOrder`. O mesmo nada teria só mudado de lugar.
 
 ---
 
