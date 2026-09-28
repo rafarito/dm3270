@@ -591,6 +591,16 @@ class TransferRecordTest
       assertTrue (sf.toString ().contains ("record    : 77 03 00"), sf.toString ());
     }
 
+    // O campo de entrada vai do terminal ao host: processa-lo nao faz nada, nem usa a tela.
+    @Test
+    @DisplayName ("um campo de entrada nao faz nada no process")
+    void inboundProcessDoesNothing ()
+    {
+      byte[] buffer = transferField (0x46, 0x05, bytes (0x63, 0x06, 0x00, 0x00, 0x00, 0x01));
+
+      new FileTransferInboundSF (buffer, 0, buffer.length).process (null);
+    }
+
     @Test
     @DisplayName ("um OPEN de download e reconhecido pelo tipo 00/12")
     void outboundOpenDownload ()

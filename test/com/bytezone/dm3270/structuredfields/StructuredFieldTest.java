@@ -468,6 +468,27 @@ class StructuredFieldTest
   }
 
   // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("QueryReplySF")
+  class QueryReply
+  // ---------------------------------------------------------------------------------//
+  {
+    /*
+     * Campo de entrada: o terminal o manda ao host, e o ReadStructuredFieldCommand que o
+     * carrega tem process vazio. Chamar o process direto nao pode tocar na tela - por isso
+     * null, como no DefaultStructuredField acima.
+     */
+    @Test
+    @DisplayName ("process nao faz nada e nao usa a tela")
+    void processDoesNothing ()
+    {
+      byte[] buffer = field (0x81, 0x86, 0x00, 0x00);          // Color, sem pares
+
+      new QueryReplySF (buffer, 0, buffer.length).process (null);
+    }
+  }
+
+  // ---------------------------------------------------------------------------------//
   private static int count (String text, String needle)
   // ---------------------------------------------------------------------------------//
   {
