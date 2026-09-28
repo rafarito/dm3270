@@ -21,7 +21,7 @@ autorização foi do usuário, pedida explicitamente antes de tocar no código:
    Regra 1 foi dispensada a pedido dele.
 
 O item corrigido **continua nesta lista**, marcado, e não é renumerado: os comentários do código
-e dos testes citam o número. Hoje estão nessa situação os **itens 17 e 22**. O **item 23** também continua na lista, marcado como **não é defeito**: a correção foi autorizada, e a medição anterior ao `fix` mostrou que o comportamento está certo.
+e dos testes citam o número. Hoje estão nessa situação os **itens 17 e 22**. O **item 7** também está marcado, como **encapsulado**: não houve `fix`, porque a medição mostrou que não havia corrida, e o que sobrava foi fechado como `refactor`. O **item 23** também continua na lista, marcado como **não é defeito**: a correção foi autorizada, e a medição anterior ao `fix` mostrou que o comportamento está certo.
 
 **Os três commits `fix` da branch são `cfc95f18`, `da0e89a8` e o do item 22, no Passo 12** —
 são os únicos pontos em que um `git bisect` procurando mudança de comportamento pode parar.
@@ -229,13 +229,13 @@ leitura.
 
 ---
 
-## 7. Campos públicos mutáveis atravessando fronteira de thread
+## 7. Campos públicos mutáveis atravessando fronteira de thread — **ENCAPSULADO** no ciclo C9 da Rodada SOLID 2
 
-| Classe | Campos públicos mutáveis |
+| Classe | Campos que eram públicos e mutáveis |
 |---|---|
-| [DatabaseRequest](src/com/bytezone/dm3270/database/DatabaseRequest.java#L31-L33) | `result`, `databaseName`, `databaseUpdated` |
-| [DatasetRequest](src/com/bytezone/dm3270/database/DatasetRequest.java#L9-L11) | `dataset`, `datasetName`, `datasets` |
-| [MemberRequest](src/com/bytezone/dm3270/database/MemberRequest.java#L9-L13) | `member`, `memberName`, `dataset`, `datasetName`, `members` |
+| [DatabaseRequest](src/com/bytezone/dm3270/database/DatabaseRequest.java) | `result`, `databaseName`, `databaseUpdated` |
+| [DatasetRequest](src/com/bytezone/dm3270/database/DatasetRequest.java) | `dataset`, `datasetName`, `datasets` |
+| [MemberRequest](src/com/bytezone/dm3270/database/MemberRequest.java) | `member`, `memberName`, `dataset`, `datasetName`, `members` |
 
 **A corrida que este item descrevia não existe mais, e isto foi medido em 2026-09-27.** O
 texto original dizia que a thread da UI lia esses campos depois de `processResult ()`. Depois
@@ -246,9 +246,16 @@ ainda nessa thread, e os únicos ouvintes (`FieldManager`) só fazem `logger.deb
 `String`. Nenhum campo é lido de outra thread depois da construção. Os testes leem os campos
 depois de esperar num `CountDownLatch`, que estabelece o *happens-before*.
 
-**O que sobra é encapsulamento, não defeito:** os campos continuam públicos e mutáveis, e
-qualquer código novo que os lesse fora do worker reabriria a corrida. Fechá-los é o ciclo C9 do
-`PLANO-SOLID-2.md`, como `refactor`. O item fica aqui até lá, para não se perder.
+**O que sobrava era encapsulamento, e foi fechado sem `fix`**, em três commits `refactor`, um
+por classe: os campos são `private`, a leitura é por *getter* público e a escrita por *setter*
+de pacote — só o `DatabaseThread` e os `*Commands` escrevem. Os nomes e o `dataset` do
+`MemberRequest` viraram `final`, porque nunca eram escritos depois do construtor. Sobram
+públicos só `command` e `initiator`, que já eram `final`. O protocolo da fila não mudou, e não
+há sincronização nova: não havia corrida a corrigir.
+
+O `DatabaseTest` vigia por reflexão (`responseIsWrittenOnlyInsideThePackage`) que nenhum campo
+público não `final` e nenhum *setter* público voltem. O item continua aqui, marcado, porque o
+comentário do `DatabaseThread` cita o número.
 
 ---
 
