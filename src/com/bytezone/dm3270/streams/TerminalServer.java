@@ -209,10 +209,10 @@ public class TerminalServer implements Runnable
     {
       String message = e.getMessage () == null ? "" : e.getMessage ().toLowerCase ();
 
-      if (message.contains ("refused"))
+      if (message.contains ("refused") || message.contains ("recusad"))
         return "conexao recusada - o servidor esta alcancavel, mas nada escuta nessa porta";
 
-      if (message.contains ("timed out"))
+      if (message.contains ("timed out") || message.contains ("esgotad"))
         return "o servidor nao respondeu - verifique se esta ligado e alcancavel pela rede";
 
       return "nao foi possivel abrir a conexao";
