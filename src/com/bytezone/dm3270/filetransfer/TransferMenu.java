@@ -1,8 +1,8 @@
 package com.bytezone.dm3270.filetransfer;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -88,15 +88,15 @@ public class TransferMenu implements ScreenChangeListener
     Path homePath = FileSaver.getHomePath (server);
     if (Files.notExists (homePath))
     {
-      Dm3270Utility.showAlert ("Path does not exist: " + homePath);
-      return;
-    }
-
-    List<String> recentDatasets = screenWatcher.getRecentDatasets ();
-    if (recentDatasets.size () == 0)
-    {
-      Dm3270Utility.showAlert ("No datasets to download");
-      return;
+      try
+      {
+        Files.createDirectories (homePath);
+      }
+      catch (IOException e)
+      {
+        Dm3270Utility.showAlert ("Path does not exist: " + homePath);
+        return;
+      }
     }
 
     Field tsoCommandField = screenWatcher.getTSOCommandField ();

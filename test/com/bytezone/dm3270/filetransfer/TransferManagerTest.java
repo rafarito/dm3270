@@ -330,6 +330,25 @@ class TransferManagerTest
     }
 
     @Test
+    @DisplayName ("fechar grava o arquivo no destino escolhido pelo usuario")
+    void closeWritesToCustomDestination (@TempDir File customDir) throws IOException
+    {
+      File targetFile = new File (new File (customDir, "subpasta"), "MEU.DATASET");
+      IndFileCommand command = new IndFileCommand ("IND$FILE GET MEU.DATASET");
+      command.setLocalFile (targetFile);
+
+      manager.prepareTransfer (command);
+      Transfer transfer = manager.getTransfer ().get ();
+      manager.openTransfer (openRecord ("FT:DATA"));
+      transfer.add (new DataRecord (ascii ("CONTEUDO"), 0, 8, false));
+
+      manager.closeTransfer (openRecord ("FT:DATA"));
+
+      assertTrue (targetFile.exists (), targetFile.toString ());
+      assertEquals ("CONTEUDO", Files.readString (targetFile.toPath ()));
+    }
+
+    @Test
     @DisplayName ("uma transferencia de dados sobrevive ao fechamento")
     void dataTransferSurvivesClose ()
     {

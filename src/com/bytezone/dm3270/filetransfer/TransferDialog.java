@@ -1,5 +1,6 @@
 package com.bytezone.dm3270.filetransfer;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,7 +9,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -22,6 +22,7 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.layout.GridPane;
@@ -42,6 +43,7 @@ public class TransferDialog
   protected final GridPane grid = new GridPane ();
   protected final Font labelFont = Font.font ("Monospaced", 14);
   protected final ComboBox<String> datasetComboBox = new ComboBox<> ();
+  protected final CheckBox asciiCrlfCheckBox = new CheckBox ("ASCII CRLF");
 
   protected final ButtonType btnTypeOK = new ButtonType ("OK", ButtonData.OK_DONE);
   protected final ButtonType btnTypeCancel =
@@ -51,6 +53,7 @@ public class TransferDialog
   protected final Path homePath;
   protected final int baseLength;
   protected final String commandDirection;
+  protected File selectedLocalFile;
 
   public TransferDialog (ScreenWatcher screenWatcher, Path homePath, int baseLength,
       String title, String commandDirection)
@@ -73,18 +76,34 @@ public class TransferDialog
       if (btnType != btnTypeOK)
         return null;
 
-      String datasetName = datasetComboBox.getSelectionModel ().getSelectedItem ();
-      IndFileCommand indFileCommand =
-          new IndFileCommand (getCommandText (commandDirection, datasetName));
+      String datasetName = getSelectedDatasetName ();
+      if (datasetName.isEmpty ())
+        return null;
 
-      String saveFolderName = FileSaver.getSaveFolderName (homePath, datasetName);
-      Path saveFile = Paths.get (saveFolderName, datasetName);
-      indFileCommand.setLocalFile (saveFile.toFile ());
+      String commandText = getCommandText (commandDirection, datasetName);
+      if (commandText.isEmpty ())
+        return null;
+
+      IndFileCommand indFileCommand = new IndFileCommand (commandText);
+
+      if (selectedLocalFile != null)
+        indFileCommand.setLocalFile (selectedLocalFile);
+      else
+      {
+        String saveFolderName = FileSaver.getSaveFolderName (homePath, datasetName);
+        Path saveFile = Paths.get (saveFolderName, datasetName);
+        indFileCommand.setLocalFile (saveFile.toFile ());
+      }
 
       return indFileCommand;
     });
 
+    datasetComboBox.setEditable (true);
+    datasetComboBox.setPrefWidth (280);
     datasetComboBox.setStyle ("-fx-font-size: 13; -fx-font-family: Monospaced");
+
+    asciiCrlfCheckBox.setSelected (true);
+    asciiCrlfCheckBox.setFont (labelFont);
 
     buildDatasetList ();
   }
@@ -97,16 +116,38 @@ public class TransferDialog
 
   private void buildDatasetList ()
   {
+    String currentText = getSelectedDatasetName ();
     datasetComboBox
         .setItems (FXCollections.observableList (screenWatcher.getRecentDatasets ()));
-    datasetComboBox.getSelectionModel ().select (screenWatcher.getSingleDataset ());
+    String single = screenWatcher.getSingleDataset ();
+    if (single != null && !single.isEmpty ())
+    {
+      datasetComboBox.getSelectionModel ().select (single);
+      datasetComboBox.getEditor ().setText (single);
+    }
+    else if (!currentText.isEmpty ())
+    {
+      datasetComboBox.getEditor ().setText (currentText);
+    }
+  }
+
+  protected String getSelectedDatasetName ()
+  {
+    String text = datasetComboBox.getEditor ().getText ();
+    if (text == null || text.trim ().isEmpty ())
+      text = datasetComboBox.getSelectionModel ().getSelectedItem ();
+    if (text == null)
+      return "";
+
+    text = text.trim ().toUpperCase ();
+    if (text.length () >= 2 && text.startsWith ("'") && text.endsWith ("'"))
+      text = text.substring (1, text.length () - 1).trim ();
+    return text;
   }
 
   protected String getCommandText (String direction, String datasetName)
   {
-    Matcher matcher1 = jclPattern.matcher (datasetName);
-    Matcher matcher2 = procPattern.matcher (datasetName);
-    boolean useCrlf = matcher1.matches () || matcher2.matches ();
+    boolean useCrlf = asciiCrlfCheckBox.isSelected ();
 
     // remove prefix to save space on the command line
     String prefix = screenWatcher.getPrefix ();

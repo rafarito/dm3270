@@ -67,10 +67,15 @@ public class Transfer
 
     siteFolderName = site == null ? "" : site.getFolder ();
 
-    Path homePath = FileSaver.getHomePath (siteFolderName);
-    String saveFolderName = FileSaver.getSaveFolderName (homePath, datasetName);
-    Path filePath = Paths.get (saveFolderName, getDatasetName ());
-    localFile = filePath.toFile ();
+    if (indFileCommand.getLocalFile () != null)
+      localFile = indFileCommand.getLocalFile ();
+    else
+    {
+      Path homePath = FileSaver.getHomePath (siteFolderName);
+      String saveFolderName = FileSaver.getSaveFolderName (homePath, datasetName);
+      Path filePath = Paths.get (saveFolderName, getDatasetName ());
+      localFile = filePath.toFile ();
+    }
   }
 
   public String getSiteFolderName ()
@@ -147,7 +152,10 @@ public class Transfer
     byte[] buffer = combineDataBuffers ();
     try
     {
-      Files.write (localFile.toPath (), buffer);
+      Path targetPath = localFile.toPath ();
+      if (targetPath.getParent () != null)
+        Files.createDirectories (targetPath.getParent ());
+      Files.write (targetPath, buffer);
     }
     catch (IOException e)
     {

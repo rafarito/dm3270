@@ -128,6 +128,19 @@ class TransferTest
       assertEquals ("MEU.DATASET", file.getName ());
       assertTrue (file.getPath ().contains ("dm3270"), file.getPath ());
     }
+
+    @Test
+    @DisplayName ("respeita o arquivo de destino escolhido pelo usuario no IndFileCommand")
+    void respectsCustomLocalFile (@TempDir File customDir)
+    {
+      File customTarget = new File (customDir, "MEU.DATASET");
+      IndFileCommand command = new IndFileCommand ("IND$FILE GET MEU.DATASET");
+      command.setLocalFile (customTarget);
+
+      Transfer transfer = new Transfer (command, null, "");
+
+      assertEquals (customTarget, transfer.getFile ());
+    }
   }
 
   // ---------------------------------------------------------------------------------//
