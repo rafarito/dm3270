@@ -297,6 +297,16 @@ public class ScreenWatcher
   private boolean checkTSOCommandScreen (List<Field> screenFields)
   // ---------------------------------------------------------------------------------//
   {
+    if (checkZosTSOCommandScreen (screenFields))
+      return true;
+
+    return checkAlternativeTSOCommandScreen (screenFields);
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private boolean checkZosTSOCommandScreen (List<Field> screenFields)
+  // ---------------------------------------------------------------------------------//
+  {
     if (screenFields.size () < 19)
       return false;
 
@@ -318,6 +328,31 @@ public class ScreenWatcher
 
     tsoCommandField = field;
     return true;
+  }
+
+  // ---------------------------------------------------------------------------------//
+  private boolean checkAlternativeTSOCommandScreen (List<Field> screenFields)
+  // ---------------------------------------------------------------------------------//
+  {
+    for (int i = 0; i < screenFields.size (); i++)
+    {
+      String text = screenFields.get (i).getText ().trim ().toUpperCase ();
+      if (text.contains ("ENTER TSO COMMAND")
+          || text.contains ("TSO COMMAND PROCESSOR"))
+      {
+        for (int j = i + 1; j < screenFields.size (); j++)
+        {
+          Field candidate = screenFields.get (j);
+          if (candidate.isUnprotected () && !candidate.isHidden ()
+              && candidate.getDisplayLength () >= 40)
+          {
+            tsoCommandField = candidate;
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   // ---------------------------------------------------------------------------------//

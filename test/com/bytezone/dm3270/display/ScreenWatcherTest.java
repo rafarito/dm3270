@@ -1407,6 +1407,42 @@ class ScreenWatcherTest
     }
   }
 
+  // ---------------------------------------------------------------------------------//
+  @Nested
+  @DisplayName ("tela de comando TSO (Opcao 6 RFE/RPF)")
+  class TsoCommandScreen
+  // ---------------------------------------------------------------------------------//
+  {
+    @Test
+    @DisplayName ("reconhece a tela RFE TSO (ENTER TSO COMMAND OR CLIST BELOW)")
+    void recognisesRfeTsoScreen ()
+    {
+      field (0, 0, PROTECTED, "RFE TSO");
+      field (1, 0, PROTECTED, "ENTER TSO COMMAND OR CLIST BELOW:");
+      field (2, 0, PROTECTED, "===>");
+      field (2, 5, UNPROTECTED, "");
+      field (3, 0, PROTECTED, "");
+      send ();
+
+      assertTrue (watcher.isTSOCommandScreen ());
+      assertNotNull (watcher.getTSOCommandField ());
+    }
+
+    @Test
+    @DisplayName ("reconhece a tela RPF TSO Command Processor")
+    void recognisesRpfTsoScreen ()
+    {
+      field (0, 0, PROTECTED, "RPF TSO Command Processor");
+      field (1, 0, PROTECTED, "Enter command or END below");
+      field (2, 0, UNPROTECTED, "");
+      field (3, 0, PROTECTED, "");
+      send ();
+
+      assertTrue (watcher.isTSOCommandScreen ());
+      assertNotNull (watcher.getTSOCommandField ());
+    }
+  }
+
   /*
    * O DatasetStore que o ScreenWatcher enxerga nestes testes. Ate agora esse caminho terminava
    * no DatasetStore.NONE e era invisivel: dava para conferir o que ia para a tabela do

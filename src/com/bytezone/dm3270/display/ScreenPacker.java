@@ -7,6 +7,7 @@ import java.util.Set;
 import com.bytezone.dm3270.attributes.Attribute;
 import com.bytezone.dm3270.attributes.Attribute.AttributeType;
 import com.bytezone.dm3270.attributes.StartFieldAttribute;
+import com.bytezone.dm3270.filetransfer.TransferManager;
 import com.bytezone.dm3270.watch.ScreenChangeListener;
 import com.bytezone.dm3270.watch.ScreenWatcher;
 import com.bytezone.dm3270.watch.TSOCommandListener;
@@ -72,9 +73,11 @@ class ScreenPacker implements ScreenChangeListener
       if (field.isModified ())
       {
         ptr = packField (field, buffer, ptr);
-        if (field == tsoCommandField)
+        String fieldText = field.getText ().trim ();
+        if (field == tsoCommandField
+            || TransferManager.isIndfileCommand (fieldText.toUpperCase ()))
         {
-          addTSOCommand (field.getText ().trim ());
+          addTSOCommand (fieldText);
           tsoFieldSent = true;
         }
       }

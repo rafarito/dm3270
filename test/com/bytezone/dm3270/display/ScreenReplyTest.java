@@ -308,6 +308,29 @@ class ScreenReplyTest
     assertFalse (history.current ().matches (asField));
   }
 
+  // ---------------------------------------------------------------------------------//
+  @Test
+  @DisplayName ("um comando IND$FILE modificado em qualquer campo avisa o TransferManager")
+  void indFileInAnyModifiedFieldNotifiesTransferManager ()
+  // ---------------------------------------------------------------------------------//
+  {
+    byte[] buffer = { ERASE_WRITE, WCC_RESET_KEYBOARD,                          //
+                      SF, PROTECTED, (byte) 0xC1,                               //
+                      SF, UNPROTECTED, (byte) 0x40, (byte) 0x40, (byte) 0x40,   //
+                      SF, PROTECTED, (byte) 0xC2 };
+    onFx ( () ->
+    {
+      Command.getCommand (buffer, 0, buffer.length).process (screen);
+      screen.getFieldManager ().getUnprotectedFields ().get (0)
+          .setText ("IND$FILE GET 'HERC02.TEST.DATA' ASCII CRLF");
+      screen.setAID (AID_ENTER);
+      screen.readModifiedFields ();
+      return null;
+    });
+
+    assertTrue (screen.getTransferManager () != null);
+  }
+
   /*
    * O Erase Write da tela de teste. O WCC destrava o teclado e a Screen grava a tela no
    * historico - e o caminho do checkRecording, no modo de fabrica.
