@@ -8,28 +8,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
-/*
- * Os widgets que mostram um ReportScore: a Pagination que numera as paginas e o TextArea onde
- * o texto de cada uma aparece.
- *
- * Os tres campos daqui - font, pagination e textArea - moravam dentro do ReportScore, que e
- * um objeto de pontuacao e paginacao. Eram 16 das violacoes da regra que diz que so a
- * interface conhece JavaFX, e a razao de a montagem de pagina do subsistema so poder ser
- * exercitada atraves de um Node.
- *
- * DUAS COISAS PRECISAM SER PRESERVADAS AQUI, e as duas tem teste:
- *
- * 1. O MESMO TextArea a cada pagina. A Pagination guarda getFormattedPage como fabrica e
- *    troca o Node do centro a cada virada; devolver uma instancia nova a cada chamada mudaria
- *    o que a janela faz. Por isso o campo e final e so o texto dele muda.
- *
- * 2. UMA VIEW POR ReportScore, e nao uma por exibicao. A Pagination lembra em que pagina o
- *    usuario estava. Como o FormatBox pede a paginacao de novo toda vez que os botoes de
- *    formato mudam, e o ReportData devolve a MESMA instancia de ReportScore para uma
- *    combinacao ja vista, alternar formato de ida e volta devolvia o usuario a pagina em que
- *    ele estava. Isso era consequencia de o ReportScore guardar a propria Pagination; agora
- *    depende de o FormatBox guardar a view, e e por isso que ele tem um mapa por identidade.
- */
+// View JavaFX de ReportScore; reutiliza o mesmo TextArea entre trocas de pagina.
 // -----------------------------------------------------------------------------------//
 public class ReportScoreView
 // -----------------------------------------------------------------------------------//
@@ -64,11 +43,7 @@ public class ReportScoreView
     textArea.setMinHeight (50);
   }
 
-  /*
-   * A criacao e preguicosa e TEM EFEITO: a primeira chamada manda o ReportScore montar as
-   * paginas, e so entao ha quantas contar. Era assim quando este metodo morava no
-   * ReportScore, e a guarda continua sendo a mesma - o pagination nulo.
-   */
+  // Cria a Pagination sob demanda, disparando reportScore.createPages() na primeira chamada.
   // ---------------------------------------------------------------------------------//
   public Pagination getPagination ()
   // ---------------------------------------------------------------------------------//

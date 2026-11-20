@@ -48,8 +48,7 @@ public class FileTransferInboundSF extends FileTransferSF
     }
   }
 
-  // Campo de entrada: vai do terminal ao host, e o ReadStructuredFieldCommand que o carrega
-  // nao processa os seus campos. Quem fala com o TransferManager e o FileTransferOutboundSF.
+  // Campo inbound (terminal -> host); quem aciona TransferManager e FileTransferOutboundSF.
   @Override
   public void process (ScreenTarget screen)
   {

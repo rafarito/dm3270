@@ -10,19 +10,8 @@ import org.slf4j.LoggerFactory;
 import com.bytezone.dm3270.database.DatabaseRequest.Result;
 import com.bytezone.dm3270.datasets.Dataset;
 
-/*
- * Os seis comandos que operam sobre um dataset: ADD, UPDATE, MODIFY, DELETE, FIND e LIST.
- *
- * Aqui mora a regra, e no DatasetRepository mora o SQL. A diferenca fica visivel no UPDATE: o
- * repositorio sabe executar um update, e quem decide SE ha o que atualizar - e o que
- * exatamente gravar depois de fundir - e este metodo.
- *
- * A busca do dataset acontece UMA vez, antes do switch, e serve a todos os ramos. O UPDATE
- * procura de novo la dentro, o que e redundante e esta preservado: cada busca tambem escreve
- * no cache, e mudar a contagem mudaria o que fica guardado.
- *
- * O logger e o do DatabaseThread, e o aviso do ramo default mantem o "Unnown" de origem.
- */
+// Usa o logger de DatabaseThread para preservar o formato de saida do logback.
+// A segunda busca em update() e intencional porque find() tambem atualiza o cache.
 // -----------------------------------------------------------------------------------//
 final class DatasetCommands
 // -----------------------------------------------------------------------------------//
@@ -95,14 +84,6 @@ final class DatasetCommands
     }
   }
 
-  /*
-   * O UPDATE nao e uma gravacao direta. Ele procura o que ja esta la e pergunta se o que
-   * chegou DIFERE: quando nao difere, sai devolvendo sucesso sem escrever e sem marcar
-   * databaseUpdated - que e o campo que o QueuedDatasetStore devolve ao StoreListener.
-   *
-   * Quando difere, funde o novo no que estava, e e o OBJETO FUNDIDO que vai para o banco e de
-   * volta para a requisicao. Os campos que a requisicao nao declara sobrevivem.
-   */
   // ---------------------------------------------------------------------------------//
   private boolean update (DatasetRequest request)
   // ---------------------------------------------------------------------------------//
@@ -131,7 +112,7 @@ final class DatasetCommands
     return true;
   }
 
-  // A lista e criada antes da consulta: numa falha no meio, quem pediu fica com o que deu.
+  // Associa a lista antes da consulta para manter itens ja lidos em caso de falha.
   // ---------------------------------------------------------------------------------//
   private boolean list (DatasetRequest request)
   // ---------------------------------------------------------------------------------//

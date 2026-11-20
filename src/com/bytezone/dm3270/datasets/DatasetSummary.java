@@ -1,24 +1,8 @@
 package com.bytezone.dm3270.datasets;
 
-/*
- * Um dataset - ou um membro de PDS - como o ScreenWatcher o leu da tela do ISPF.
- *
- * Este tipo e o gemeo sem JavaFX do assistant.TableDataset, e existe pelo motivo de sempre:
- * o TableDataset guarda os mesmos dezesseis campos, mas em StringProperty e IntegerProperty,
- * porque e o modelo de linha de uma TableView. Enquanto o ScreenWatcher produzisse
- * TableDataset, o pacote display nomeava assistant, e os dialogos de transferencia nomeavam
- * assistant tambem - so para ler duas datas. Era a causa unica do ciclo
- * assistant <-> filetransfer.
- *
- * Os campos sao TEXTO OBSERVADO, e nao valores convertidos: o que a tela mostrou, como
- * mostrou. E deliberado, e diferente do datasets.Dataset, que guarda datas ja convertidas
- * para gravar no banco. Uma data que o host escreva fora do formato esperado nao converte, e
- * o Dataset fica com o campo nulo - mas a tabela do assistant continua mostrando o texto. Os
- * dois tipos existem porque os dois usos existem.
- *
- * A ordem dos campos, os nomes dos acessores e o formato do toString sao os do TableDataset,
- * de proposito: o ScreenWatcher chama os mesmos metodos de antes, e quem compara os dois
- * lado a lado ve que sao a mesma coisa.
+/**
+ * Resumo de dataset ou membro lido da tela do ISPF, sem tipos JavaFX.
+ * Mantem datas em texto bruto da tela, diferente de {@link Dataset} que as converte.
  */
 // -----------------------------------------------------------------------------------//
 public class DatasetSummary

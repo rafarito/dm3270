@@ -9,32 +9,8 @@ import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.session.Session;
 import com.bytezone.dm3270.session.SessionReader;
 
-/*
- * Reconstroi uma sessao a partir de um arquivo gravado.
- *
- * Isto morava dentro da propria Session, em dois construtores e num init () privado, e era a
- * unica razao de o pacote session nomear streams: uma sessao gravada nao precisa de socket
- * nenhum, mas RECONSTRUIR uma precisa, porque os bytes tem de passar pelo mesmo TelnetListener
- * que os interpretaria se viessem do fio. O campo TelnetState da Session existia so para
- * chegar aqui, e nao era lido em mais lugar nenhum.
- *
- * Aqui, do lado de quem tem o listener, o carregamento e um driver de replay - o vizinho do
- * TerminalServer, que faz a mesma coisa com bytes que chegam de verdade. Com ele fora,
- * session -> streams chegou a zero e o ciclo mutuo session <-> streams caiu.
- *
- * O ALGORITMO E MOVIMENTO VERBATIM, e o intercalamento merece explicacao porque nao e obvio:
- * os dois SessionReader leem o MESMO arquivo, um filtrando as linhas do cliente e outro as do
- * servidor, e cada um sabe em que linha do arquivo esta. O laco entrega sempre o lado que
- * estiver atrasado, e assim as duas metades sao reproduzidas na ordem cronologica original.
- *
- * Os dois leitores sao construidos NA ORDEM ORIGINAL - servidor e depois cliente. O construtor
- * do SessionReader le o arquivo e pode lancar DateTimeParseException num cabecalho malformado,
- * entao quem lanca primeiro depende dessa ordem.
- *
- * O rotulo da tela so e recolhido quando o buffer do servidor termina em IAC/EOR - ou seja,
- * quando ele fecha um registro completo -, e continua sendo acrescentado a lista viva que a
- * MainframeStage tambem mexe.
- */
+// Reconstroi uma sessao gravada intercalando os leitores de servidor e cliente por linha.
+// Constroi server antes de client: SessionReader faz parse no construtor e pode lancar.
 // -----------------------------------------------------------------------------------//
 public class SessionLoader
 // -----------------------------------------------------------------------------------//

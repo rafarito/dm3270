@@ -192,18 +192,7 @@ public class Member
     return name;
   }
 
-  // ---------------------------------------------------------------------------------//
-  // Leitura
-  // ---------------------------------------------------------------------------------//
-
-  /*
-   * Pelo mesmo motivo do Dataset: o DatabaseThread montava o INSERT_MEMBER lendo estes oito
-   * campos direto, e o CacheEntry indexava o mapa por member.name. Sao acessores de leitura;
-   * nada de fora escreve num Member.
-   *
-   * getCreatedSQL e getChangedSQL devolvem o campo tal como esta guardado, e nao uma data
-   * derivada de created e changed - ver a explicacao equivalente em Dataset.
-   */
+  // getCreatedSQL/getChangedSQL retornam os campos *SQL armazenados diretamente (ver Dataset).
   // ---------------------------------------------------------------------------------//
   public Dataset getDataset ()
   // ---------------------------------------------------------------------------------//

@@ -7,11 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/*
- * A traducao entre um Member e uma linha da tabela MEMBERS. Mesma historia do DatasetMapper,
- * com dez parametros em vez de quinze, cobertos por
- * DatabaseTest.memberColumnsAreBoundInOrder.
- */
+// Ordem dos parametros em bind() deve casar com os SQLs em MemberRepository.
 // -----------------------------------------------------------------------------------//
 final class MemberMapper
 // -----------------------------------------------------------------------------------//

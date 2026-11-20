@@ -11,25 +11,8 @@ import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.commands.Command;
 import com.bytezone.dm3270.structuredfields.SetReplyModeSF;
 
-/*
- * O estado da resposta ao host - o AID corrente, o modo e os tipos do Set Reply Mode e o
- * flag do Read Modified All - e a escolha dos argumentos com que o ScreenPacker e chamado.
- *
- * Morava na Screen, que e a view. O ScreenPacker continua sendo quem empacota, e continua
- * sendo da Screen (tambem serve o historico de comandos TSO); esta classe so o usa.
- *
- * O que e observavel e esta classe preserva (o ScreenReplyTest vigia):
- *
- *   O AID nasce zero, e nao NO_AID_SPECIFIED: so o restoreKeyboard da Screen o poe la.
- *
- *   O READ MODIFIED ALL e um flag de uma chamada so, ligado e desligado em volta dela.
- *
- *   A GRAVACAO do historico troca o modo pelo de caractere com os tipos abaixo, entrega o
- *   Read Buffer e devolve o modo e os tipos do host - nessa ordem, com a entrega no meio.
- *
- *   O LOG do tipo desconhecido sai com o logger da Screen, porque o nome do logger e saida
- *   observavel.
- */
+// Estado da resposta 3270 ao host (AID, reply mode e Read Modified All).
+// Mantem AID inicial 0 (ate restoreKeyboard) e logger de Screen.class por compatibilidade.
 // -----------------------------------------------------------------------------------//
 final class ScreenReply
 // -----------------------------------------------------------------------------------//

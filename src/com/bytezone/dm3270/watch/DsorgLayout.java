@@ -6,15 +6,6 @@ import com.bytezone.dm3270.datasets.Dataset;
 import com.bytezone.dm3270.datasets.DatasetSummary;
 import com.bytezone.dm3270.screen.Field;
 
-/*
- * Uma linha por dataset, com a disposicao. Era o screenType 2.
- *
- * A linha de titulos tem tres campos e o do meio comeca com "Dsorg".
- *
- * Os deslocamentos sao 5/11/18, contra os 5/10/16 dos layouts de varias linhas.
- *
- * O espelho do TracksLayout: este ramo le disposicao e nao le espaco nem dispositivo.
- */
 // -----------------------------------------------------------------------------------//
 final class DsorgLayout implements DatasetListLayout
 // -----------------------------------------------------------------------------------//

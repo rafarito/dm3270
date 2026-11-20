@@ -1,32 +1,13 @@
 package com.bytezone.dm3270.commands;
 
-/*
- * O que o SystemMessage precisa mostrar na tela.
- *
- * SystemMessage e uma classe de protocolo: ela reconhece as mensagens que o host escreve na
- * tela (job submetido, job terminado, hora, data, PROFILE, console de IPL) a partir da
- * sequencia de orders que chegou. Duas dessas mensagens, porem, terminam em interface
- * grafica - e era ela mesma quem montava a interface, importando javafx.scene.control.Dialog,
- * javafx.scene.text.Font e javafx.application.Platform para dentro do pacote commands.
- *
- * Esta porta e a fronteira. Fica aqui, ao lado do consumidor, de proposito: assim a
- * dependencia aponta para dentro - quem sabe desenhar implementa o contrato de quem sabe
- * reconhecer, e nao o contrario. O protocolo diz o que aconteceu; a camada de interface
- * decide como isso aparece.
- */
+/** Porta de exibicao usada por SystemMessage para manter o protocolo sem JavaFX. */
 // -----------------------------------------------------------------------------------//
 public interface SystemMessageView
 // -----------------------------------------------------------------------------------//
 {
-  /*
-   * O host mandou a tela de PROFILE do TSO. Os dois textos vem crus, como o host os
-   * escreveu: o primeiro traz os tokens CHAR(), LINE() e PREFIX(), o segundo o resto.
-   */
+  // Texto cru da tela TSO PROFILE: text1 traz CHAR/LINE/PREFIX e text2 traz o restante.
   void showProfile (String profileMessageText1, String profileMessageText2);
 
-  /*
-   * O host esta em modo console: a mensagem de IPL apareceu. Devolve para onde as linhas
-   * devem ir. E chamado uma vez so, no momento em que o modo console e reconhecido.
-   */
+  // Chamado uma vez ao reconhecer modo console (IPL) para abrir o destino das linhas.
   ConsoleLines openConsoleLog ();
 }

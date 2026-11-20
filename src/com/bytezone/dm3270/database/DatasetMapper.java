@@ -6,21 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/*
- * A traducao entre um Dataset e uma linha da tabela DATASETS.
- *
- * Estava dentro do DatabaseThread, em dois metodos privados que liam os campos do Dataset
- * direto - sem passar por metodo nenhum, porque os dois tipos eram vizinhos de pacote. Era o
- * unico motivo pelo qual Dataset nao podia sair daqui, e por tabela o unico motivo pelo qual
- * o pacote display, que so usa os setters, continuava preso a persistencia.
- *
- * Aqui e o lugar: quem conhece o esquema SQL e quem sabe traduzir para ele. O Dataset passa
- * a ser lido por acessores, e a ordem dos quinze parametros - que e o que um erro de indice
- * quebraria em silencio - esta coberta por DatabaseTest.datasetColumnsAreBoundInOrder, que
- * le as colunas do arquivo SQLite pelo nome.
- *
- * A ordem dos parametros e das colunas lidas e exatamente a de antes.
- */
+// Ordem dos parametros em bind() deve casar com os SQLs em DatasetRepository.
 // -----------------------------------------------------------------------------------//
 final class DatasetMapper
 // -----------------------------------------------------------------------------------//

@@ -354,13 +354,7 @@ public class ConsolePane extends BorderPane implements FieldChangeListener,
       setStatusText ("⚠ SSL sem validação de certificado (Trust All)");
   }
 
-  /*
-   * A conexao acontece numa thread propria, e connect() retorna antes de saber se deu certo.
-   * Quando nao da, este e o unico caminho pelo qual o usuario descobre: antes a falha
-   * ficava so no log e a janela do terminal abria em branco.
-   *
-   * Chamado da thread do TerminalServer, por isso tudo vai para a thread do JavaFX.
-   */
+  // Chamado da thread do TerminalServer quando connect() falha; atualiza a UI via JavaFX.
   // ---------------------------------------------------------------------------------//
   private void reportConnectionFailure (String host, int port, String reason)
   // ---------------------------------------------------------------------------------//

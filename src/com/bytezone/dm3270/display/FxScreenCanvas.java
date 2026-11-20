@@ -5,17 +5,6 @@ import com.bytezone.dm3270.screen.ScreenCanvas;
 
 import javafx.scene.canvas.GraphicsContext;
 
-/*
- * Liga ScreenCanvas ao GraphicsContext do JavaFX.
- *
- * Delegacao pura: cada metodo repassa a chamada correspondente, na mesma ordem e com os
- * mesmos argumentos que ScreenPosition fazia direto no GraphicsContext. A unica traducao e
- * a da cor, via FxPalette, que reconstroi exatamente a cor de antes - ver
- * PaletteFidelityTest.
- *
- * Nao ha logica aqui de proposito: qualquer decisao neste adaptador seria uma diferenca de
- * comportamento entre o desenho de antes e o de agora.
- */
 // -----------------------------------------------------------------------------------//
 public final class FxScreenCanvas implements ScreenCanvas
 // -----------------------------------------------------------------------------------//

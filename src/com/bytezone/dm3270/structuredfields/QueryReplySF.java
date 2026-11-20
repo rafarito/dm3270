@@ -18,10 +18,7 @@ public class QueryReplySF extends StructuredField
     queryReplyField = QueryReplyField.getReplyField (data);
   }
 
-  /*
-   * Campo de entrada: vai do terminal ao host, e o ReadStructuredFieldCommand que o carrega
-   * nao processa os seus campos. Nao ha o que fazer na tela.
-   */
+  // Campo de entrada (terminal -> host); nao ha processamento de tela.
   // ---------------------------------------------------------------------------------//
   @Override
   public void process (ScreenTarget screen)

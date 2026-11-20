@@ -15,33 +15,7 @@ import javafx.scene.input.KeyEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/*
- * Uma tabela de despacho POR MODO, e nao uma tabela so.
- *
- * O plano deste passo pedia um Map<KeyCombination, TerminalAction> unico. A medicao mostrou que
- * nao serve, porque tres coisas deste tratador sao comportamento observavel e um mapa global
- * nao exprime nenhuma delas:
- *
- *   1. a ORDEM das guardas. O atalho decide antes dos dois blocos de modificador, o teclado
- *      travado antes de todo o resto, e o shift+ENTER antes do bloco Control;
- *
- *   2. o ENGOLIMENTO do modo historico. Com o teclado travado so LEFT e RIGHT fazem algo, e
- *      todo o resto retorna sem consumir. Nao ha como dizer "neste modo, nada mais vale" numa
- *      tabela plana;
- *
- *   3. os FALLBACKS, que sao cinco coisas diferentes: o default vazio do Meta e do Control, o
- *      logger.warn do bloco das setas, a varredura de teclas de funcao do modo normal e o
- *      caminho de atalho nao mapeado, que limpa a selecao e NAO consome.
- *
- * Dai a forma: a cadeia de guardas continua escrita como cadeia, cada modo tem a sua tabela, e
- * o fallback de cada modo fica ao lado dela, fora da tabela. Dentro de uma tabela a regra e
- * uniforme e por isso o consume () saiu das acoes e foi para o dispatch: TODA tecla mapeada
- * consome, em todos os modos. Quem nao consome e sempre um fallback.
- *
- * As quatro acoes alcancaveis por mais de uma combinacao - home por tres, eraseEOL por tres,
- * newLine por duas e toggleInsertMode por duas - sao a MESMA KeyAction referenciada de tabelas
- * diferentes, nunca bindings fundidos. E o que o ConsoleKeyPressTest conta, caso a caso.
- */
+// Despacho por modo em ordem fixa de guardas; todo binding mapeado consome o evento.
 class ConsoleKeyPress implements EventHandler<KeyEvent>
 {
   private static final Logger logger = LoggerFactory.getLogger (ConsoleKeyPress.class);
@@ -60,11 +34,6 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
   private final Map<KeyCode, KeyAction> arrowBindings = new EnumMap<> (KeyCode.class);
   private final Map<KeyCode, KeyAction> plainBindings = new EnumMap<> (KeyCode.class);
 
-  /*
-   * A acao recebe o evento porque duas delas leem o shift DE DENTRO: o TAB, que o passa como
-   * argumento para cursor.tab (boolean), e a varredura de teclas de funcao, que soma 12 ao
-   * numero. Um Runnable nao daria conta das duas.
-   */
   @FunctionalInterface
   private interface KeyAction
   {
@@ -77,14 +46,13 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
     this.screen = screen;
     this.cursor = screen.getScreenCursor ();
 
-    // as quatro acoes que aparecem em mais de um binding, cada uma declarada UMA vez
     KeyAction home = keyEvent -> cursor.home ();
     KeyAction eraseEOL = keyEvent -> cursor.eraseEOL ();
     KeyAction newLine = keyEvent -> cursor.newLine ();
     KeyAction toggleInsertMode = keyEvent -> screen.toggleInsertMode ();
 
     shortcutBindings.put (KeyCode.C, keyEvent -> screen.copySelection ());
-    shortcutBindings.put (KeyCode.V, keyEvent ->                  // limpa ANTES de colar
+    shortcutBindings.put (KeyCode.V, keyEvent ->
     {
       screen.clearSelection ();
       screen.pasteText ();
@@ -111,17 +79,13 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
 
     plainBindings.put (KeyCode.ENTER, sendAID (AIDCommand.AID_ENTER, "ENTR"));
     plainBindings.put (KeyCode.TAB, keyEvent -> cursor.tab (keyEvent.isShiftDown ()));
-    plainBindings.put (KeyCode.BACK_SPACE, keyEvent -> cursor.backspace ());  // UM caractere
-    plainBindings.put (KeyCode.DELETE, keyEvent -> cursor.delete ());         // UM caractere
-    plainBindings.put (KeyCode.END, eraseEOL);                       // a linha toda, esta sim
+    plainBindings.put (KeyCode.BACK_SPACE, keyEvent -> cursor.backspace ());
+    plainBindings.put (KeyCode.DELETE, keyEvent -> cursor.delete ());
+    plainBindings.put (KeyCode.END, eraseEOL);
     plainBindings.put (KeyCode.INSERT, toggleInsertMode);
     plainBindings.put (KeyCode.HOME, home);
     plainBindings.put (KeyCode.ESCAPE, keyEvent -> logger.debug ("escape"));      // CLR key?
   }
-
-  // ---------------------------------------------------------------------------------//
-  //  A cadeia de guardas
-  // ---------------------------------------------------------------------------------//
 
   @Override
   public void handle (KeyEvent keyEvent)
@@ -170,10 +134,6 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
       handlePlainKey (keyEvent, keyCodePressed);
   }
 
-  /*
-   * Devolve true se a tecla tinha binding neste modo. Todo binding consome; os caminhos que NAO
-   * consomem sao os fallbacks, e ficam fora da tabela de proposito.
-   */
   private boolean dispatch (Map<KeyCode, KeyAction> bindings, KeyEvent keyEvent,
       KeyCode keyCodePressed)
   {
@@ -186,22 +146,7 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
     return true;
   }
 
-  // ---------------------------------------------------------------------------------//
-  //  Os modos que tem fallback com comportamento proprio
-  // ---------------------------------------------------------------------------------//
-
-  /*
-   * Copiar e colar, e nada mais: devolve false para todo o resto, e a cadeia segue decidindo.
-   *
-   * Ate o passo 8 este bloco retornava para QUALQUER tecla e engolia o resto da cadeia. Como
-   * isShortcutDown () e controlDown no Windows e no Linux e metaDown no macOS, isso matava um
-   * bloco inteiro por plataforma: o Meta no macOS - inclusive as teclas PA1, PA2 e PA3 - e o
-   * Ctrl+H no Windows e no Linux. Era o item 17 do BACKLOG-DEFEITOS.md, corrigido a pedido do
-   * usuario.
-   *
-   * A limpeza de selecao que ficava aqui saiu junto: quem a faz agora, para todo atalho que nao
-   * seja C nem V, e a mesma linha que ja a fazia para toda tecla nao-modificadora.
-   */
+  // Retorna false para atalhos nao mapeados para nao bloquear Meta/Ctrl no restante da cadeia.
   private boolean handleShortcut (KeyEvent keyEvent, KeyCode keyCodePressed)
   {
     // Ignore modifier keys pressed alone (Ctrl, Meta, etc.)
@@ -211,12 +156,7 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
     return dispatch (shortcutBindings, keyEvent, keyCodePressed);
   }
 
-  /*
-   * O aviso nao e impossivel, ao contrario do que diz: KeyCode.isArrowKey () e (mask & 4) != 0,
-   * e KP_UP tem o bit ligado tanto quanto UP. As quatro setas do teclado numerico, com NumLock
-   * desligado, chegam aqui - nao movem o cursor, nao consomem e logam. Item 16 do
-   * BACKLOG-DEFEITOS.md, preservado.
-   */
+  // KP_UP/DOWN/LEFT/RIGHT tambem satisfazem isArrowKey() e caem no warn sem consumir.
   private void handleArrowKey (KeyEvent keyEvent, KeyCode keyCodePressed)
   {
     if (!dispatch (arrowBindings, keyEvent, keyCodePressed))
@@ -231,11 +171,6 @@ class ConsoleKeyPress implements EventHandler<KeyEvent>
     sendProgramFunctionKey (keyEvent, keyCodePressed);
   }
 
-  /*
-   * PF1 a PF24 num teclado de doze teclas: a posicao no vetor da o numero, e o shift soma 12.
-   * Fica fora da tabela porque nao e um binding por tecla, e sim uma varredura - e porque uma
-   * tecla que nao esteja no vetor nao faz nada NEM consome.
-   */
   private void sendProgramFunctionKey (KeyEvent keyEvent, KeyCode keyCodePressed)
   {
     int pfKey = 1;

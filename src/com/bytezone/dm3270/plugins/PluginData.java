@@ -144,18 +144,6 @@ public class PluginData
     return newCursorLocation.location;
   }
 
-  /*
-   * As cinco consultas de campo da tela.
-   *
-   * getModifiableFields () sempre esteve aqui; as outras quatro chegaram no passo 9, vindas
-   * do DefaultPlugin - onde eram "protected static" e so podiam ser alcancadas por heranca,
-   * gastando o unico slot de superclasse de cada plugin para entregar um filtro sobre uma
-   * lista que o proprio parametro ja carregava. O DefaultPlugin continua com as cinco,
-   * delegando, porque elas sao API de terceiro e os JARs ja compilados as chamam.
-   *
-   * getNumericFields () e o complemento exato de getAlphanumericFields (), e nao um filtro
-   * proprio: o criterio dos dois e o mesmo isAlpha, negado num deles.
-   */
   // ---------------------------------------------------------------------------------//
   public List<PluginField> getModifiableFields ()
   // ---------------------------------------------------------------------------------//

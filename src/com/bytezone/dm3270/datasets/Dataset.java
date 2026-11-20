@@ -272,26 +272,8 @@ public class Dataset
     return dsorg != null && dsorg.equals ("PO");
   }
 
-  // ---------------------------------------------------------------------------------//
-  // Leitura
-  // ---------------------------------------------------------------------------------//
-
-  /*
-   * O DatabaseThread montava o SQL lendo estes campos direto, sem passar por metodo
-   * nenhum - quinze acessos de fora para dentro, num tipo cujo unico proposito e carregar
-   * o que a tela mostrou ate a persistencia. Enquanto isso valesse, Dataset so podia morar
-   * no mesmo pacote que a thread do banco, e o pacote display - que so usa os setters -
-   * ficava preso a persistencia junto.
-   *
-   * Sao acessores de LEITURA: a unica escrita que vinha de fora era dsorg = "PO", que virou
-   * markPartitioned () logo abaixo.
-   *
-   * Sobre getCreatedSQL, getExpiresSQL e getReferredSQL devolverem java.sql.Date: e o
-   * campo tal como esta guardado, de proposito. Derivar a data SQL de created na hora de
-   * gravar pareceria equivalente e nao e - setDates (java.sql.Date...) atribui createdSQL
-   * mesmo quando o argumento e null, mas so atribui created quando nao e, entao os dois
-   * podem divergir. Reproduzir o campo e o que preserva o comportamento.
-   */
+  // get*SQL() retornam os campos *SQL diretamente (nao derivam de Date):
+  // setDates(java.sql.Date...) atribui *SQL mesmo quando null, podendo divergir.
   // ---------------------------------------------------------------------------------//
   public String getVolume ()
   // ---------------------------------------------------------------------------------//
@@ -390,10 +372,6 @@ public class Dataset
     return referredSQL;
   }
 
-  /*
-   * Um dataset que tem membros e particionado por definicao. O DatabaseThread descobre isso
-   * ao gravar o primeiro membro, e ate agora escrevia dsorg = "PO" de fora.
-   */
   // ---------------------------------------------------------------------------------//
   public void markPartitioned ()
   // ---------------------------------------------------------------------------------//

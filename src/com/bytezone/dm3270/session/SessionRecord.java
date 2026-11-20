@@ -9,23 +9,7 @@ import com.bytezone.dm3270.commands.Command;
 import com.bytezone.dm3270.extended.TN3270ExtendedCommand;
 import com.bytezone.dm3270.runtime.Source;
 
-/*
- * Uma mensagem lida do fio, com a origem, o instante e os rotulos que a descrevem.
- *
- * Os cinco rotulos eram cinco Property do JavaFX, criadas preguicosamente e escritas pelo
- * proprio construtor. Existiam so para o SessionTable ligar colunas por nome de string:
- * nenhum dos quinze metodos que as cercavam era chamado por arquivo nenhum do projeto. Hoje
- * sao campos finais, e a conversao para linha de tabela acontece em application.SessionRow.
- *
- * SAO DERIVADOS UMA VEZ, no construtor, e nunca recalculados - era assim antes, quando o
- * construtor escrevia atraves dos setters, e continua sendo. O rotulo diz o que a mensagem
- * era no instante em que chegou.
- *
- * DOIS PODEM SER NULOS, e isso e carga util: commandName quando a mensagem nao e um
- * NamedBuffer - o CommandHeader e o unico caso, e esta explicado la -, e timeText quando o
- * registro veio de um cabecalho curto, sem instante. As duas colunas aparecem vazias, como
- * antes.
- */
+// commandName e timeText podem ser null (quando nao ha NamedBuffer ou timestamp).
 // -----------------------------------------------------------------------------------//
 public class SessionRecord
 // -----------------------------------------------------------------------------------//
@@ -75,7 +59,7 @@ public class SessionRecord
       case TN3270E -> "Extended";
     };
 
-    // O CommandHeader nao e um NamedBuffer e continua sem nome, como antes.
+    // CommandHeader nao e NamedBuffer e fica com commandName null.
     commandName = message instanceof NamedBuffer named ? named.getName () : null;
 
     bufferSize = message.size ();
@@ -170,17 +154,7 @@ public class SessionRecord
     return source;
   }
 
-  // ---------------------------------------------------------------------------------//
-  // Os rotulos, na ordem em que o SessionTable os mostra
-  // ---------------------------------------------------------------------------------//
-
-  /*
-   * NAO se chama getTime (). Esse nome pertencia a um getter que devolvia o commandName - um
-   * defeito preservado sob a Regra 1, que hoje mora em application.SessionRow, onde a forma
-   * JavaBean e exigida pelo PropertyValueFactory. Nomes diferentes para as duas coisas e o que
-   * impede alguem de religar a coluna mm:ss ao getter errado sem que nada quebre na
-   * compilacao. Esta no BACKLOG-DEFEITOS.md.
-   */
+  // Nome distinto de getTime() para evitar confusao com o getter legado de SessionRow.
   // ---------------------------------------------------------------------------------//
   public String getTimeText ()
   // ---------------------------------------------------------------------------------//

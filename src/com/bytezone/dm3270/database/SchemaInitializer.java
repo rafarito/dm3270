@@ -7,26 +7,8 @@ import java.sql.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/*
- * O esquema do banco: as duas tabelas, e nada mais.
- *
- * Estava dentro do DatabaseThread, em dois metodos privados de setenta e poucas linhas que
- * respondiam pelos comandos OPEN, CREATE e DROP. O DDL nao tem nada a ver com o laco da fila
- * nem com o despacho de requisicoes - e a forma do banco, e muda pelos seus proprios motivos.
- *
- * As colunas, os comentarios de cada uma, as chaves e o WITHOUT ROWID sao os de antes, palavra
- * por palavra. Note que as duas tabelas declaram colunas que o codigo nunca le nem grava - o
- * bloco "PC details" inteiro, mais CYLINDERS -, e isso tambem fica como esta: sao colunas
- * previstas para o download que ainda nao foi escrito, e mexer nelas mudaria o arquivo que os
- * usuarios ja tem no disco.
- *
- * Os dois catch sao diferentes de proposito: create apanha Exception e drop apanha
- * SQLException. E assim desde antes, e nao ha motivo aparente - so nao ha motivo para mudar
- * junto com uma reorganizacao.
- *
- * O logger e o do DatabaseThread. O padrao do logback imprime %logger{36}, entao o nome da
- * classe faz parte de toda linha - declarar um logger proprio aqui mudaria saida observavel.
- */
+// Preserva colunas "PC details" para compatibilidade com bancos existentes em disco.
+// Usa o logger de DatabaseThread para manter o nome de logger na saida do logback.
 // -----------------------------------------------------------------------------------//
 final class SchemaInitializer
 // -----------------------------------------------------------------------------------//

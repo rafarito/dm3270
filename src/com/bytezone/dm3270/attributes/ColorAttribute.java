@@ -24,9 +24,8 @@ public abstract class ColorAttribute extends Attribute
         "Black", "Deep blue", "Orange", "Purple", "Pale green", "Pale turquoise", "Grey",
         "White" };
 
-  // Neutral1, Neutral2 e White apontam de proposito para a MESMA instancia: sao 16 slots
-  // para 14 objetos. ScreenContext.matches compara cor por identidade (==), e o pool de
-  // ContextManager depende desse aliasing - ver TerminalColor.
+  // Neutral1, Neutral2 e White compartilham WHITE_SMOKE: ScreenContext.matches usa ==
+  // e o pool de ContextManager depende desse aliasing.
   public static final TerminalColor[] colors = //
       { TerminalColor.WHITE_SMOKE,     // Neutral1
         TerminalColor.DODGER_BLUE,     // or DEEPSKYBLUE, SKYBLUE, LIGHTSKYBLUE
@@ -35,7 +34,7 @@ public abstract class ColorAttribute extends Attribute
         TerminalColor.LIME,            //
         TerminalColor.TURQUOISE,       //
         TerminalColor.YELLOW,          //
-        TerminalColor.WHITE_SMOKE,     // Neutral2 - mesma instancia de Neutral1
+        TerminalColor.WHITE_SMOKE,     // Neutral2
         TerminalColor.BLACK,           //
         TerminalColor.DARK_BLUE,       //
         TerminalColor.ORANGE,          //
@@ -43,7 +42,7 @@ public abstract class ColorAttribute extends Attribute
         TerminalColor.PALE_GREEN,      //
         TerminalColor.PALE_TURQUOISE,  //
         TerminalColor.GREY,            //
-        TerminalColor.WHITE_SMOKE      // White - mesma instancia de Neutral1
+        TerminalColor.WHITE_SMOKE      // White
   };
 
   protected final TerminalColor color;

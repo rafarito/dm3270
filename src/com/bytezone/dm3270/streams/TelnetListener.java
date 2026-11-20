@@ -36,17 +36,7 @@ public class TelnetListener implements BufferListener, TelnetCommandProcessor
 {
   private static final Logger logger = LoggerFactory.getLogger (TelnetListener.class);
 
-  /*
-   * Para onde mandar o que so pode acontecer na thread da interface.
-   *
-   * Eram chamadas diretas a Platform.runLater, e por causa delas o pacote streams - que le
-   * bytes de um socket - nomeava o toolkit grafico. O composition root passa
-   * Platform::runLater, que ja satisfaz Executor; um teste passa Runnable::run e o caminho
-   * roda headless.
-   *
-   * E um tipo do JDK de proposito, e nao uma interface nova: a porta teria um metodo so, com
-   * a assinatura exata do Executor, e inventa-la seria cerimonia sem ganho nenhum.
-   */
+  // Executor da thread de UI (Platform::runLater em producao, Runnable::run em testes).
   private final Executor uiThread;
 
   private final Session session;

@@ -52,27 +52,12 @@ public class Console extends Application
   private final LaunchTarget stages = new Stages ();
   private LaunchCoordinator coordinator;
 
-  // O JavaFX instancia a Application por reflexao, e exige este construtor publico sem
-  // argumentos. As preferencias chegam depois, em init ().
+  // JavaFX exige construtor publico sem argumentos; init() preenche prefs.
   public Console ()
   {
   }
 
-  /*
-   * As preferencias entregues prontas, sem init (). E o setimo membro de pacote desta classe,
-   * e o motivo e o que o cabecalho do TestConsole previa: "quando alguma assercao precisar do
-   * no vivo dentro do Console, a costura seria um construtor de pacote so para o prefs".
-   *
-   * init () depende de getParameters (), e portanto de Application.launch - inalcancavel num
-   * teste. Com prefs nulo, todo caminho feliz do lancamento estoura no primeiro WindowSaver.
-   * Com um no descartavel, a Screen, o ConsolePane e a ReplayStage REAIS nascem dentro do
-   * Console, e o lancamento fica observavel pelo EFEITO - que e o que faltava depois do passo
-   * 12, e o criterio de pronto do passo 13.
-   *
-   * O PLANO DIZIA QUE ISSO EXIGIRIA UMA FABRICA DE Screen, e a medicao desmentiu: a Screen ja
-   * se constroi num teste desde o passo 11. O que impedia o Console de construi-la era o prefs
-   * nulo, e nada mais.
-   */
+  // Injeta prefs nos testes sem passar por init() / Application.launch().
   Console (Preferences prefs)
   {
     this.prefs = prefs;
@@ -106,29 +91,7 @@ public class Console extends Application
     optionStage.show ();
   }
 
-  /*
-   * As duas fabricas abaixo sao DELEGACAO PURA, e existem para que a rede do caminho de
-   * lancamento possa substituir os dois colaboradores que o start constroi.
-   *
-   * O PluginsStage e o caso duro: o construtor publico dele delega a
-   * "this (prefs, Paths.get (PLUGINS_DIR).toAbsolutePath ())", ou seja, varre a pasta
-   * plugins/ da maquina de quem roda a suite - que esta no .gitignore e portanto tem
-   * conteudo diferente em cada checkout. Sem esta fabrica a rede seria dependente de
-   * maquina. E o mesmo custo que o OptionStage recusou por escrito, em OptionStage:111-116.
-   *
-   * O OptionStage e o outro: ele e uma Stage, e o start termina em show (). Um teste que
-   * dirigisse o start de verdade abriria janela.
-   *
-   * A delegacao preserva comportamento por inspecao: mesmos argumentos, mesma ordem, mesmo
-   * ponto de avaliacao - pluginsStage.getEditMenuItem () continua sendo avaliado onde era, no
-   * sitio de chamada.
-   *
-   * OS DOIS CONTINUAM AQUI depois de a fiacao sair para Stages e a decisao para o
-   * LaunchCoordinator, e vale dizer por que em vez de deixar a promessa antiga apodrecendo: o
-   * start (Stage) e o ciclo de vida da Application do JavaFX, e os dois Stage que ele monta
-   * sao anteriores a qualquer lancamento. Eles viram argumentos de construtor quando o
-   * proprio Console deixar de ser quem monta a janela de abertura.
-   */
+  // Fabricas de pacote para os testes substituirem Stages que acessam disco ou abrem GUI.
   // ---------------------------------------------------------------------------------//
   PluginsStage createPluginsStage ()
   // ---------------------------------------------------------------------------------//
@@ -143,22 +106,7 @@ public class Console extends Application
     return new OptionStage (prefs, pluginsEditMenuItem);
   }
 
-  /*
-   * O alerta de erro do lancamento, atras de um metodo de pacote pelo mesmo motivo das duas
-   * fabricas - mas o motivo aqui e de outra natureza, e por isso e outro commit.
-   *
-   * Dm3270Utility.showAlert e ESTATICO e chama alert.showAndWait (). Numa suite isso nao
-   * falha: TRAVA, esperando um clique que nunca vem. E os tres ramos de erro do lancamento -
-   * "No server selected", "No client selected" e "<caminho> does not exist" - sao justamente a
-   * parte do switch que nao constroi nada, ou seja, a mais barata e a mais valiosa de
-   * congelar.
-   *
-   * O curto-circuito esta preservado, e hoje mora no LaunchCoordinator: isEmpty () continua
-   * sendo avaliado primeiro, e o alerta so aparece quando ha mensagem.
-   *
-   * Quem chama isto e Stages.alert (String), o metodo da porta. A indirecao existe porque o
-   * TestConsole sobrescreve ESTE metodo, e sem isso a suite travaria no showAndWait.
-   */
+  // Hook de pacote para testes evitarem Dm3270Utility.showAlert (showAndWait bloqueante).
   // ---------------------------------------------------------------------------------//
   boolean showAlert (String message)
   // ---------------------------------------------------------------------------------//
@@ -166,16 +114,8 @@ public class Console extends Application
     return Dm3270Utility.showAlert (message);
   }
 
-  /*
-   * DOIS DEFEITOS PRESERVADOS DE PROPOSITO AQUI, e os dois sao o item 1 do
-   * BACKLOG-DEFEITOS.md. O switch original nao tinha break no case 5, entao um modelo 5 - que
-   * e valido, 27x132 - configurava-se corretamente e SO ENTAO caia no default e reclamava de
-   * si mesmo. E o default nao atribui alternateScreenDimensions, que e campo de instancia
-   * reaproveitado entre lancamentos na mesma JVM: um modelo invalido herda o valor do
-   * lancamento anterior.
-   *
-   * A ordem importa e esta preservada: configura primeiro, reclama depois.
-   */
+  // Comportamento legado preservado: modelo 5 configura 27x132 mas ainda loga aviso;
+  // modelos invalidos mantem o alternateScreenDimensions do lancamento anterior.
   void setModel (Site serverSite)
   {
     int model = serverSite.getModel ();
@@ -190,22 +130,11 @@ public class Console extends Application
       telnetState.setDoDeviceType (model);
     }
 
-    if (terminalModel.isEmpty () || model == 5)         // o case 5 sem break, item 1 do backlog
+    if (terminalModel.isEmpty () || model == 5)
       logger.warn ("Invalid model number: {}", model);
   }
 
-  /*
-   * Os dois acessores abaixo, e o setModel de pacote logo acima, existem para que o
-   * ConsoleModelTest possa observar o item 1 do BACKLOG-DEFEITOS.md - o modelo 5, que se
-   * configura corretamente e SO ENTAO reclama de si mesmo, e o modelo invalido, que herda a
-   * dimensao do lancamento anterior. O passo 8 mediu que esse defeito estava DESCONGELADO: o
-   * backlog afirmava que a caracterizacao de setModel o cobria, e ela nao existia.
-   *
-   * Sao os tres unicos membros nao-private desta classe alem de init, start, stop e main, e
-   * sao PASSIVO, na contabilidade do relatorio. A diferenca em relacao aos 21 da fase 2 e que
-   * este e autoliquidavel: os tres morrem quando o composition root levar o setModel para
-   * fora do Console e passar a injetar o TelnetState em vez de construi-lo aqui.
-   */
+  // Acessores de pacote expostos para os testes de setModel.
   // ---------------------------------------------------------------------------------//
   TelnetState telnetState ()
   // ---------------------------------------------------------------------------------//
@@ -310,15 +239,7 @@ public class Console extends Application
       pluginsStage.closeClassLoader ();
   }
 
-  /*
-   * A guarda do optionStage e a correcao do item 22 do BACKLOG-DEFEITOS.md, autorizada pelo
-   * usuario. O stop () protege seis colaboradores contra nulo e nao protegia o setimo: um
-   * Console que nunca chegou ao fim do start (Stage) estourava NullPointerException ao ser
-   * parado, e Application.stop () e chamado pelo runtime do JavaFX no fechamento.
-   *
-   * A guarda do screen ja existia, e cobre o prefs junto: os dois so nascem depois do init (),
-   * e sem tela nao ha fonte a gravar.
-   */
+  // stop() pode rodar mesmo se start() nao concluiu a criacao de optionStage.
   private void savePreferences ()
   {
     if (optionStage != null)
@@ -333,8 +254,6 @@ public class Console extends Application
 
   private Screen createScreen (TerminalFunction function, Site site)
   {
-    // O ciclo de vida da persistencia e do composition root. Sem site nao ha banco - era o
-    // que o  dentro do FieldManager decidia, tres camadas abaixo.
     DatasetStore datasetStore = site == null ? DatasetStore.NONE
         : new QueuedDatasetStore (site.getName () + ".db");
 
@@ -343,36 +262,7 @@ public class Console extends Application
     return screen;
   }
 
-  /*
-   * A FIACAO, atras da porta LaunchTarget.
-   *
-   * Nenhum corpo aqui e novo: cada um e um grupo de instrucoes que estava solto dentro do
-   * switch de Console.startSelectedFunction. O que mudou e que a decisao - qual funcao, o que
-   * falta, que mensagem dar, em que ordem - saiu para o LaunchCoordinator e fala com um
-   * contrato em vez de com "new ConsolePane" e "primaryStage.show ()". O contrato nao nomeia
-   * um widget sequer, e e isso que faz a decisao rodar sem toolkit grafico.
-   *
-   * POR QUE UMA CLASSE INTERNA NAO-ESTATICA, e nao "Console implements LaunchTarget": metodo
-   * de interface e implicitamente publico, entao a segunda forma tornaria os doze metodos
-   * PUBLICOS numa classe publica. Seriam doze membros de superficie nova, contra os seis de
-   * pacote que o passo 11 abriu e contabilizou como passivo. Assim, ZERO alargamento: a classe
-   * e privada, os doze metodos so sao alcancaveis por quem tem o tipo LaunchTarget, que e de
-   * pacote, e o corpo le e escreve os campos privados do Console diretamente. Em Java 21 isso
-   * usa nestmates - o javac nao emite ponte sintetica, entao a prova por javap fica legivel e
-   * o JaCoCo nao inventa metodo.
-   *
-   * O alert () chama showAlert (String), o metodo de PACOTE, e nao Dm3270Utility.showAlert
-   * direto. E deliberado: o TestConsole sobrescreve showAlert, e Dm3270Utility.showAlert chama
-   * showAndWait (), que numa suite nao falha - TRAVA.
-   *
-   * As duas escritas de alternateScreenDimensions parecem redundantes e nao sao. applyModel
-   * negocia o modelo e deriva as dimensoes; useAlternateScreenDimensions recebe as da sessao
-   * gravada. Sao dois escritores de UM campo que sobrevive entre lancamentos na mesma JVM - e
-   * e essa sobrevivencia que sustenta a segunda metade do item 1 do BACKLOG-DEFEITOS.md, o
-   * modelo invalido que herda a geometria do lancamento anterior. Passar a dimensao como
-   * parametro de showConsole seria mais limpo e corrigiria o defeito de carona, o que a Regra 1
-   * proibe.
-   */
+  // Classe interna para implementar LaunchTarget sem expor seus 12 metodos como publicos.
   // ---------------------------------------------------------------------------------//
   private final class Stages implements LaunchTarget
   // ---------------------------------------------------------------------------------//
@@ -419,11 +309,6 @@ public class Console extends Application
       alternateScreenDimensions = screenDimensions;
     }
 
-    /*
-     * Uma expressao so, de proposito: e o que garante que createScreen roda - e atribui o campo
-     * screen - antes de setConsolePane ler qualquer coisa. Separar em duas instrucoes nao
-     * mudaria nada hoje e tiraria a garantia do compilador.
-     */
     @Override
     public void showConsole (TerminalFunction function, Site serverSite)
     {
@@ -436,10 +321,7 @@ public class Console extends Application
       consolePane.connect ();
     }
 
-    /*
-     * Le o campo screen, que showConsole acabou de atribuir. E a unica dependencia de ordem do
-     * ramo do replay que nao aparece na assinatura de metodo nenhum.
-     */
+    // Depende de showConsole() ter atribuido o campo screen via createScreen().
     @Override
     public void showReplay (Session session, Path path)
     {

@@ -15,26 +15,8 @@ import java.util.jar.JarFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/*
- * Os JARs da pasta de plugins: listar, montar um class loader por JAR, descobrir quem
- * implementa Plugin, carregar uma classe pelo loader do JAR de onde ela veio, e fechar tudo
- * no fim.
- *
- * Saiu do PluginsStage no passo 9. A classe de la e uma javafx.stage.Stage - uma janela de
- * preferencias com dez linhas de formulario - e era tambem dona de um URLClassLoader, de uma
- * varredura de diretorio e de reflexao sobre bytecode de terceiros. Nada disto precisa de
- * interface grafica, e e ZERO JavaFX: esta classe roda headless e tem teste proprio.
- *
- * O PluginsStage ficou com o que de fato e dele - o formulario, as preferencias, o menu e o
- * despacho para os plugins.
- *
- * O LOGGER E O DO PluginsStage, DE PROPOSITO. O logback.xml imprime %logger{36}, entao o nome
- * do logger e saida observavel: as oito mensagens desta classe - a pasta criada, os JARs
- * carregados, os plugins descobertos, os erros - sempre sairam com o nome daquela classe, e
- * declarar PluginJars.class mudaria todas elas. E a mesma regra que fez DatasetDetails
- * declarar o logger de ScreenWatcher e as seis classes novas de database declararem o de
- * DatabaseThread.
- */
+// Descobre e carrega JARs de plugins com um class loader por JAR.
+// Usa o logger de PluginsStage porque logback.xml imprime o nome da classe nos logs.
 // -----------------------------------------------------------------------------------//
 public class PluginJars
 // -----------------------------------------------------------------------------------//
@@ -43,12 +25,9 @@ public class PluginJars
 
   private final Path directory;
 
-  // O loader combinado, com todos os JARs. Ele NAO carrega os plugins - cada um tem o seu -
-  // mas continua existindo como ultimo recurso para uma classe que nao esteja no JAR do
-  // plugin: e o caso de um JAR de biblioteca solto na pasta, que sempre funcionou.
+  // Fallback compartilhado para JARs de biblioteca soltos na pasta de plugins.
   private URLClassLoader allJars;
 
-  // Um loader POR JAR, na ordem em que o diretorio os lista.
   private final List<JarClassLoader> jarClassLoaders = new ArrayList<> ();
 
   // ---------------------------------------------------------------------------------//
@@ -114,17 +93,8 @@ public class PluginJars
     }
   }
 
-  /*
-   * Varre os JARs procurando classes que implementem Plugin, e devolve pares
-   * { nome simples, nome qualificado }.
-   *
-   * Cada classe e carregada pelo loader do JAR DE ONDE ELA VEIO. Carregar tudo por um loader
-   * unico aqui dentro reintroduziria a colisao de nome qualificado que o loader por JAR
-   * existe para tirar.
-   *
-   * Entradas com cifrao sao puladas, entao um plugin declarado como classe aninhada e
-   * invisivel para a descoberta. Isso e comportamento antigo, congelado em teste.
-   */
+  // Carrega cada candidato pelo loader do proprio JAR para evitar colisoes de nomes.
+  // Ignora entradas com '$' (classes aninhadas) por compatibilidade com o legado.
   // ---------------------------------------------------------------------------------//
   public List<String[]> discover ()
   // ---------------------------------------------------------------------------------//
@@ -174,15 +144,8 @@ public class PluginJars
     return discovered;
   }
 
-  /*
-   * Carrega uma classe pelo loader do JAR que REALMENTE a contem, ou devolve null.
-   *
-   * A pergunta e feita com findResource, que num URLClassLoader procura apenas nas URLs dele
-   * - sem o pai e sem o combinado. E o que distingue "esta classe esta neste JAR" de "esta
-   * classe e alcancavel a partir deste JAR": a segunda e verdadeira para todos os loaders, e
-   * escolher por ela poria o plugin de um JAR para rodar sob o loader de outro, desfazendo a
-   * correcao sem que nada acusasse.
-   */
+  // Usa findResource para checar so as URLs do proprio JAR (sem pai nem siblings),
+  // garantindo que o plugin seja carregado pelo loader do JAR que o contem.
   // ---------------------------------------------------------------------------------//
   public Class<?> loadFromOwningJar (String className)
   // ---------------------------------------------------------------------------------//
@@ -203,11 +166,7 @@ public class PluginJars
     return null;
   }
 
-  /*
-   * Fecha todos os loaders. Acumular os erros em vez de parar no primeiro importa porque no
-   * Windows um loader que fique aberto mantem o JAR mapeado, e o proximo lancamento nao
-   * consegue substituir o arquivo.
-   */
+  // Fecha todos mesmo se algum falhar, para nao deixar JARs bloqueados no Windows.
   // ---------------------------------------------------------------------------------//
   public void close ()
   // ---------------------------------------------------------------------------------//
@@ -235,24 +194,8 @@ public class PluginJars
     }
   }
 
-  /*
-   * UM CLASS LOADER POR JAR, e a ordem de busca dele e o coracao da correcao do passo 9:
-   *
-   *   1. o pai, que e o class loader da aplicacao - de la vem Plugin, PluginData e tudo mais
-   *      do dm3270, sempre, para todos os plugins;
-   *   2. o PROPRIO JAR;
-   *   3. so entao o loader combinado, com todos os JARs da pasta.
-   *
-   * O passo 2 antes do 3 e o que resolve a colisao: duas copias de uma classe com o mesmo
-   * nome qualificado deixam de disputar, porque cada plugin encontra a sua antes de chegar ao
-   * monte comum. Antes havia um loader so, e a primeira definicao encontrada valia para
-   * todos - com o desempate decidido pela ordem de listagem do diretorio.
-   *
-   * E o passo 3 existe para nao quebrar o que ja funcionava: um JAR de plugin que dependa de
-   * um JAR de biblioteca solto na mesma pasta continua achando a biblioteca, e continua
-   * compartilhando UMA copia dela com os demais plugins - porque quem a define e o loader
-   * combinado, nao este.
-   */
+  // Ordem de busca: pai (API do app) -> proprio JAR -> siblings (libs compartilhadas).
+  // Buscar no proprio JAR antes de siblings evita colisoes de classes entre plugins.
   // ---------------------------------------------------------------------------------//
   private static final class JarClassLoader extends URLClassLoader
   // ---------------------------------------------------------------------------------//

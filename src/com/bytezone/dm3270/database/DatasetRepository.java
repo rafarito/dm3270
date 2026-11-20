@@ -13,25 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bytezone.dm3270.datasets.Dataset;
 
-/*
- * O SQL da tabela DATASETS, e so ele.
- *
- * Cada metodo aqui e uma operacao de banco: monta a instrucao, executa, apanha a SQLException
- * e devolve se deu certo. O que NAO esta aqui e a regra - decidir se um dataset ja existe,
- * fundir o que chegou com o que estava, marcar a requisicao como gravada. Isso e caso de uso,
- * e ficou no DatabaseThread.
- *
- * O cache entra junto porque as escritas dele estavam dentro destes metodos e continuam onde
- * estavam: o find guarda o que leu, e o list guarda cada linha. Sao as mesmas chamadas de
- * antes, na mesma posicao.
- *
- * As duas ultimas operacoes servem ao caminho de insercao de MEMBROS, que precisa garantir que
- * o dataset dono exista e esteja marcado como particionado. E SQL de DATASETS, entao mora
- * aqui, e o MemberRepository chama.
- *
- * O logger e o do DatabaseThread. O padrao do logback imprime %logger{36}, entao o nome da
- * classe faz parte de toda linha - um logger proprio mudaria saida observavel.
- */
+// Usa o logger de DatabaseThread para preservar o formato de saida do logback.
 // -----------------------------------------------------------------------------------//
 final class DatasetRepository
 // -----------------------------------------------------------------------------------//
@@ -82,14 +64,6 @@ final class DatasetRepository
     return Optional.empty ();
   }
 
-  /*
-   * Convencao do filtro: vazio ou "*" lista tudo, "PREFIXO*" lista a faixa, e um nome sem
-   * curinga procura aquele dataset exato. O nome vazio ia para o ramo do nome exato e devolvia
-   * sempre lista vazia.
-   *
-   * A lista chega de fora e e preenchida linha a linha: numa falha no meio do ResultSet, quem
-   * chamou fica com as linhas lidas ate ali, que e o que acontecia antes.
-   */
   // ---------------------------------------------------------------------------------//
   boolean list (String filter, List<Dataset> into)
   // ---------------------------------------------------------------------------------//
@@ -148,7 +122,6 @@ final class DatasetRepository
     }
   }
 
-  // As duas linhas de log saem antes da escrita, e em chamadas separadas, como antes.
   // ---------------------------------------------------------------------------------//
   boolean update (Dataset dataset)
   // ---------------------------------------------------------------------------------//
@@ -173,7 +146,6 @@ final class DatasetRepository
     }
   }
 
-  // Os membros saem antes do dataset, e as duas remocoes vao na mesma transacao.
   // ---------------------------------------------------------------------------------//
   boolean delete (Dataset dataset)
   // ---------------------------------------------------------------------------------//
@@ -213,11 +185,7 @@ final class DatasetRepository
     }
   }
 
-  /*
-   * As duas abaixo servem ao caminho de insercao de membro, e nenhuma devolve resultado: uma
-   * falha aqui e registrada no log e a insercao do membro segue mesmo assim. E o comportamento
-   * de antes.
-   */
+  // Falhas sao apenas logadas para nao bloquear a insercao do membro.
   // ---------------------------------------------------------------------------------//
   void markPartitioned (Dataset dataset)
   // ---------------------------------------------------------------------------------//
@@ -237,7 +205,6 @@ final class DatasetRepository
     }
   }
 
-  // O Dataset construido aqui existe so para dar o nome a instrucao, e e descartado.
   // ---------------------------------------------------------------------------------//
   void insertPartitioned (String datasetName)
   // ---------------------------------------------------------------------------------//

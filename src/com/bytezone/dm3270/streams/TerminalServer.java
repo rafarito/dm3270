@@ -21,12 +21,7 @@ public class TerminalServer implements Runnable
 {
   private static final Logger logger = LoggerFactory.getLogger (TerminalServer.class);
 
-  /*
-   * Sem timeout explicito o connect usa o do sistema operacional - no Windows sao cerca de
-   * 21 segundos parado, sem retorno nenhum na interface. Dez segundos e folgado para um
-   * servidor 3270 em rede local ou VPN e falha rapido o bastante para o usuario entender
-   * que algo esta errado.
-   */
+  // Limita o connect a 10s para evitar a espera padrao do SO (~21s no Windows) sem retorno.
   private static final int CONNECT_TIMEOUT_MILLIS = 10_000;
 
   private final int serverPort;
@@ -120,9 +115,7 @@ public class TerminalServer implements Runnable
                       e.getMessage (), e);
         close ();
 
-        // depois do close(), para que a mensagem de erro seja a ultima coisa desenhada:
-        // o close() manda o listener escrever o resumo do telnet na tela, que numa
-        // conexao que nunca subiu e um inutil "Nothing to report"
+        // Apos close(), para que o erro fique depois do resumo do telnet na tela.
         if (connectionListener != null)
           connectionListener.connectionFailed (serverURL, serverPort, reasonFor (e));
       }
@@ -134,13 +127,7 @@ public class TerminalServer implements Runnable
     }
   }
 
-  /*
-   * O TCP e estabelecido primeiro, sempre com timeout, e so depois o TLS e montado por
-   * cima. Antes o caminho TLS usava factory.createSocket (host, port), que conecta e faz o
-   * handshake numa unica chamada dentro do try - qualquer falha, inclusive nao alcancar o
-   * host, era relatada como "falha no handshake TLS". Agora um destino inacessivel e
-   * relatado como o que e.
-   */
+  // Abre TCP com timeout antes do TLS para nao relatar falha de rede como erro de TLS.
   // ---------------------------------------------------------------------------------//
   private Socket createSocket () throws IOException
   // ---------------------------------------------------------------------------------//
@@ -187,13 +174,6 @@ public class TerminalServer implements Runnable
     }
   }
 
-  /*
-   * Traduz a excecao para algo que sirva ao usuario.
-   *
-   * As mensagens do JDK sao curtas e tecnicas - "Connection timed out: connect" nao diz a
-   * ninguem que o host provavelmente esta desligado ou fora de alcance. O texto original
-   * continua no log, com a pilha completa.
-   */
   // ---------------------------------------------------------------------------------//
   private static String reasonFor (IOException e)
   // ---------------------------------------------------------------------------------//

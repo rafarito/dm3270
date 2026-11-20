@@ -6,18 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.bytezone.dm3270.datasets.Dataset;
 import com.bytezone.dm3270.datasets.DatasetSummary;
 
-/*
- * A leitura dos blocos de detalhe de um dataset a partir de um trecho de texto da tela.
- *
- * Sao os tres blocos que aparecem em mais de um layout - espaco, disposicao e datas -, cada um
- * recebendo de quem o chama os deslocamentos de coluna do seu formato. O corte de cada bloco
- * continua guardado pela mesma cadeia de comparacoes de comprimento do original: um texto
- * curto demais preenche so os primeiros campos, e um texto vazio nao preenche nenhum.
- *
- * O logger e o do ScreenWatcher, de proposito e nao por descuido. O nome do logger faz parte
- * da linha de log, e estas mensagens sairam de la - declarar um logger proprio mudaria saida
- * observavel, o que a Regra 1 desta refatoracao nao permite.
- */
+// Usa o logger de ScreenWatcher para preservar o nome nos logs de parse.
 // -----------------------------------------------------------------------------------//
 final class DatasetDetails
 // -----------------------------------------------------------------------------------//
@@ -64,12 +53,7 @@ final class DatasetDetails
       dataset.setBlksize (getInteger ("blksize", details.substring (t3).trim ()));
   }
 
-  /*
-   * As datas saem em dois blocos de 11 e o resto, e os deslocamentos aqui sao fixos - nenhum
-   * layout os varia. O summary guarda o texto observado e o delta guarda a data convertida: e
-   * a razao de os dois tipos existirem, e uma data que o host escreva fora do formato fica
-   * nula no delta e visivel no summary.
-   */
+  // summary preserva as datas brutas da tela; delta converte e deixa null se invalidas.
   // ---------------------------------------------------------------------------------//
   static void setDates (DatasetSummary dataset, String details, Dataset ds)
   // ---------------------------------------------------------------------------------//

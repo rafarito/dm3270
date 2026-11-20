@@ -13,16 +13,7 @@ import com.bytezone.dm3270.database.DatabaseRequest.Result;
 import com.bytezone.dm3270.datasets.Dataset;
 import com.bytezone.dm3270.datasets.Member;
 
-/*
- * Os seis comandos que operam sobre um membro. A forma e a mesma do DatasetCommands, e as duas
- * classes parecem gemeas - mas nao sao, e a diferenca esta logo na primeira linha.
- *
- * O DatasetCommands procura o dataset SEMPRE, antes do switch. Aqui a busca do membro e pulada
- * quando o comando e LIST, e a variavel fica nula: o ramo do LIST nao a toca, e qualquer ramo
- * novo que a tocasse estouraria. Foi assim que o codigo chegou aqui, e esta preservado.
- *
- * O logger e o do DatabaseThread, e o aviso do ramo default mantem o "Unnown" de origem.
- */
+// Usa o logger de DatabaseThread para preservar o formato de saida do logback.
 // -----------------------------------------------------------------------------------//
 final class MemberCommands
 // -----------------------------------------------------------------------------------//
@@ -101,13 +92,6 @@ final class MemberCommands
     }
   }
 
-  /*
-   * A mesma forma do update de dataset, com o merge proprio do Member - e com uma diferenca no
-   * fim: aqui nao ha replaceDataset depois de gravar, porque o que mudou foi o membro.
-   *
-   * O dataset dono e procurado mesmo quando o membro nao existe, porque e ele que diz em qual
-   * entrada do cache o membro entra.
-   */
   // ---------------------------------------------------------------------------------//
   private boolean update (MemberRequest request)
   // ---------------------------------------------------------------------------------//

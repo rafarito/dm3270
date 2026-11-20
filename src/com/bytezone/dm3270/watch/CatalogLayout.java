@@ -6,16 +6,6 @@ import com.bytezone.dm3270.datasets.Dataset;
 import com.bytezone.dm3270.datasets.DatasetSummary;
 import com.bytezone.dm3270.screen.Field;
 
-/*
- * Tres linhas por dataset, com coluna de catalogo. Era o screenType 4.
- *
- * Reconhecido pela linha de titulos de seis campos mais uma linha 7 com um campo unico cujo
- * texto e "Catalog". Como cada dataset ocupa tres linhas e ha uma linha de tracos entre eles,
- * a lista comeca na linha 9.
- *
- * E o layout mais completo: le volume, espaco, disposicao, datas e catalogo, e leva tudo para
- * os dois destinos.
- */
 // -----------------------------------------------------------------------------------//
 final class CatalogLayout extends MultiLineDatasetLayout
 // -----------------------------------------------------------------------------------//

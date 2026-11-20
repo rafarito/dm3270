@@ -24,7 +24,6 @@ public class DatasetTab extends AbstractTransferTab
   private final DatasetTable datasetTable = new DatasetTable ();
   private final DatasetTreeTable datasetTreeTable = new DatasetTreeTable ();
 
-  // uma linha por nome, reaproveitada entre telas - ver a nota em TableDatasets
   private final TableDatasets tableDatasets = new TableDatasets ();
 
   public DatasetTab (KeyboardState screen, TSOCommand tsoCommand)

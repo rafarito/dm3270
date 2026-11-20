@@ -3,17 +3,7 @@ package com.bytezone.dm3270.watch;
 import com.bytezone.dm3270.datasets.DatasetSummary;
 import com.bytezone.dm3270.datasets.Member;
 
-/*
- * O formato de datas do campo de detalhes de um membro. Era o screenType1.
- *
- * Quatro deslocamentos recortam cinco pedacos: o que vem antes do primeiro, os tres do meio e
- * o que sobra depois do ultimo - tamanho, criacao, alteracao, hora e id.
- *
- * O primeiro pedaco e lido DUAS vezes, com ids de log diferentes: uma como "Ext:", que vai
- * para os extents do summary, e outra como "Size", que vai para o tamanho do Member. As duas
- * colunas terminam com o mesmo numero, e um valor que nao converta produz DUAS linhas de log,
- * nao uma. Ha teste dedicado a isso, e a duplicidade e preservada de proposito.
- */
+// O primeiro trecho e convertido duas vezes ("Ext:" e "Size") para preservar os logs legados.
 // -----------------------------------------------------------------------------------//
 final class MemberDates implements MemberDetailFormat
 // -----------------------------------------------------------------------------------//

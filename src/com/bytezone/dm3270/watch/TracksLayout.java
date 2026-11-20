@@ -6,18 +6,6 @@ import com.bytezone.dm3270.datasets.Dataset;
 import com.bytezone.dm3270.datasets.DatasetSummary;
 import com.bytezone.dm3270.screen.Field;
 
-/*
- * Uma linha por dataset, com espaco e dispositivo. Era o screenType 1.
- *
- * A linha de titulos tem tres campos e o do meio comeca com "Tracks".
- *
- * Os deslocamentos sao 6/11/15, e NAO os 6/10/14 dos layouts de varias linhas, que leem a
- * mesma informacao em colunas diferentes. Era essa diferenca - quatro conjuntos de numeros
- * para duas informacoes - que ficava invisivel enquanto os dois switch estavam separados.
- *
- * Este ramo nao le disposicao nenhuma: dsorg, recfm, lrecl e blksize ficam como estao, nos
- * dois destinos.
- */
 // -----------------------------------------------------------------------------------//
 final class TracksLayout implements DatasetListLayout
 // -----------------------------------------------------------------------------------//

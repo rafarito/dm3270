@@ -26,13 +26,7 @@ public class DatabaseRequest
     SUCCESS, FAILURE
   }
 
-  /*
-   * O comando e o Initiator sao final e ficam publicos. Os tres campos de resultado sao
-   * escritos pelo DatabaseThread e pelos *Commands, e so por eles: o setter e de pacote, e o
-   * getter publico serve a quem implementa o Initiator. Nao ha sincronizacao, e nao precisa
-   * haver: todo leitor roda na thread do worker, depois da escrita (item 7 do
-   * BACKLOG-DEFEITOS.md).
-   */
+  // Campos de resultado sao escritos e lidos na thread do worker (sem sincronizacao).
   public final Command command;
   public final Initiator initiator;
   private Result result;

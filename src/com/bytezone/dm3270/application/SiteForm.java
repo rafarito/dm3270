@@ -12,12 +12,7 @@ import org.slf4j.LoggerFactory;
 public class SiteForm implements Site
 // -----------------------------------------------------------------------------------//
 {
-  // O nome do logger e saida observavel - o logback imprime %logger{36} - e esta classe
-  // se chamava utilities.Site quando os avisos de porta e modelo foram escritos. Ela
-  // mudou de pacote, mas a interface Site NAO: getLogger (Site.class) continua
-  // resolvendo com.bytezone.dm3270.utilities.Site, que e o nome de sempre. O nivel
-  // efetivo tambem nao muda por isso - o logback configura application em INFO, e este
-  // logger nao se chama application (§5.13).
+  // Mantem o nome de logger de Site para compatibilidade dos logs e nivel no logback.
   private static final Logger logger = LoggerFactory.getLogger (Site.class);
 
   // make these StringProperty and use a table

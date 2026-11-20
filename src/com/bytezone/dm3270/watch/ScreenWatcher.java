@@ -43,10 +43,7 @@ public class ScreenWatcher
       Pattern.compile (segment + "(\\." + segment + "){0,21}");
   private static final Pattern memberNamePattern = Pattern.compile (segment);
 
-  /*
-   * Os cinco formatos de lista de dataset do DSLIST. Cada um carrega os proprios
-   * deslocamentos de coluna e nao guarda estado nenhum, entao uma instancia de cada basta.
-   */
+  // Layouts sem estado compartilhados para os cinco formatos do DSLIST.
   private static final DatasetListLayout tracksLayout = new TracksLayout ();
   private static final DatasetListLayout dsorgLayout = new DsorgLayout ();
   private static final DatasetListLayout volumeLayout = new VolumeLayout ();
@@ -402,8 +399,6 @@ public class ScreenWatcher
     if (layout == null)
       return false;
 
-    // A geometria da lista vem do layout: quantas linhas cada dataset ocupa, e onde ela
-    // comeca.
     int linesPerDataset = layout.linesPerDataset ();
     int nextLine = layout.firstDataRow ();
 
@@ -443,19 +438,7 @@ public class ScreenWatcher
     return true;
   }
 
-  /*
-   * Qual dos cinco formatos esta na tela, ou null se nenhum deles.
-   *
-   * A decisao e uma arvore, e nao uma lista: a quantidade de campos da linha de titulos
-   * escolhe o ramo, os titulos confirmam, e os dois formatos de varias linhas por dataset
-   * ainda se separam pelo marcador da linha 7 - a palavra "Catalog" ou uma linha de tracos.
-   *
-   * Os tres avisos dizem ONDE a arvore parou, e sao a razao de ela continuar sendo um switch
-   * aqui em vez de um matches () declarado por layout: uma lista plana de predicados perde a
-   * informacao de quao longe o reconhecimento chegou, e reconstrui-la para os avisos exigiria
-   * repetir a arvore ao lado dela - mais duplicacao do que a que este trabalho desfez, e nao
-   * menos. O que era duplicado de verdade eram os deslocamentos de coluna, e esses ja sairam.
-   */
+  // Switch preservado para manter os warnings especificos do ponto onde a classificacao falha.
   // ---------------------------------------------------------------------------------//
   private DatasetListLayout selectLayout (List<Field> headingRow)
   // ---------------------------------------------------------------------------------//
@@ -511,14 +494,8 @@ public class ScreenWatcher
     return layout;
   }
 
-  /*
-   * Acumula um dataset visto na tela e entrega a leitura ao layout.
-   *
-   * O summary e o mesmo objeto entre telas quando o nome se repete - a tabela do assistant
-   * depende disso, porque e a mutacao dele que faz a linha mostrar dados que so aparecem numa
-   * tela posterior. O delta e novo a cada leitura, e vai para a persistencia SEMPRE, mesmo
-   * quando o layout nao le nada: nesse caso grava so o nome.
-   */
+  // Reaproveita o DatasetSummary por nome (a tabela do assistant depende da mutacao in-place).
+  // datasetStore.update() e sempre chamado, gravando ao menos o nome se o layout nada ler.
   // ---------------------------------------------------------------------------------//
   private void addDataset (String datasetName, DatasetListLayout layout,
       List<Field> rowFields)
@@ -596,7 +573,6 @@ public class ScreenWatcher
 
     List<Field> headings = fieldManager.getRowFields (4);
 
-    // Aqui a QUANTIDADE de titulos escolhe o formato, sem olhar o texto de nenhum deles.
     MemberDetailFormat format = null;
     if (headings.size () == 7 || headings.size () == 10)
       format = columns.dates ();
@@ -623,9 +599,7 @@ public class ScreenWatcher
       DatasetSummary member = addMember (datasetName, memberName);
       Member m = new Member (ds, memberName);
 
-      // O aviso fica DENTRO do laco, uma vez por membro, como sempre esteve: uma tela com
-      // titulos de mais ou de menos produz uma linha de log por linha de membro, e os
-      // membros entram na lista da tela assim mesmo, so que sem detalhe nenhum.
+      // Mantem o aviso dentro do laco: mesmo com format null, os membros entram sem detalhes.
       if (format == null)
         logger.warn ("Headings size: {}", headings.size ());
       else
@@ -665,11 +639,7 @@ public class ScreenWatcher
 
     List<Field> headings = fieldManager.getRowFields (4);
 
-    /*
-     * Nesta lista a quantidade de titulos nao basta: o texto do sexto tambem e conferido. E as
-     * colunas sao sempre as de LIBRARY, qualquer que seja o modo anunciado - inclusive EDIT,
-     * que na outra lista usa as do 3.4. Sao telas diferentes com o mesmo nome de modo.
-     */
+    // Nesta tela de 4 menus, mesmo EDIT/BROWSE/VIEW usa colunas LIBRARY (nao as de 3.4).
     MemberDetailFormat format = null;
     if (headings.size () == 10
         && fieldManager.textMatchesTrim (headings.get (5), "Created"))
@@ -778,11 +748,6 @@ public class ScreenWatcher
     }
   }
 
-  /*
-   * Um nome de dataset valido: segmentos de ate oito caracteres separados por ponto. Usado
-   * aqui e pelo CatalogLayout, que confere a coluna de catalogo antes de aceita-la - a mesma
-   * coluna tambem carrega mensagens.
-   */
   // ---------------------------------------------------------------------------------//
   static boolean isDatasetName (String text)
   // ---------------------------------------------------------------------------------//

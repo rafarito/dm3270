@@ -9,11 +9,6 @@ import java.util.List;
 public class MemberRequest extends DatabaseRequest
 // -----------------------------------------------------------------------------------//
 {
-  /*
-   * Os nomes e o dataset nunca mudam depois do construtor. O dataset so e guardado na
-   * requisicao por nome; na por objeto ele fica nulo, e o dataset e o do proprio membro. O
-   * membro e a lista sao a resposta do worker.
-   */
   private Member member;
   private final String memberName;
   private final Dataset dataset;

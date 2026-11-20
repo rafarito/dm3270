@@ -32,13 +32,7 @@ public class FontDetails
     descent = height - ascent;
   }
 
-  /*
-   * O resultado da medicao, sem o Font. E isto que o modelo de tela carrega: guardar a
-   * medida em vez do medidor e o que permite desenhar sem toolkit grafico.
-   *
-   * O nome vem de font.getName (), o RESOLVIDO pelo sistema, e nao do nome pedido - e o
-   * que ScreenContext.toString sempre imprimiu.
-   */
+  // Desacopla metricas do Font JavaFX; usa font.getName() (nome resolvido, nao this.name).
   // ---------------------------------------------------------------------------------//
   public FontMetrics metrics ()
   // ---------------------------------------------------------------------------------//

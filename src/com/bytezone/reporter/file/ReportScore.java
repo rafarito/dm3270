@@ -90,14 +90,6 @@ public class ReportScore implements Comparable<ReportScore>, ReportContext
     return pages;
   }
 
-  /*
-   * Manda o relatorio dividir os registros em paginas.
-   *
-   * Era a primeira coisa que o antigo getPagination () fazia, e a preguica que o guardava
-   * mudou de lugar junto com a Pagination: hoje quem chama uma vez so e o ReportScoreView.
-   * Chamar duas vezes tambem nao quebraria - as quatro implementacoes de createPages
-   * comecam limpando a lista.
-   */
   // ---------------------------------------------------------------------------------//
   public void createPages ()
   // ---------------------------------------------------------------------------------//
@@ -105,20 +97,6 @@ public class ReportScore implements Comparable<ReportScore>, ReportContext
     reportMaker.createPages (this);
   }
 
-  /*
-   * O texto de uma pagina, sem widget nenhum.
-   *
-   * Saiu de dentro do getFormattedPage, que fazia duas coisas: montar o texto a partir dos
-   * registros, das paginas e do reportMaker, e depois escreve-lo num TextArea. A primeira
-   * metade e dominio e agora e testavel sem toolkit grafico; a segunda ficou logo abaixo, e
-   * sai desta classe no proximo commit.
-   *
-   * A GUARDA DE PAGINA INVALIDA E O AVISO FICAM AQUI, e nao na parte visual, por dois
-   * motivos. O primeiro e que decidir se um numero de pagina existe e a pergunta que este
-   * lado sabe responder - e ele que tem a lista. O segundo e o §5.13: o logback imprime
-   * %logger{36}, entao mudar a classe que emite o aviso mudaria o texto de toda linha que ele
-   * produz.
-   */
   // ---------------------------------------------------------------------------------//
   public String getFormattedText (int pageNumber)
   // ---------------------------------------------------------------------------------//

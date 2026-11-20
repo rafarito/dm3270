@@ -44,22 +44,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
-/*
- * A janela de abertura: escolhe o modo, o servidor, o cliente e o arquivo de replay.
- *
- * A classe e os dez campos abaixo eram alcancaveis de fora ate o passo 7. O Console lia
- * TODOS os dez - o ToggleGroup, os tres ComboBox, os dois SiteListStage, a pasta de spy,
- * o item de menu do modo e os dois botoes -, o que era 100% da superficie de pacote de uma
- * classe sem acessor nenhum: trocar um ComboBox por outro controle quebrava o Console.
- *
- * Hoje ele pede getLaunchRequest (), findServerSite (), savePreferences () e
- * setOnConnect (), e nao ve widget nenhum. Quem impede a volta nao e uma regra de
- * arquitetura: e o compilador.
- *
- * O que ficou de fora deste fechamento, e e honesto dizer: esta classe ainda ESTENDE Stage,
- * entao o Console continua acoplado a show () e hide (). Tirar a heranca e trabalho do
- * composition root, nao deste passo.
- */
 // -----------------------------------------------------------------------------------//
 class OptionStage extends Stage
 // -----------------------------------------------------------------------------------//
@@ -108,12 +92,7 @@ class OptionStage extends Stage
     DEBUG, RELEASE
   }
 
-  /*
-   * Recebe o item de menu, e nao o PluginsStage inteiro. O unico uso que esta classe
-   * fazia dele era getEditMenuItem (), e construir um PluginsStage monta um
-   * URLClassLoader, varre a pasta de plugins e GRAVA preferencias - efeito colateral
-   * que nenhum teste desta janela pode pagar. Nao volte a passar o stage.
-   */
+  // Recebe apenas o MenuItem para evitar instanciar PluginsStage e varrer plugins/ em testes.
   OptionStage (Preferences prefs, MenuItem pluginsEditMenuItem)
   {
     this.prefs = prefs;
@@ -205,13 +184,6 @@ class OptionStage extends Stage
     okButton.requestFocus ();
   }
 
-  /*
-   * O pedido de lancamento, lido dos widgets num so lugar.
-   *
-   * Substitui as leituras que o Console fazia direto nos campos desta classe. O metodo e
-   * chamado uma vez por lancamento, e e ele que congela o instante: os dois Optional<Site>
-   * sao resolvidos aqui, ansiosamente, como ja eram antes do switch do Console.
-   */
   // ---------------------------------------------------------------------------------//
   LaunchRequest getLaunchRequest ()
   // ---------------------------------------------------------------------------------//
@@ -220,13 +192,6 @@ class OptionStage extends Stage
         clientSitesListStage.getSelectedSite (), spyFolder, fileComboBox.getValue ());
   }
 
-  /*
-   * O que fazer quando o usuario aciona o Connect.
-   *
-   * O Console ligava os dois botoes daqui por fora. O Cancel sempre foi assunto interno -
-   * a acao e esconder a janela, e nada mais -, e passou para o buttons (). Sobra este, que
-   * e a unica coisa que a janela nao tem como decidir sozinha.
-   */
   // ---------------------------------------------------------------------------------//
   void setOnConnect (Runnable action)
   // ---------------------------------------------------------------------------------//
@@ -234,20 +199,6 @@ class OptionStage extends Stage
     okButton.setOnAction (e -> action.run ());
   }
 
-  /*
-   * Grava as seis preferencias que esta janela possui.
-   *
-   * Elas sempre foram desta classe - o construtor le "Function" e "Mode", e buildComboBoxes
-   * le "SpyFolder", "ReplayFile", "ServerName" e "ClientName" -, mas quem as gravava era o
-   * Console, alcancando seis widgets daqui para isso. Ler e escrever a mesma chave em
-   * classes diferentes e o que fazia uma troca de controle quebrar a outra classe.
-   *
-   * O Console continua gravando "FontName" e "FontSize", que sao da Screen e nao daqui. A
-   * ordem das chamadas mudou - as duas da fonte passaram para depois destas seis -, e isso
-   * nao e observavel: sao chaves distintas no mesmo no de Preferences.
-   *
-   * A guarda de null no ReplayFile e preservada como estava.
-   */
   // ---------------------------------------------------------------------------------//
   void savePreferences ()
   // ---------------------------------------------------------------------------------//
@@ -265,10 +216,6 @@ class OptionStage extends Stage
     prefs.put ("ClientName", clientComboBox.getSelectionModel ().getSelectedItem ());
   }
 
-  /*
-   * A busca tardia por nome, que o ramo do replay so consegue fazer depois de carregar a
-   * sessao gravada e descobrir de que servidor ela veio.
-   */
   // ---------------------------------------------------------------------------------//
   Optional<Site> findServerSite (String siteName)
   // ---------------------------------------------------------------------------------//
@@ -276,11 +223,6 @@ class OptionStage extends Stage
     return serverSitesListStage.getSelectedSite (siteName);
   }
 
-  /*
-   * O userData de cada RadioButton e a propria string de optionList, posta em options (),
-   * e o ToggleGroup so tem esses quatro. O ramo default e portanto inalcancavel, e quem o
-   * mantem assim e o OptionStageTest, que afirma os quatro userData na ordem.
-   */
   // ---------------------------------------------------------------------------------//
   private TerminalFunction selectedFunction ()
   // ---------------------------------------------------------------------------------//

@@ -45,7 +45,6 @@ class ReplayStage extends Stage
     label.setFont (new Font ("Arial", 20));
     label.setPadding (new Insets (10, 10, 10, 10));                 // trbl
 
-    // o texto e lido dentro do runLater, como era quando a Session possuia o Label
     session.addHeaderListener (
         () -> Platform.runLater ( () -> label.setText (session.getHeaderText ())));
 
@@ -146,7 +145,7 @@ class ReplayStage extends Stage
     // get the previously selected line
     SessionRow selectedRow = table.getSelectionModel ().getSelectedItem ();
 
-    // change the filter predicate - o tipo continua vindo do registro, nao da linha
+    // change the filter predicate
     filteredData.setPredicate (row -> row.getRecord ().isTN3270 ()
         || (row.getRecord ().isTelnet () && showTelnetCB.isSelected ())
         || (row.getRecord ().isTN3270Extended () && show3270ECB.isSelected ()));

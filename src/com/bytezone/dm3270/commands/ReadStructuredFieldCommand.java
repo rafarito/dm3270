@@ -51,24 +51,8 @@ public class ReadStructuredFieldCommand extends Command
     clientNames.put ("00235B1025AEAA11132E71EC16CD3B06", "dm3270 Model 5");
   }
 
-  /*
-   * A resposta a um Read Partition (Query), montada a partir das dimensoes da tela
-   * secundaria - o modelo negociado no telnet.
-   *
-   * Este construtor recebia o TelnetState inteiro, e era a UNICA razao de o pacote commands
-   * nomear streams: dos 483 linhas e dezenas de metodos daquela classe, buildReply lia um so,
-   * getSecondary (), e so para chegar num ScreenDimensions. Guardar o estado da negociacao
-   * inteiro para ler uma dimensao e o mesmo padrao que a onda 3 achou no ConsoleLogStage e o
-   * passo 4 no ReportScore - olhar o que o consumidor REALMENTE usa antes de acreditar no
-   * rotulo.
-   *
-   * Com o parametro estreitado, commands -> streams chega a zero e o ciclo mutuo
-   * commands <-> streams desaparece. Quem chama continua sendo Screen.buildQueryReply (),
-   * que tem o TelnetState em maos e passa telnetState.getSecondary () - a mesma leitura, no
-   * mesmo instante, so que feita por quem ja conhece os dois lados.
-   *
-   * called from ReadPartitionSF via ReadPartitionQuery
-   */
+  // Monta a resposta Read Partition (Query) com as dimensoes da tela secundaria.
+  // called from ReadPartitionSF via ReadPartitionQuery
   public ReadStructuredFieldCommand (ScreenDimensions screenDimensions)
   {
     this (buildReply (screenDimensions));

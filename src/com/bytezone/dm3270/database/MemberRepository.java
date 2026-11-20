@@ -14,18 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.bytezone.dm3270.datasets.Dataset;
 import com.bytezone.dm3270.datasets.Member;
 
-/*
- * O SQL da tabela MEMBERS. Mesma divisao do DatasetRepository: operacao de banco aqui, e a
- * regra no DatabaseThread.
- *
- * Depende do DatasetRepository, e a dependencia e real e nao acidental: um membro so existe
- * dentro de um dataset. O find recarrega o dataset dono antes de montar o Member, e o insert
- * garante que o dataset exista e esteja marcado como particionado antes de gravar - criando-o
- * se preciso. As duas coisas sao SQL de DATASETS, e por isso ficam do outro lado.
- *
- * O logger e o do DatabaseThread, pelo mesmo motivo do DatasetRepository: o padrao do logback
- * imprime %logger{36}.
- */
+// Usa o logger de DatabaseThread para preservar o formato de saida do logback.
 // -----------------------------------------------------------------------------------//
 final class MemberRepository
 // -----------------------------------------------------------------------------------//
@@ -53,12 +42,7 @@ final class MemberRepository
     this.datasets = datasets;
   }
 
-  /*
-   * A releitura do dataset acontece DEPOIS de saber que a linha do membro existe, e nao antes:
-   * quem chamou pode ter passado um Dataset montado da tela, sem os campos que o banco tem, e
-   * o Member precisa apontar para o do banco. Se a releitura falhar, o parametro original
-   * segue valendo.
-   */
+  // Recarrega o Dataset do banco apos achar o membro, pois o parametro pode vir incompleto.
   // ---------------------------------------------------------------------------------//
   Optional<Member> find (Dataset dataset, String memberName)
   // ---------------------------------------------------------------------------------//
@@ -87,14 +71,8 @@ final class MemberRepository
     return Optional.empty ();
   }
 
-  /*
-   * Sem o dataset dono nao ha lista: a busca por ele tambem e o que garante a entrada no cache
-   * que o laco abaixo usa.
-   *
-   * O filtro por nome de membro monta um segundo "where" quando o curinga vem depois da
-   * primeira posicao, e o SQL sai invalido - item 11 do BACKLOG-DEFEITOS.md. Esta preservado,
-   * e ha teste congelando a falha.
-   */
+  // Busca o dataset antes para popular o cache usado em addMember.
+  // Filtro com '*' apos pos 0 gera "where" duplicado (comportamento legado).
   // ---------------------------------------------------------------------------------//
   boolean list (String datasetName, String memberName, List<Member> into)
   // ---------------------------------------------------------------------------------//
@@ -135,11 +113,6 @@ final class MemberRepository
     }
   }
 
-  /*
-   * O dataset dono vem primeiro. Se ja existe e nao tem dsorg, passa a particionado; se nao
-   * existe, e criado ja particionado. Uma falha em qualquer um dos dois e so registrada, e a
-   * insercao do membro segue - e o comportamento de antes.
-   */
   // ---------------------------------------------------------------------------------//
   boolean insert (String datasetName, Member member)
   // ---------------------------------------------------------------------------------//
@@ -171,7 +144,6 @@ final class MemberRepository
     }
   }
 
-  // As duas linhas de log saem antes da escrita, e em chamadas separadas, como antes.
   // ---------------------------------------------------------------------------------//
   boolean update (Member member)
   // ---------------------------------------------------------------------------------//

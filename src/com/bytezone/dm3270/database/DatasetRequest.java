@@ -8,7 +8,6 @@ import java.util.List;
 public class DatasetRequest extends DatabaseRequest
 // -----------------------------------------------------------------------------------//
 {
-  // O nome nunca muda depois do construtor. O dataset e a lista sao a resposta do worker.
   private Dataset dataset;
   private final String datasetName;
   private List<Dataset> datasets;

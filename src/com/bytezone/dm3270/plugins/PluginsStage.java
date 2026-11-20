@@ -59,9 +59,6 @@ public class PluginsStage extends PreferencesStage
   private ScreenDimensions screenDimensions;
   private int sequence;
   private AidSender consolePane;
-  // Os JARs da pasta de plugins: listar, montar um class loader por JAR, descobrir quem
-  // implementa Plugin e carregar cada classe pelo loader do JAR de onde ela veio. Nada disso
-  // precisa de janela, e por isso saiu daqui.
   private final PluginJars pluginJars;
 
   // ---------------------------------------------------------------------------------//
@@ -159,15 +156,7 @@ public class PluginsStage extends PreferencesStage
         dispatchAuto (pluginEntry.plugin, data);
   }
 
-  /*
-   * O despacho automatico, e ele nomeia AutoPlugin - dois metodos - em vez de Plugin, que tem
-   * seis. E PERGUNTA a cada chamada, nunca testa o tipo: doesAuto () muda durante a execucao
-   * em cinco dos seis plugins reais, e um instanceof responderia uma pergunta estatica no
-   * lugar de uma que muda a cada tela. Ver o comentario de AutoPlugin.
-   *
-   * O catch e de Exception, e nao de Throwable: um Error escapa daqui e cancela os plugins
-   * seguintes. Isso e o item 19 do BACKLOG-DEFEITOS.md, preservado de proposito.
-   */
+  // Consulta doesAuto() dinamicamente a cada chamada; Error escapa intencionalmente.
   // ---------------------------------------------------------------------------------//
   private void dispatchAuto (AutoPlugin plugin, PluginData data)
   // ---------------------------------------------------------------------------------//
@@ -327,8 +316,7 @@ public class PluginsStage extends PreferencesStage
   // Process plugins
   // ---------------------------------------------------------------------------------//
 
-  // called from Screen.processPluginAuto(), when WriteCommand.process() has unlocked
-  // the keyboard and HostWriteCompletion decided the plugins should run
+  // Called from Screen.processPluginAuto() via HostWriteCompletion after keyboard unlock;
   // will eventually be called before unlocking the keyboard
   // ---------------------------------------------------------------------------------//
   public AIDCommand processPluginAuto ()
@@ -381,16 +369,8 @@ public class PluginsStage extends PreferencesStage
     }
   }
 
-  /*
-   * O despacho de pedido, nomeando RequestPlugin em vez de Plugin.
-   *
-   * Sem guarda de doesRequest () e sem try/catch, de proposito: e o que o codigo sempre fez,
-   * e as duas assimetrias com o dispatchAuto estao no item 20 do BACKLOG-DEFEITOS.md.
-   *
-   * A assinatura PUBLICA de processPluginRequest continua recebendo Plugin. Alarga-la para
-   * RequestPlugin seria compativel no fonte e INCOMPATIVEL NO BINARIO - o descritor do metodo
-   * mudaria -, e metodo publico deste pacote e API de terceiro.
-   */
+  // Sem guarda de doesRequest() nem try/catch por compatibilidade com o comportamento legado;
+  // processPluginRequest(Plugin) mantem o parametro Plugin pelo descritor binario.
   // ---------------------------------------------------------------------------------//
   private static void dispatchRequest (RequestPlugin plugin, PluginData data)
   // ---------------------------------------------------------------------------------//
@@ -398,11 +378,7 @@ public class PluginsStage extends PreferencesStage
     plugin.processRequest (data);
   }
 
-  /*
-   * Ligar e desligar, nomeando Activatable. O par nao e simetrico no tempo: quem chama isto
-   * pergunta doesRequest () DEPOIS, e e por isso que um plugin consegue armar as proprias
-   * capacidades de dentro do activate ().
-   */
+  // Chamado antes de doesRequest(), permitindo ao plugin configurar capacidades em activate().
   // ---------------------------------------------------------------------------------//
   private static void setActive (Activatable plugin, boolean activate)
   // ---------------------------------------------------------------------------------//
@@ -428,8 +404,6 @@ public class PluginsStage extends PreferencesStage
     for (PluginField screenField : data.changedFields)
     {
       Optional<Field> optField = screen.getFieldAt (screenField.location.location);
-      //      Field field = screen.getFieldAt (screenField.location.location);   // first display location
-      //      assert field != null;
       assert optField.isPresent ();
       Field field = optField.get ();
       if (field != null)    // should be impossible
@@ -540,10 +514,7 @@ public class PluginsStage extends PreferencesStage
       {
         try
         {
-          // Try the plugin classloader first (JARs in plugins/ folder),
-          // then fall back to the default application classloader.
-          // O loader do JAR que contem a classe, para que o plugin rode o proprio codigo.
-          // Sem JAR nenhum na pasta, cai no class loader da aplicacao, como sempre fez.
+          // Try the plugin's owning JAR loader first, then fall back to the app classloader.
           Class<?> c = pluginJars.loadFromOwningJar (candidate);
           if (c == null)
             c = Class.forName (candidate);

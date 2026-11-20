@@ -38,10 +38,6 @@ public abstract class StructuredField extends AbstractTN3270Command
     type = buffer[offset];
   }
 
-  /*
-   * Sem corpo de proposito: cada campo decide o que processar. Os de entrada (QueryReplySF e
-   * FileTransferInboundSF) declaram o proprio process vazio, e dizem por que.
-   */
   // ---------------------------------------------------------------------------------//
   @Override
   public abstract void process (ScreenTarget screen);

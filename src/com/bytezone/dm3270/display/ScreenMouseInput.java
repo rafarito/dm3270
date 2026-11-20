@@ -8,16 +8,8 @@ import com.bytezone.dm3270.screen.ScreenDimensions;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.input.MouseEvent;
 
-/*
- * O mouse da tela: press, drag e release viram selecao na ScreenSelection e, com o cursor
- * visivel, movem o cursor. Saiu da Screen (ciclo C3 do PLANO-SOLID-2) sem mudar uma linha
- * de comportamento - o ScreenMouseTest vigia.
- *
- * A fonte e as dimensoes chegam por Supplier, e nao por valor, porque a Screen instala esta
- * classe ANTES de construir o FontManager (a ordem do construtor e vigiada pelo
- * ScreenConstructionTest), e porque a dimensao corrente muda a cada troca de particao. Os
- * handlers antigos liam os dois campos no momento do evento; os Supplier fazem o mesmo.
- */
+// Converte eventos de mouse do canvas em selecao e movimento de cursor.
+// Usa Suppliers porque FontManager inicia depois e ScreenDimensions muda por particao.
 // -----------------------------------------------------------------------------------//
 final class ScreenMouseInput
 // -----------------------------------------------------------------------------------//
@@ -53,7 +45,6 @@ final class ScreenMouseInput
   private void handleMousePressed (MouseEvent event)
   // ---------------------------------------------------------------------------------//
   {
-    // Clear any previous selection
     screenSelection.clearSelection ();
 
     int position = mouseToPosition (event.getX (), event.getY ());
@@ -100,7 +91,6 @@ final class ScreenMouseInput
     int col = (int) ((mouseX - dims.xOffset) / fontDetails.width);
     int row = (int) ((mouseY - dims.yOffset) / fontDetails.height);
 
-    // Clamp to valid range
     col = Math.max (0, Math.min (dims.columns - 1, col));
     row = Math.max (0, Math.min (dims.rows - 1, row));
 

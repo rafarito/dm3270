@@ -52,7 +52,7 @@ public class SpyPane extends BorderPane
     label.setFont (new Font ("Arial", 20));
     label.setPadding (new Insets (10, 10, 10, 10));         // trbl
 
-    // o texto e lido dentro do runLater, como era quando a Session possuia o Label
+    // Le getHeaderText() dentro do runLater na thread JavaFX.
     session.addHeaderListener (
         () -> Platform.runLater ( () -> label.setText (session.getHeaderText ())));
 

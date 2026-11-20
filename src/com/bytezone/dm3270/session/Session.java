@@ -43,12 +43,6 @@ public class Session implements Iterable<SessionRecord>
   private boolean safeFlag;
   private ScreenDimensions screenDimensions;
 
-  /*
-   * O modo e a unica coisa que uma sessao precisa saber sobre como foi aberta. Os dois
-   * construtores que liam um arquivo viraram streams.SessionLoader: reconstruir uma sessao
-   * gravada exige o TelnetListener, e uma sessao nao tem por que conhecer o pacote que abre
-   * conexoes so por causa disso.
-   */
   // called by SpyPane, and by streams.SessionLoader
   // ---------------------------------------------------------------------------------//
   public Session (TerminalFunction function)
@@ -92,10 +86,6 @@ public class Session implements Iterable<SessionRecord>
     return screenDimensions;
   }
 
-  /*
-   * O texto que o cabecalho da janela mostra. Era montado dentro do runLater que escrevia no
-   * Label; agora e lido por quem ouve, no mesmo instante em que era lido antes.
-   */
   // ---------------------------------------------------------------------------------//
   public String getHeaderText ()
   // ---------------------------------------------------------------------------------//
@@ -103,12 +93,8 @@ public class Session implements Iterable<SessionRecord>
     return String.format ("%s : %s", getServerName (), getClientName ());
   }
 
-  /*
-   * Dispara na hora se algum dos dois lados ja foi reconhecido. E o que reproduz o cabecalho
-   * ja preenchido do modo Replay - onde a sessao e carregada inteira antes de a janela existir
-   * - sem fazer o modo Spy nascer escrito "Unknown : Unknown", que e o que aconteceria se a
-   * janela lesse getHeaderText () na construcao. Hoje o Label nasce vazio, e continua nascendo.
-   */
+  // Notifica imediatamente se algum lado ja foi identificado (necessario no modo Replay,
+  // evitando iniciar o cabecalho do modo Spy com "Unknown : Unknown").
   // ---------------------------------------------------------------------------------//
   public synchronized void addHeaderListener (SessionHeaderListener listener)
   // ---------------------------------------------------------------------------------//
@@ -130,7 +116,7 @@ public class Session implements Iterable<SessionRecord>
 
     sessionRecords.add (sessionRecord);       // should this be concurrent?
 
-    // a ObservableList notificava exatamente aqui, antes da identificacao abaixo
+    // Notifica ouvintes antes da identificacao de cliente/servidor abaixo.
     for (SessionRecordListener listener : recordListeners)
       listener.recordAdded (sessionRecord);
 
@@ -223,16 +209,8 @@ public class Session implements Iterable<SessionRecord>
       listener.headerChanged ();
   }
 
-  /*
-   * Entrega ao novo ouvinte tudo o que ja chegou, e so entao o registra. Os dois passos estao
-   * sob o mesmo synchronized de add () de proposito: no modo Spy a thread do socket pode estar
-   * acrescentando enquanto a interface se inscreve, e uma janela entre ler e assinar perderia
-   * registros. Antes nao havia janela nenhuma porque a lista era compartilhada; agora nao ha
-   * porque a inscricao e atomica.
-   *
-   * E tambem o que faz REPLAY e SPY passarem pelo mesmo caminho: no primeiro a sessao ja esta
-   * inteira carregada quando a janela e montada, no segundo ela esta vazia.
-   */
+  // Entrega o historico e registra sob o lock de add(), evitando perda de registros
+  // entre leitura e inscricao no modo Spy (e cobrindo sessoes ja carregadas no Replay).
   // ---------------------------------------------------------------------------------//
   public synchronized void addRecordListener (SessionRecordListener listener)
   // ---------------------------------------------------------------------------------//

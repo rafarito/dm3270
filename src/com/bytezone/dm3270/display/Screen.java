@@ -196,10 +196,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     redrawRange (from, to);
   }
 
-  /*
-   * A porta da ScreenSelection. Interna e privada para que redrawRange e redrawSelection
-   * continuem de pacote - ver o cabecalho de SelectionHost.
-   */
+  // Classe interna privada para manter redrawRange e redrawSelection com acesso de pacote.
   // ---------------------------------------------------------------------------------//
   private final class Selection implements SelectionHost
   // ---------------------------------------------------------------------------------//
@@ -258,11 +255,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     }
   }
 
-  /*
-   * Delega para a ScreenSelection, que e o que os tres sitios do ConsoleKeyPress e o do
-   * ConsoleKeyEvent faziam a mao. Existe para que a porta KeyboardTarget nao precise devolver
-   * a ScreenSelection, que e do pacote display e arrasta JavaFX atras.
-   */
+  // Expoe clearSelection em KeyboardTarget sem acoplar a ScreenSelection (display/JavaFX).
   // ---------------------------------------------------------------------------------//
   @Override
   public void clearSelection ()
@@ -315,10 +308,6 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
   }
 
   // ---------------------------------------------------------------------------------//
-  /*
-   * A resposta a um Read Partition (Query), montada a partir do estado da negociacao telnet.
-   * O protocolo pedia o TelnetState so para isto - ver ScreenTarget.buildQueryReply.
-   */
   @Override
   public ReadStructuredFieldCommand buildQueryReply ()
   {
@@ -361,10 +350,6 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
         : alternateScreenDimensions;
   }
 
-  /*
-   * O SystemMessage reconheceu a tela de PROFILE do TSO e pediu para mostra-la. Montar o
-   * dialogo e agendar a exibicao na thread da interface e trabalho desta camada.
-   */
   // ---------------------------------------------------------------------------------//
   @Override
   public void showProfile (String profileMessageText1, String profileMessageText2)
@@ -374,10 +359,6 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     Platform.runLater ( () -> profile.showAndWait ());
   }
 
-  /*
-   * O SystemMessage reconheceu a mensagem de IPL e vai passar a mandar linhas de console.
-   * Criar o log - que e um TextArea com a fonte monoespacada - e trabalho desta camada.
-   */
   // ---------------------------------------------------------------------------------//
   @Override
   public ConsoleLines openConsoleLog ()
@@ -531,9 +512,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     screenPacker.addTSOCommand (command);
   }
 
-  // display a message on the screen
-  // called from TelnetListener.close() - when the connection closes
-  // called from ConsolePane - when the connection fails
+  // display a message on the screen (called from TelnetListener.close() and ConsolePane)
   // ---------------------------------------------------------------------------------//
   public void displayText (String text)
   // ---------------------------------------------------------------------------------//
@@ -621,9 +600,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     screenReply.recordBuffer (historyManager::saveScreen);
   }
 
-  // called from this.eraseAllUnprotected()
-  // called from this.fontChanged()
-  // called from WriteCommand.process()
+  // called from eraseAllUnprotected(), fontChanged(), and WriteCommand.process()
   // ---------------------------------------------------------------------------------//
   public void draw ()
   // ---------------------------------------------------------------------------------//
@@ -657,9 +634,8 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     screenPositions[position].draw (hasCursor);
   }
 
-  // called from FontManager() before we are fully initialised - see FontChangeTarget
-  // called from FontManager.setFont() with adjustStage=true
-  // called with adjustStage=false when resize comes from user dragging the window
+  // called from FontManager() before we are fully initialised,
+  // FontManager.setFont() (adjustStage=true), or window resize (adjustStage=false)
   private void fontChanged (FontDetails fontDetails, boolean adjustStage)
   {
     contextManager.setFontMetrics (fontDetails.metrics ());
@@ -875,9 +851,7 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     return screenReply.readModifiedFields ();
   }
 
-  // Called from:
-  //      ReadCommand.process() in response to a ReadBuffer (F2) command
-  //      ReadPartitionSF.process(), through the ReadCommand it wraps
+  // Called from ReadCommand.process() (ReadBuffer F2) and ReadPartitionSF.process()
   // ---------------------------------------------------------------------------------//
   public AIDCommand readBuffer ()
   // ---------------------------------------------------------------------------------//
@@ -885,9 +859,8 @@ public class Screen extends Canvas implements ScreenTarget, CursorHost, FieldHos
     return screenReply.readBuffer ();
   }
 
-  // Called from ReadCommand.process() in response to a ReadModified (F6)
-  // or a ReadModifiedAll (6E) command
-  // Called from ReadPartitionSF.process(), through the ReadCommand it wraps
+  // Called from ReadCommand.process() (ReadModified F6 / ReadModifiedAll 6E)
+  // and ReadPartitionSF.process()
   // ---------------------------------------------------------------------------------//
   public AIDCommand readModifiedFields (byte type)
   // ---------------------------------------------------------------------------------//

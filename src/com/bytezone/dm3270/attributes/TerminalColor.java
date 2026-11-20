@@ -1,26 +1,7 @@
 package com.bytezone.dm3270.attributes;
 
-/*
- * A cor de um atributo 3270, sem depender de nenhum toolkit grafico.
- *
- * Substitui javafx.scene.paint.Color na paleta de ColorAttribute e em tudo que a carrega
- * (ScreenContext, ContextManager, StartFieldAttribute), de modo que a camada de protocolo
- * possa ser compilada e testada sem interface grafica. A conversao para o tipo do JavaFX
- * acontece so na hora de desenhar, em FxPalette.
- *
- * DUAS PROPRIEDADES PRECISAM SER PRESERVADAS AO MEXER AQUI:
- *
- * 1. Identidade. ScreenContext.matches compara cores com ==, nao com equals, e o pool de
- *    ContextManager depende disso. As constantes abaixo sao as unicas instancias que a
- *    paleta usa, e tres posicoes do array de ColorAttribute apontam para WHITE_SMOKE
- *    (Neutral1, Neutral2 e White) - 16 slots, 14 objetos. Criar uma instancia nova para
- *    cada slot mudaria o tamanho do pool e as respostas de matches.
- *
- * 2. Componentes exatos. Os valores sao os das constantes JavaFX que estas substituem, e
- *    FxPalette reconstroi a cor com Color.rgb, que produz exatamente os mesmos doubles
- *    (componente / 255.0). PaletteFidelityTest verifica essa equivalencia cor por cor - e
- *    o que garante que o desenho continua identico ao pixel.
- */
+// Cor 3270 independente de toolkit grafico (convertida para JavaFX em FxPalette).
+// ScreenContext.matches compara por ==: preserve estas instancias e os valores RGB exatos.
 // -----------------------------------------------------------------------------------//
 public record TerminalColor (int red, int green, int blue, double opacity)
 // -----------------------------------------------------------------------------------//
@@ -59,13 +40,7 @@ public record TerminalColor (int red, int green, int blue, double opacity)
     return new TerminalColor (red, green, blue, 1.0);
   }
 
-  /*
-   * Mesmo formato de javafx.scene.paint.Color.toString (0xrrggbbaa).
-   *
-   * Nao e cosmetico: ColorAttribute.getName cai neste toString quando a cor nao esta na
-   * paleta, e ScreenContext.toString imprime o resultado no log. Mudar o formato mudaria a
-   * saida observavel.
-   */
+  // Mantem o formato 0xrrggbbaa de javafx.scene.paint.Color.toString (usado em logs).
   // ---------------------------------------------------------------------------------//
   @Override
   public String toString ()

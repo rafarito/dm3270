@@ -3,21 +3,7 @@ package com.bytezone.dm3270.watch;
 import com.bytezone.dm3270.datasets.DatasetSummary;
 import com.bytezone.dm3270.datasets.Member;
 
-/*
- * O formato de estatisticas de edicao do campo de detalhes de um membro. Era o screenType2.
- *
- * Os mesmos quatro deslocamentos recortam outra coisa: tamanho, linhas iniciais, linhas
- * modificadas, a versao VV.MM e o id.
- *
- * Duas particularidades que a decomposicao preserva porque sao comportamento observavel, e nao
- * descuido de transcricao:
- *
- * - o summary nao tem campo para tamanho nem para id, entao este formato usa as colunas de
- *   catalogo e de extents para guarda-los. Os comentarios "(mis)use" sao do codigo original;
- * - o setSize completo so acontece quando a versao vem preenchida. Com VV.MM em branco, o
- *   tamanho, o init e o mod sao calculados e descartados - o Member fica com os valores
- *   anteriores, e so o id e gravado.
- */
+// Sem VV.MM, delta.setSize() e ignorado (apenas member.setExtents e delta.setID gravam).
 // -----------------------------------------------------------------------------------//
 final class MemberStatistics implements MemberDetailFormat
 // -----------------------------------------------------------------------------------//
