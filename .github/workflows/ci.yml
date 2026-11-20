@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-      # a refatoracao estrutural avanca em commits pequenos e frequentes; sem isto
-      # o retorno so viria na abertura do PR de cada onda
       - 'refactor/**'
   pull_request:
   workflow_dispatch:
@@ -25,9 +23,7 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Parte da suite instancia nos JavaFX (Site, e adiante Screen e
-      # ScreenPosition). Platform.startup exige um display, que o runner nao tem,
-      # entao os testes rodam sob um X virtual.
+      # Testes que inicializam o toolkit JavaFX exigem um display virtual (xvfb) no runner.
       - name: Instalar o xvfb
         run: sudo apt-get update && sudo apt-get install -y xvfb
 

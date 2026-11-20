@@ -81,11 +81,7 @@
       <scope>test</scope>
     </dependency>
 
-    <!--
-      Regras de arquitetura como teste. O baseline congelado vive em
-      test/archunit-baseline e e versionado: violacao nova quebra a build,
-      violacao ja existente nao.
-    -->
+    <!-- Regras de arquitetura; baseline congelado versionado em test/archunit-baseline -->
     <dependency>
       <groupId>com.tngtech.archunit</groupId>
       <artifactId>archunit-junit5</artifactId>
@@ -179,13 +175,6 @@
           <targetClasses>
             <param>com.bytezone.dm3270.utilities.Dm3270Utility</param>
             <param>com.bytezone.dm3270.utilities.FileSaver</param>
-            <!--
-              O SiteValue, a implementacao headless da porta Site. Entra junto com o
-              SiteValueTest: e uma classe nova, sem JavaFX e com teste proprio, e o pacote
-              utilities e listado classe a classe - sem esta linha os mutantes dela nao
-              apareceriam no relatorio. O SiteForm fica de fora, como o resto do que
-              depende de widget.
-            -->
             <param>com.bytezone.dm3270.utilities.SiteValue</param>
             <param>com.bytezone.dm3270.orders.*</param>
             <param>com.bytezone.dm3270.attributes.*</param>
@@ -197,85 +186,18 @@
             <param>com.bytezone.dm3270.replyfield.*</param>
             <param>com.bytezone.dm3270.filetransfer.*</param>
             <param>com.bytezone.dm3270.database.*</param>
-            <!--
-              O dominio dos datasets, que saiu de dentro de database na onda 3. Sem esta
-              linha os mutantes de Dataset e Member sumiriam do relatorio em vez de
-              continuarem a ser mortos, e a cobertura pareceria ter melhorado.
-            -->
             <param>com.bytezone.dm3270.datasets.*</param>
-            <!--
-              O pacote inteiro da sessao, e nao so o SessionReader. Session e SessionRecord
-              sairam do JavaFX no passo 5 e ganharam teste proprio; ate ali ficavam de fora
-              porque nao havia como executa-las sem toolkit. Entrar ACRESCENTA DENOMINADOR e
-              por isso pode nao subir a porcentagem - e a direcao honesta, como foi com o
-              SiteValue no passo 3 e o ReportScore no passo 4. O SessionTable saiu do pacote,
-              entao nao entra aqui.
-            -->
             <param>com.bytezone.dm3270.session.*</param>
             <param>com.bytezone.dm3270.streams.TelnetState</param>
             <param>com.bytezone.dm3270.streams.TerminalServer</param>
             <param>com.bytezone.dm3270.streams.TelnetSocket</param>
             <param>com.bytezone.dm3270.streams.SslContextFactory</param>
-            <!--
-              O digest que saiu do DefaultPlugin no passo 9. Entra pelo mesmo criterio do
-              SiteValue no passo 3, do ReportScore no passo 4 e do TerminalModel no passo 8:
-              classe nova, sem JavaFX e com teste proprio. Entra ACRESCENTANDO denominador -
-              o md5 e o toHex nao eram medidos enquanto moravam no DefaultPlugin, que nao
-              esta na lista -, entao a porcentagem global pode nao subir. Essa e a direcao
-              honesta. O DefaultPlugin continua de fora: hoje ele e so fachada de
-              compatibilidade, e seus metodos sao delegacoes de uma linha.
-            -->
-            <!--
-              O carregamento de JARs de plugin, que saiu de dentro da janela no passo 9.
-              Entra pelo criterio de sempre: classe nova, sem JavaFX e com teste proprio - e o
-              PluginJarsTest roda headless, sem o JavaFxToolkit, o que antes era impossivel.
-              Entra ACRESCENTANDO denominador: o PluginsStage nunca esteve na lista, entao
-              estes mutantes nao eram medidos. A porcentagem global pode nao subir.
-            -->
             <param>com.bytezone.dm3270.plugins.PluginJars</param>
             <param>com.bytezone.dm3270.plugins.PluginDigest</param>
             <param>com.bytezone.dm3270.plugins.PluginData</param>
             <param>com.bytezone.dm3270.plugins.PluginField</param>
             <param>com.bytezone.dm3270.plugins.ScreenLocation</param>
-            <!--
-              O observador de tela entrou quando os cinco caminhos de reconhecimento
-              ganharam teste: lista de dataset, as duas listas de membro, a tela de
-              prefixo e o dataset unico. Ficou de fora ate ali porque uma classe de mil
-              linhas com um caminho coberto entraria com mutantes sobreviventes demais
-              para o numero significar alguma coisa.
-
-              O pacote inteiro, e nao mais so a classe ScreenWatcher: os cinco layouts de
-              lista de dataset sairam de dentro dela, e uma lista classe a classe deixaria
-              os mutantes deles FORA do relatorio. A cobertura pareceria ter melhorado por
-              ter perdido o denominador, que e a forma mais silenciosa de afrouxar a rede.
-              As outras classes do pacote sao interfaces, e nao geram mutante.
-            -->
             <param>com.bytezone.dm3270.watch.*</param>
-            <!--
-              O modelo de tela, que agora vive no pacote screen. Estas classes deixaram de
-              depender do JavaFX na onda de desacoplamento e passaram a ter teste:
-              ScreenPositionDrawingTest, ScreenContextPoolingTest, PaletteFidelityTest e
-              HeadlessProcessingTest. FxPalette continua em display, porque converter para
-              javafx.scene.paint.Color e justamente o trabalho dela.
-
-              Listadas uma a uma, e nao como screen.*, de proposito: Cursor, Field,
-              DisplayScreen e as portas ainda nao tem teste proprio. E de display so entra a
-              FxPalette - Screen, HistoryScreen, FieldManager, ScreenWatcher, ScreenPacker,
-              HistoryManager, FontManager e ScreenSelection continuam sem teste e produziriam
-              milhares de mutantes sobreviventes, afogando o sinal util. Conforme a onda 3
-              decompor Screen, as partes entram aqui.
-
-              Cursor entrou agora que tem o CursorTest: 20 testes que congelam movimento,
-              volta na tela, avisos aos ouvintes, navegacao por campo e visibilidade.
-            -->
-            <!--
-              O TerminalModel, que saiu do switch do Console.setModel no passo 8. Entra junto
-              com o TerminalModelTest, pelo mesmo criterio do SiteValue no passo 3 e do
-              ReportScore no passo 4: classe nova, sem JavaFX e com teste proprio. Entra
-              ACRESCENTANDO denominador - o pacote runtime nao era medido -, entao a
-              porcentagem global pode nao subir, e essa e a direcao honesta. O TerminalFunction
-              fica de fora: e um enum de quatro constantes sem metodo, e nao gera mutante.
-            -->
             <param>com.bytezone.dm3270.runtime.TerminalModel</param>
             <param>com.bytezone.dm3270.screen.ScreenDimensions</param>
             <param>com.bytezone.dm3270.screen.ScreenPosition</param>
@@ -292,32 +214,10 @@
             <param>com.bytezone.reporter.reports.*</param>
             <param>com.bytezone.reporter.file.MainframeFile</param>
             <param>com.bytezone.reporter.file.RecordTester</param>
-            <!--
-              O ReportScore entra agora que tem o ReportScoreTest: paginacao preguicosa, o
-              texto de cada pagina, os quatro ramos de getSubrecord, o encadeamento de
-              addPage e a ordenacao. Entra ACRESCENTANDO denominador - antes ele nao era
-              medido -, entao a porcentagem global pode nao subir, e isso e honesto. O
-              precedente e o ScreenWatcher na onda 3, que so entrou depois de ter teste.
-            -->
             <param>com.bytezone.reporter.file.ReportScore</param>
             <param>com.bytezone.reporter.file.ReportData</param>
             <param>com.bytezone.reporter.file.ReportTester</param>
             <param>com.bytezone.reporter.file.TextTester</param>
-            <!--
-              A DECISAO do lancamento entra no passo 12, e e a primeira classe de application
-              a entrar. O pacote inteiro esta de fora por um motivo que NAO se aplica a ela:
-              OptionStage e SiteForm sao widgets e entrariam com centenas de sobreviventes,
-              afogando o sinal. O LaunchCoordinator e o oposto disso - decisao pura, sem uma
-              linha de JavaFX, com o switch de quatro ramos, as guardas e as quatro mensagens
-              de erro. E exatamente o tipo de codigo em que o PIT e util.
-
-              O precedente de nomear UMA classe de um pacote excluido ja existe: FxPalette em
-              display, PluginJars em plugins, TelnetState em streams, SiteValue em utilities.
-
-              Medido ao entrar: 20 mutantes, 20 mortos, test strength 100%. Entra
-              ACRESCENTANDO denominador, entao a porcentagem global pode nao subir - mas aqui,
-              pela primeira vez em varios passos, ela nao deve cair tambem.
-            -->
             <param>com.bytezone.dm3270.application.LaunchCoordinator</param>
           </targetClasses>
           <!--
