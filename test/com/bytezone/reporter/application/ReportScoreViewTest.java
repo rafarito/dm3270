@@ -16,20 +16,6 @@ import com.bytezone.reporter.file.ReportScore;
 
 import javafx.scene.control.TextArea;
 
-/*
- * O que sobrou de visual quando o ReportScore virou dominio puro: a Pagination e o TextArea.
- *
- * Estes testes vieram do ReportScoreTest, que precisava do toolkit grafico so porque o
- * ReportScore construia um TextArea no proprio construtor. Agora o toolkit e necessario aqui,
- * onde ele faz sentido, e o ReportScoreTest roda headless.
- *
- * As duas propriedades que estao aqui e nao no dominio:
- *
- *   - o MESMO TextArea a cada pagina. A Pagination guarda getFormattedPage como fabrica e
- *     troca o Node do centro a cada virada; devolver instancia nova mudaria o que a janela faz;
- *   - a criacao preguicosa da Pagination, que TEM EFEITO: a primeira chamada manda o
- *     ReportScore montar as paginas, e so entao ha quantas contar.
- */
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
 @DisplayName ("ReportScoreView - a Pagination e o TextArea de um ReportScore")

@@ -10,18 +10,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/*
- * O contrato inteiro que a pilha de protocolo ve numa tela.
- *
- * Todo override de Buffer.process recebe um ScreenTarget, e Java nao deixa estreitar o tipo
- * do parametro num override: o que este tipo expoe, contando o que ele herda, e exatamente o
- * que as 25 implementacoes de process podem chamar. Reorganizar a interface em papeis nao
- * pode tirar nem acrescentar metodo algum a essa soma - senao um process deixa de compilar,
- * ou passa a enxergar o que nao via.
- *
- * Por isso a lista vai por extenso, com os tipos dos parametros, e getMethods () em vez de
- * getDeclaredMethods (): o que importa e a superficie, nao em que interface ela mora.
- */
+// Usa getMethods() para checar toda a superficie herdada ao decompor ScreenTarget em papeis.
 // -----------------------------------------------------------------------------------//
 @DisplayName ("ScreenTarget - o contrato que o protocolo enxerga")
 class ScreenTargetContractTest

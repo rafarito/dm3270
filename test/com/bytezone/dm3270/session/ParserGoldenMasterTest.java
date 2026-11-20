@@ -36,22 +36,8 @@ import com.bytezone.dm3270.telnet.TelnetProcessor;
 import com.bytezone.dm3270.telnet.TelnetSubcommand;
 import com.bytezone.dm3270.telnet.TerminalTypeSubcommand;
 
-/*
- * Golden master do parser.
- *
- * Reprocessa mf.txt - uma sessao TN3270 real gravada, ja publicada no classpath e usada em
- * producao pelo MainframeStage - e congela num snapshot a estrutura de tudo que o parser
- * produz: os registros que o TelnetProcessor separa, os comandos e orders que o
- * Command.getCommand monta, e as respostas telnet que a negociacao gera.
- *
- * Cobre de uma vez telnet, buffers, commands, orders, extended, structuredfields e
- * replyfield - exatamente os pacotes que a refatoracao de desacoplamento vai mexer.
- * Enquanto o snapshot nao mudar, o parser nao mudou.
- *
- * Nao ha JavaFX aqui de proposito: o unico process() invocado e o do TelnetCommand, que
- * ignora o parametro screen e mexe apenas no TelnetState. O process() dos comandos 3270,
- * que precisa de uma tela de verdade, e coberto pelo golden master do processamento.
- */
+// Golden master do parser (mf.txt + negociacao TN3270E), sem exigir JavaFX porque
+// TelnetCommand.process apenas atualiza TelnetState.
 // -----------------------------------------------------------------------------------//
 @DisplayName ("Golden master - parse de uma sessao TN3270 gravada")
 class ParserGoldenMasterTest
@@ -63,9 +49,7 @@ class ParserGoldenMasterTest
 
   private static final HexFormat HEX = HexFormat.of ().withUpperCase ();
 
-  // Valores de fio, fixados pelas RFCs 854/1091/2355 e pela especificacao TN3270E.
-  // Repetidos aqui de proposito em vez de importados de TelnetProcessor: o golden master
-  // congela o protocolo, nao as constantes do codigo de producao.
+  // Constantes de protocolo duplicadas de proposito para nao acoplar ao codigo de producao.
   private static final byte IAC = (byte) 0xFF;
   private static final byte SE = (byte) 0xF0;
   private static final byte SB = (byte) 0xFA;
@@ -120,16 +104,7 @@ class ParserGoldenMasterTest
     }
   }
 
-  /*
-   * Secao 1 - dados 3270 de verdade.
-   *
-   * mf.txt nao contem negociacao telnet nenhuma, so registros de dados. Por isso
-   * does3270Extended() fica falso durante toda esta secao e o parse segue o caminho basico
-   * (offset 0, sem cabecalho TN3270E). O caminho estendido e coberto pela secao 2.
-   *
-   * O buffer 02 nao produz saida sozinho: ele termina sem IAC EOR e o TelnetProcessor o
-   * guarda ate o buffer 03 completar o registro. Esse remonte tambem esta congelado aqui.
-   */
+  // Caminho basico (sem cabecalho TN3270E); inclui registro partido entre os buffers 02 e 03.
   // ---------------------------------------------------------------------------------//
   private static void renderRecordedSession (StringBuilder text) throws Exception
   // ---------------------------------------------------------------------------------//
@@ -157,14 +132,7 @@ class ParserGoldenMasterTest
     summarise (text, telnetState);
   }
 
-  /*
-   * Secao 2 - negociacao TN3270E.
-   *
-   * Sequencia que um host manda de verdade ao abrir a sessao. Exercita o que mf.txt nao
-   * alcanca: processTelnetCommand, processTelnetSubcommand, a geracao das respostas, e o
-   * caminho estendido de processRecord - depois do DO TN3270E o does3270Extended() vira
-   * verdadeiro e o ultimo registro ja carrega o cabecalho de 5 bytes.
-   */
+  // Exercita negociacao Telnet/TN3270E e o caminho estendido apos DO TN3270E.
   // ---------------------------------------------------------------------------------//
   private static void renderNegotiation (StringBuilder text)
   // ---------------------------------------------------------------------------------//
@@ -190,7 +158,6 @@ class ParserGoldenMasterTest
     feed (text, processor, "DO EOR", IAC, DO, SB_EOR);
     feed (text, processor, "DO BINARY", IAC, DO, SB_BINARY);
 
-    // agora que a sessao e estendida, um registro carrega o cabecalho TN3270E de 5 bytes
     feed (text, processor, "registro TN3270E (cabecalho + Write/WCC)", TN3270_DATA, 0x00,
         0x00, 0x00, 0x01, 0xF1, 0xC2, IAC, EOR);
 
@@ -201,7 +168,6 @@ class ParserGoldenMasterTest
   private static TelnetState newTelnetState ()
   // ---------------------------------------------------------------------------------//
   {
-    // as preferencias que o ConsolePane monta a partir do Site
     TelnetState telnetState = new TelnetState ();
     telnetState.setDo3270Extended (true);
     telnetState.setDoTerminalType (true);
@@ -276,10 +242,7 @@ class ParserGoldenMasterTest
     return joined;
   }
 
-  // Le mf.txt em ISO-8859-1 de proposito: so as colunas de digitos hexadecimais
-  // interessam, e um charset de um byte por caractere garante que as posicoes de coluna
-  // que o SessionReader usa nunca deslizem por causa do texto EBCDIC decodificado no fim
-  // de cada linha.
+  // Usa ISO-8859-1 (1 byte/char) para nao deslocar as colunas hex lidas pelo SessionReader.
   // ---------------------------------------------------------------------------------//
   private static List<String> readSessionLines () throws IOException
   // ---------------------------------------------------------------------------------//
@@ -302,14 +265,7 @@ class ParserGoldenMasterTest
     }
   }
 
-  /*
-   * O snapshot nao pode depender de quebra de linha.
-   *
-   * A geracao mistura String.format ("%n"), que no Windows produz CRLF, com "\n" literal;
-   * e o git converte a quebra de linha do arquivo versionado conforme core.autocrlf. Sem
-   * normalizar os dois lados, o teste passaria na maquina que gerou o snapshot e falharia
-   * num checkout novo ou no CI - apontando uma diferenca que nao existe no parser.
-   */
+  // Normaliza CRLF/LF para o snapshot nao variar conforme o SO ou core.autocrlf.
   // ---------------------------------------------------------------------------------//
   private static String normalise (String content)
   // ---------------------------------------------------------------------------------//
@@ -342,11 +298,7 @@ class ParserGoldenMasterTest
         expectedLines.length, actualLines.length);
   }
 
-  /*
-   * Espelha o TelnetListener sem a GUI: monta os mesmos objetos, na mesma ordem, com a
-   * mesma logica de offset. A unica diferenca deliberada e nao chamar process() nos
-   * comandos 3270 - esses precisam de uma tela.
-   */
+  // Espelha TelnetListener sem GUI, omitindo process() nos comandos 3270.
   // ---------------------------------------------------------------------------------//
   private static final class ParseRecorder implements TelnetCommandProcessor
   // ---------------------------------------------------------------------------------//
@@ -439,8 +391,7 @@ class ParserGoldenMasterTest
       TelnetCommand telnetCommand = new TelnetCommand (telnetState, data, dataPtr);
       text.append (String.format ("CMD  %s%n", hex (data, 0, dataPtr)));
 
-      // seguro: TelnetCommand.process ignora o parametro e so avanca o TelnetState, que e
-      // o que faz a negociacao seguir igual a producao
+      // Seguro passar null: TelnetCommand.process so avanca o TelnetState.
       telnetCommand.process (null);
       describe (telnetCommand);
     }

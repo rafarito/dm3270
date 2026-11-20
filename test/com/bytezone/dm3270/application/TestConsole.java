@@ -10,28 +10,8 @@ import com.bytezone.dm3270.plugins.RecordingPluginsStage;
 
 import javafx.scene.control.MenuItem;
 
-/*
- * O arreio do caminho de lancamento: o Console real, com as tres costuras do passo 11
- * substituidas por gravadores.
- *
- * O CONSOLE E REAL. start (Stage), startSelectedFunction e stop () sao os de producao, sem
- * uma linha alterada - o que muda e de onde vem o PluginsStage, de onde vem o OptionStage, e
- * para onde vai o alerta. Tudo o mais que o Console faz acontece de verdade.
- *
- * O PREFS FICA NULO DENTRO DO CONSOLE, e isso e deliberado. Console.prefs so e atribuido em
- * init () (Console.java:63), que depende de getParameters () e portanto de
- * Application.launch - inalcancavel num teste. Medido: o campo sobrevive nulo, porque os usos
- * dele ou estao em init, ou estao dentro das duas fabricas que este arreio substitui, ou
- * estao atras de "if (screen != null)" em savePreferences (:301).
- *
- * O LIMITE QUE ISSO IMPOE, e esta escrito aqui em vez de escondido: a asserticao de que
- * savePreferences nao grava FontName/FontSize prova que a guarda do screen nulo segurou, e
- * nao que a chave ficou ausente num no vivo. Quando alguma asserticao precisar do no vivo
- * dentro do Console, a costura seria um construtor de pacote so para o prefs - e so entao.
- *
- * TODOS OS GRAVADORES ESCREVEM NA MESMA LISTA. E o que faz cada caso afirmar a ORDEM entre
- * colaboradores diferentes, e nao so o que cada um recebeu.
- */
+// Subclasse de teste do Console que substitui OptionStage, PluginsStage e showAlert.
+// Sem withLivePreferences(), Console.prefs permanece nulo por nao executar Application.init().
 // -----------------------------------------------------------------------------------//
 class TestConsole extends Console
 // -----------------------------------------------------------------------------------//
@@ -39,8 +19,7 @@ class TestConsole extends Console
   final List<String> calls = new ArrayList<> ();
   final List<String> alerts = new ArrayList<> ();
 
-  // O que o usuario responde ao alerta de erro. Console.java:175 so reabre a janela de
-  // opcoes quando showAlert devolve true.
+  // Resposta simulada para showAlert (true reabre a janela de opcoes).
   boolean alertAnswer = true;
 
   private final Preferences prefs;
@@ -58,12 +37,7 @@ class TestConsole extends Console
     this.pluginsDirectory = pluginsDirectory;
   }
 
-  /*
-   * O mesmo arreio, mas com o no vivo ENTREGUE ao Console pelo construtor de pacote do passo
-   * 13. E o unico jeito de um caminho feliz construir de verdade - com prefs nulo o primeiro
-   * WindowSaver estoura. O construtor de cima continua como era, e os casos que o usam
-   * continuam afirmando o que afirmavam com o prefs nulo.
-   */
+  // Necessario em lancamentos reais porque WindowSaver exige Console.prefs nao nulo.
   // ---------------------------------------------------------------------------------//
   static TestConsole withLivePreferences (Preferences prefs, Path pluginsDirectory)
   // ---------------------------------------------------------------------------------//
@@ -81,11 +55,7 @@ class TestConsole extends Console
     this.pluginsDirectory = pluginsDirectory;
   }
 
-  /*
-   * Aponta o PluginsStage para um @TempDir. Sem isto a rede varreria a pasta plugins/ da
-   * maquina de quem roda a suite - que esta no .gitignore, aqui tem dois JARs e num CI limpo
-   * nao existe.
-   */
+  // Redireciona PluginsStage para um @TempDir para isolar da pasta local de plugins.
   // ---------------------------------------------------------------------------------//
   @Override
   PluginsStage createPluginsStage ()
@@ -109,9 +79,7 @@ class TestConsole extends Console
     return recordedOptionStage;
   }
 
-  /*
-   * Dm3270Utility.showAlert chama alert.showAndWait (), que numa suite nao falha: TRAVA.
-   */
+  // Evita alert.showAndWait(), que bloquearia a execucao automatizada.
   // ---------------------------------------------------------------------------------//
   @Override
   boolean showAlert (String message)
@@ -123,11 +91,6 @@ class TestConsole extends Console
     return alertAnswer;
   }
 
-  /*
-   * Dispara o gatilho que o Console injetou no OptionStage - o mesmo Runnable que o botao
-   * Connect dispara na aplicacao. E assim que a rede alcanca startSelectedFunction sem que
-   * ele deixe de ser privado.
-   */
   // ---------------------------------------------------------------------------------//
   void connect ()
   // ---------------------------------------------------------------------------------//

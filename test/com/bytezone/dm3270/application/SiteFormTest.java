@@ -20,31 +20,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import com.bytezone.dm3270.testing.JavaFxToolkit;
 import com.bytezone.dm3270.utilities.FileSaver;
 
-/*
- * Caracterizacao do SiteForm - a classe que era o Site.
- *
- * O SiteForm e a configuracao de conexao - host, porta, modelo de terminal, SSL - composta
- * inteiramente de widgets JavaFX. Ele implementa a porta utilities.Site, que e o que os
- * consumidores nomeiam, e mora em application porque o unico codigo que precisa dos
- * widgets e o SiteListStage, que monta o formulario na cena e o salva nas Preferences.
- *
- * Estes testes congelam o comportamento atual, incluindo o que e claramente defeituoso. A
- * regra da refatoracao e preservar comportamento, entao o formulario precisa continuar
- * fazendo exatamente isto:
- *
- *   - getPort e getModel nao apenas leem: eles CORRIGEM o widget em caso de valor
- *     invalido, gravando "23" e "2" de volta no campo. Ler duas vezes produz efeitos
- *     diferentes na primeira e na segunda chamada.
- *   - toString chama getPort, entao imprimir um SiteForm com porta invalida altera o
- *     objeto. O texto continua comecando por "Site [", que e saida observavel.
- *   - o construtor deixa porta e modelo em branco quando recebe os valores default e o
- *     nome esta vazio.
- *   - os widgets sao live, e quem guarda um SiteForm le o valor no momento do uso. E a
- *     propriedade coberta pelo @Nested do fim, e a razao de o Site ter virado interface
- *     em vez do record que o plano previa.
- *
- * Nada disso e corrigido aqui. Os defeitos ficam registrados para decisao separada.
- */
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
 @DisplayName ("SiteForm - a configuracao de conexao, feita de widgets")
@@ -114,10 +89,7 @@ class SiteFormTest
     }
   }
 
-  /*
-   * O ponto central: estes getters tem efeito colateral na UI. Estao congelados como
-   * defeito conhecido, nao como comportamento desejavel.
-   */
+  // Comportamento preservado (efeito colateral conhecido nos widgets ao ler).
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("getPort corrige o widget silenciosamente")
@@ -191,11 +163,6 @@ class SiteFormTest
     }
   }
 
-  /*
-   * Os dois arrays paralelos com buracos: o indice e compartilhado entre eles, e cada
-   * posicao existe em exatamente um dos dois. Quem consome precisa saber disso, o que e
-   * parte do acoplamento que a refatoracao vai remover.
-   */
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("acesso posicional aos widgets")
@@ -318,23 +285,8 @@ class SiteFormTest
     }
   }
 
-  /*
-   * A propriedade que o split do SiteForm precisa preservar, e que nenhum teste cobria.
-   *
-   * Os widgets sao LIVE: quem recebe um SiteForm nao recebe uma copia dos valores, recebe o
-   * proprio campo de texto. O TransferManager guarda o SiteForm no construtor e so chama
-   * getFolder () quando um comando IND$FILE aparece; o TransferMenu chama
-   * FileSaver.getHomePath (site) no instante em que o usuario aciona o menu. Se o SiteForm
-   * virasse um valor imutavel tirado no getSelectedSite (), as duas leituras passariam a
-   * devolver o valor de um instante anterior.
-   *
-   * O mesmo vale para a correcao silenciosa, e ai a consequencia e persistente: getPort ()
-   * reescreve o widget, e SiteListStage.savePrefs le site.port.getText () depois, gravando
-   * nas Preferences o valor JA corrigido. Um valor congelado antes da correcao mudaria o
-   * que fica gravado no disco.
-   *
-   * Estes quatro testes congelam a cadeia inteira. Sao a rede que autoriza o split.
-   */
+  // Os widgets sao vivos: consumidores (TransferManager, TransferMenu, SiteListStage) leem
+  // os valores e as correcoes silenciosas depois da entrega.
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("os consumidores leem o widget no momento do uso, nao no da entrega")

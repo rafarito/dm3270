@@ -15,20 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.bytezone.dm3270.testing.JavaFxToolkit;
 
-/*
- * A PRIMEIRA REDE DO FontManagerType1, e ela so existe porque a porta FontChangeTarget existe.
- *
- * Antes do passo 13 o gerenciador de fonte recebia a Screen concreta, e a reentrancia - o
- * construtor dele chamando a tela de volta, de dentro do construtor DELA - so era observavel
- * indiretamente, pelo tamanho de fonte que chegava ao acessor (ScreenConstructionTest). Contra
- * um alvo que grava, a chamada e afirmada diretamente: quantas vezes, com que fonte, e com que
- * valor de adjustStage.
- *
- * Precisa do toolkit: Font.font e o Text que o FontDetails mede sao do JavaFX.
- *
- * "Monospaced" e fonte LOGICA do JavaFX - existe em toda plataforma. Por isso todo caso a usa:
- * um nome fisico passaria aqui e quebraria no CI.
- */
+// Usa a fonte logica "Monospaced" para nao depender de fontes fisicas no CI.
+// FontDetails usa Font e Text do JavaFX, exigindo o toolkit.
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
 @DisplayName ("FontManagerType1 - a fonte, e como ela chama a tela de volta")
@@ -79,11 +67,6 @@ class FontManagerType1Test
     });
   }
 
-  /*
-   * A REENTRANCIA, afirmada. Uma chamada so, com adjustStage verdadeiro, e ANTES de o
-   * construtor devolver - a lista ja esta preenchida quando onFxThread retorna o objeto, e o
-   * alvo nao teve outra oportunidade de ser chamado.
-   */
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("o construtor chama a tela de volta UMA vez, com a fonte das preferencias")

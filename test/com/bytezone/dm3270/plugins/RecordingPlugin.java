@@ -1,13 +1,6 @@
 package com.bytezone.dm3270.plugins;
 
-/*
- * A base dos dubles de plugin: todo metodo da interface passa pelo PluginProbe, marcado com
- * o nome simples da classe concreta.
- *
- * Os dubles concretos sao classes SEPARADAS, com nomes proprios, e nao instancias de uma so:
- * cada posicao das Preferences guarda UM nome de classe, e o host instancia por reflexao a
- * partir dele. Dois plugins ao mesmo tempo exigem dois tipos.
- */
+// Base dos dubles; cada slot exige tipo proprio pois o host instancia por nome de classe.
 // -----------------------------------------------------------------------------------//
 public abstract class RecordingPlugin implements Plugin
 // -----------------------------------------------------------------------------------//

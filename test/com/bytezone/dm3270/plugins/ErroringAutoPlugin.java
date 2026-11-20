@@ -1,10 +1,6 @@
 package com.bytezone.dm3270.plugins;
 
-/*
- * Lanca um Error, e nao uma Exception. O catch do processAll e de Exception, entao isto
- * ESCAPA do laco e aborta os plugins seguintes - a assimetria que o caso
- * umErrorEscapaEAbortaOsSeguintes congela.
- */
+// Lanca Error (e nao Exception) para escapar do catch(Exception) em processAll().
 // -----------------------------------------------------------------------------------//
 public class ErroringAutoPlugin extends RecordingPlugin
 // -----------------------------------------------------------------------------------//

@@ -19,25 +19,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.bytezone.dm3270.testing.JavaFxToolkit;
 import com.bytezone.dm3270.testing.SyntheticPluginJar;
 
-/*
- * A REGRA 3 vira porta de build.
- *
- * "JARs de terceiros ja compilados tem de continuar carregando" era, ate aqui, uma promessa
- * verificada a mao: rodar mvn install no dm3270 e mvn test no repositorio de plugins. Isso
- * prova compatibilidade de FONTE - la tudo e recompilado. Esta classe prova a outra metade:
- * um JAR e compilado e empacotado durante o teste, e depois carregado pelo PluginsStage pelo
- * mesmo caminho de um plugin de verdade - varredura do diretorio, descoberta por reflexao,
- * auto-registro nas Preferences, instanciacao e despacho.
- *
- * O primeiro caso usa a forma que os dois JARs instalados nesta maquina realmente tem -
- * extends DefaultPlugin, conferido com javap -, e chama o getModifiableFields herdado, que e
- * o UNICO dos sete utilitarios que algum plugin usa. E exatamente o que o bloco 2 vai mexer.
- *
- * Um detalhe que faz isto funcionar e que vale saber: o plugin sintetico fala com o teste
- * pelo PluginProbe, e ele consegue porque um URLClassLoader filho delega ao pai antes de
- * definir a classe. O PluginProbe que o plugin enxerga e o mesmo do classpath da aplicacao, e
- * portanto os estaticos sao compartilhados. O bloco 3 depende da mesma propriedade.
- */
+// URLClassLoader delega ao pai para classes do host, permitindo ao JAR gravar no PluginProbe.
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
 @DisplayName ("Regra 3 - um JAR compilado contra a API continua carregando")
@@ -59,11 +41,7 @@ class LegacyPluginCompatibilityTest
     PluginProbe.reset ();
   }
 
-  /*
-   * O closeClassLoader e obrigatorio: no Windows um URLClassLoader aberto mantem o JAR
-   * mapeado e a remocao do @TempDir pelo JUnit falha com DirectoryNotEmptyException. Aqui ha
-   * JAR de verdade, entao isto nao e teorico.
-   */
+  // Obrigatorio no Windows: URLClassLoader aberto impede a remocao do @TempDir pelo JUnit.
   // ---------------------------------------------------------------------------------//
   @AfterEach
   void closeAndRemove () throws Exception
@@ -76,11 +54,6 @@ class LegacyPluginCompatibilityTest
     prefs.flush ();
   }
 
-  /*
-   * A forma legada: extends DefaultPlugin, com o utilitario herdado sendo usado. Se o bloco 2
-   * mover getModifiableFields de um jeito que quebre o invokestatic ja gravado, e aqui que
-   * aparece.
-   */
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("um plugin que estende DefaultPlugin e descoberto, ativado e despachado")
@@ -176,12 +149,7 @@ class LegacyPluginCompatibilityTest
     assertEquals (List.of ("ModernPlugin.processAuto:1"), PluginProbe.calls ());
   }
 
-  /*
-   * O filtro da descoberta, pelas duas bordas: uma classe que nao implementa Plugin e
-   * ignorada, e uma classe ANINHADA e ignorada porque o nome da entrada do JAR contem "$" -
-   * a varredura pula qualquer entrada com cifrao. Um plugin declarado como classe aninhada e
-   * invisivel, e isso e comportamento, nao acidente.
-   */
+  // Entradas com '$' (classes aninhadas) sao ignoradas intencionalmente na varredura.
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("classe que nao e Plugin e classe aninhada nao entram na descoberta")
@@ -210,10 +178,6 @@ class LegacyPluginCompatibilityTest
     assertEquals ("", prefs.get ("PluginName-00", ""));
     assertEquals (0, stage.activePlugins ());
   }
-
-  // ---------------------------------------------------------------------------------//
-  //  Apoio
-  // ---------------------------------------------------------------------------------//
 
   // ---------------------------------------------------------------------------------//
   private void buildMenu ()

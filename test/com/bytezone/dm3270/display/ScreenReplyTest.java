@@ -37,24 +37,6 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 
-/*
- * A RESPOSTA QUE A Screen MONTA PARA O HOST: o AID, o reply mode e o Read Modified All.
- *
- * O ScreenPacker empacota, mas quem guarda o estado e decide com que argumentos chama-lo e
- * a Screen: o AID corrente, o cursor, o modo e os tipos do Set Reply Mode, o flag
- * temporario do Read Modified All e a troca de modo em volta da gravacao do historico. Nada
- * disso tinha teste. Esta classe existe para o ciclo C5 poder tirar esse estado da Screen
- * sem mudar os bytes que saem.
- *
- * A tela e montada pelo caminho de verdade, um Erase Write processado pela Screen, com cinco
- * campos: protegido, desprotegido COM o MDT ligado, desprotegido sem, um protegido com um
- * Set Attribute de realce (o unico atributo de caractere da tela, e por isso o que torna os
- * tipos do reply mode observaveis) e mais um protegido.
- *
- * O que se observa e so a superficie publica - getData () da resposta, getAID (), pause () e
- * o HistoryScreen corrente. Os comprimentos fixados abaixo foram medidos antes do refactor, e
- * cada um diz em comentario de onde vem.
- */
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
 @DisplayName ("Screen - a resposta ao host (AID, reply mode, Read Modified)")
@@ -71,7 +53,6 @@ class ScreenReplyTest
   private static final byte UNPROTECTED_MODIFIED = 0x01;
   private static final byte UNPROTECTED = 0x00;
 
-  // o que a Screen passa ao gravar o historico - a copia da constante de la
   private static final byte[] SAVE_SCREEN_REPLY_TYPES =
       { Attribute.XA_HIGHLIGHTING, Attribute.XA_FGCOLOR, Attribute.XA_CHARSET,
         Attribute.XA_BGCOLOR, Attribute.XA_TRANSPARENCY };
@@ -284,7 +265,6 @@ class ScreenReplyTest
     buildScreen ();
     screen.setAID (AID_ENTER);
 
-    // o modo que o host pediu: caractere, mas sem realce
     screen.setReplyMode (SetReplyModeSF.RM_CHARACTER, new byte[0]);
     byte[] before = onFx (screen::readBuffer).getData ();
 
@@ -297,7 +277,6 @@ class ScreenReplyTest
     assertArrayEquals (before, onFx (screen::readBuffer).getData (),
         "o modo e os tipos do host tinham de voltar depois da gravacao");
 
-    // o historico guardou a tela no modo da gravacao, com realce
     screen.setReplyMode (SetReplyModeSF.RM_CHARACTER, SAVE_SCREEN_REPLY_TYPES);
     AIDCommand asRecorded = onFx (screen::readBuffer);
     screen.setReplyMode (SetReplyModeSF.RM_FIELD, new byte[0]);
@@ -331,10 +310,6 @@ class ScreenReplyTest
     assertTrue (screen.getTransferManager () != null);
   }
 
-  /*
-   * O Erase Write da tela de teste. O WCC destrava o teclado e a Screen grava a tela no
-   * historico - e o caminho do checkRecording, no modo de fabrica.
-   */
   // ---------------------------------------------------------------------------------//
   private void buildScreen ()
   // ---------------------------------------------------------------------------------//

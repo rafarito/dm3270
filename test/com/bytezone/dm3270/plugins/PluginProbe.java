@@ -7,23 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/*
- * O gravador por onde os dubles de plugin falam com o teste.
- *
- * Ele e estatico, e isso NAO e preguica: o PluginsStage instancia cada plugin por reflexao,
- * dentro de PluginEntry.instantiate (), e nunca devolve a instancia. Um teste nao tem como
- * segurar uma referencia ao objeto que esta observando - so o que esse objeto escrever num
- * lugar combinado de antemao. Guardar o roteiro e o log aqui e o unico caminho.
- *
- * O bloco 3 depende desta mesma propriedade por um segundo motivo: um URLClassLoader filho
- * delega ao pai antes de definir a classe, entao dois plugins carregados de JARs diferentes
- * enxergam ESTE mesmo PluginProbe, vindo do classpath da aplicacao. E assim que um teste de
- * colisao de FQCN consegue ouvir os dois lados.
- *
- * OS TRES DUBLES ESCREVEM NA MESMA LISTA, de proposito: e isso que faz cada caso afirmar
- * tambem a ORDEM entre colaboradores. Uma lista por duble perderia exatamente essa parte -
- * e o precedente e o ConsoleKeyPressTest do passo 8.
- */
+// Gravador estatico porque PluginsStage instancia plugins por reflexao sem expor referencias
+// e URLClassLoaders filhos compartilham esta classe via delegacao ao class loader pai.
 // -----------------------------------------------------------------------------------//
 public final class PluginProbe
 // -----------------------------------------------------------------------------------//
@@ -45,11 +30,7 @@ public final class PluginProbe
     requestAnswers.clear ();
   }
 
-  /*
-   * Apaga o log sem apagar os roteiros. O getMenu () instancia, ativa e ja pergunta
-   * doesRequest () duas vezes antes de o teste chegar ao que quer medir; quem esta medindo o
-   * despacho automatico limpa o log depois da montagem e deixa o roteiro de pe.
-   */
+  // Limpa o log mantendo os roteiros configurados (ex.: apos getMenu() na montagem).
   // ---------------------------------------------------------------------------------//
   public static void clearCalls ()
   // ---------------------------------------------------------------------------------//
@@ -85,14 +66,7 @@ public final class PluginProbe
     return new ArrayList<> (calls);
   }
 
-  /*
-   * Pergunta e resposta ficam na MESMA linha do log, porque as duas importam: um despacho
-   * por instanceof deixaria de perguntar, e um teste que so registrasse a resposta nao veria
-   * diferenca nenhuma.
-   *
-   * Fila vazia repete a ultima resposta - um plugin de valor constante e escrito com um
-   * elemento so.
-   */
+  // Registra pergunta e resposta juntas; a ultima resposta da fila e repetida indefinidamente.
   // ---------------------------------------------------------------------------------//
   static boolean nextAuto (String plugin)
   // ---------------------------------------------------------------------------------//

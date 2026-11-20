@@ -12,14 +12,7 @@ import org.junit.jupiter.api.Test;
 import com.bytezone.dm3270.display.HeadlessScreenTarget;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
-/*
- * A unica coisa que o SystemMessage pede a tela: avisar que ela virou console.
- *
- * Isso so acontece num caminho estreito - um Write sem erase com tres ordens (SBA, SF,
- * texto), logo depois de um Write com duas, e com um texto de exatamente 1.600 caracteres
- * que comeca pelo IEA371I do IPL. O caminho nao tinha teste; e ele que prova que o
- * SystemMessage alcanca a tela, qualquer que seja o tipo pelo qual a guarda.
- */
+// Console IPL exige Write de 2 ordens seguido de Write (SBA, SF, texto de 1600 chars).
 // -----------------------------------------------------------------------------------//
 @DisplayName ("SystemMessage - reconhecimento do console de IPL")
 class SystemMessageTest

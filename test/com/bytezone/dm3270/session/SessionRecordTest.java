@@ -22,27 +22,6 @@ import com.bytezone.dm3270.orders.Order;
 import com.bytezone.dm3270.session.SessionRecord.SessionRecordType;
 import com.bytezone.dm3270.runtime.Source;
 
-/*
- * Caracterizacao do SessionRecord - uma mensagem lida do fio, com a origem, o instante e o
- * rotulo que a tabela de replay mostra.
- *
- * Estes testes nasceram para congelar o comportamento ANTES de a classe ser aberta, quando
- * ela ainda guardava cinco Property do JavaFX ao lado da mensagem parseada. As Property foram
- * para application.SessionRow e os rotulos viraram campos finais; os testes continuam
- * afirmando exatamente os mesmos valores, que e o que prova que a separacao nao mudou nada.
- *
- * O que precisa sobreviver, e nao e obvio:
- *
- *   - os cinco rotulos sao derivados UMA VEZ, no construtor, e nunca mais mudam. Nao ha
- *     recalculo: o que a tabela mostra e o que o construtor escreveu;
- *   - o CommandHeader fica SEM NOME de proposito - ele nao e um NamedBuffer, e por isso a
- *     coluna Command aparece vazia para ele. Esta dito no comentario do NamedBuffer;
- *   - quando o dateTime e nulo, a property time nunca chega a ser escrita, e a coluna mm:ss
- *     fica vazia. Um cabecalho curto num arquivo de replay produz exatamente isso;
- *   - o acessor da hora se chama getTimeText () e nao getTime (). O segundo nome pertencia a
- *     um getter defeituoso, que devolvia o commandName, e que foi preservado do lado da linha
- *     da tabela - o SessionRowTest o congela la.
- */
 // -----------------------------------------------------------------------------------//
 @DisplayName ("SessionRecord - a mensagem gravada, e o rotulo que a tabela mostra")
 class SessionRecordTest
@@ -50,7 +29,6 @@ class SessionRecordTest
 {
   private static final LocalDateTime WHEN = LocalDateTime.of (2024, 1, 15, 10, 30, 42, 0);
 
-  // Um Write com uma order de texto so, para termos um NamedBuffer de verdade.
   // ---------------------------------------------------------------------------------//
   private static WriteCommand write ()
   // ---------------------------------------------------------------------------------//
@@ -59,7 +37,7 @@ class SessionRecordTest
     return new WriteCommand (buffer, 0, buffer.length);
   }
 
-  // O unico ReplyBuffer do projeto que NAO e um NamedBuffer.
+  // ReplyBuffer que nao implementa NamedBuffer.
   // ---------------------------------------------------------------------------------//
   private static CommandHeader header ()
   // ---------------------------------------------------------------------------------//
@@ -299,11 +277,7 @@ class SessionRecordTest
   class Text
   // ---------------------------------------------------------------------------------//
   {
-    /*
-     * O padrao "dd MMM uuuu" depende do Locale da maquina - "Jan" aqui, "jan." em pt-BR - e o
-     * SessionRecord nao passa Locale nenhum ao DateTimeFormatter. A expectativa e montada com
-     * o mesmo padrao, e nao com um literal, pelo mesmo motivo do §5.16.
-     */
+    // Formata expected com o mesmo padrao porque DateTimeFormatter usa o Locale da maquina.
     @Test
     @DisplayName ("imprime a origem e o instante completo")
     void printsSourceAndInstant ()

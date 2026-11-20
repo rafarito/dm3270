@@ -74,11 +74,7 @@ class WriteControlCharacterTest
     assertEquals (text ((byte) 0x00), text ((byte) 0xB0));
   }
 
-  /*
-   * process () e o que a tela recebe de cada WCC. O modo de insercao cai SEMPRE, com ou sem
-   * bit ligado, e sempre primeiro; os sinais vem depois numa ordem fixa, que nao e a ordem
-   * dos bits - o teclado, que e o bit 0x02, e o ultimo.
-   */
+  // resetInsertMode ocorre sempre primeiro; sinais seguem ordem fixa (nao a dos bits).
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("process com WCC zerado so desliga o modo de insercao")

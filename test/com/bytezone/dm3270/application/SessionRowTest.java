@@ -16,15 +16,7 @@ import com.bytezone.dm3270.runtime.Source;
 import com.bytezone.dm3270.session.SessionRecord;
 import com.bytezone.dm3270.session.SessionRecord.SessionRecordType;
 
-/*
- * A linha da tabela de replay, depois de separada do SessionRecord.
- *
- * Estes testes existem por um motivo so: provar que a separacao nao mexeu no que a tabela
- * mostra. As cinco Property recebem exatamente os valores que o SessionRecord derivou, e o
- * defeito do getTime () veio junto, sem ser ativado.
- *
- * Nao ha @ExtendWith (JavaFxToolkit.class): SimpleStringProperty nao precisa de toolkit.
- */
+// Nao usa JavaFxToolkit porque SimpleStringProperty dispensa inicializacao do toolkit.
 // -----------------------------------------------------------------------------------//
 @DisplayName ("SessionRow - a linha da tabela, separada do registro")
 class SessionRowTest
@@ -84,15 +76,11 @@ class SessionRowTest
     assertNull (row.getCommandName ());
     assertEquals ("30:42", row.timeProperty ().get ());
 
-    // a outra face do mesmo defeito: sem nome de comando, getTime () devolve nulo
+    // Pelo mesmo bug legado, getTime() devolve nulo sem nome de comando.
     assertNull (row.getTime ());
   }
 
-  /*
-   * O defeito que veio do SessionRecord, agora do lado da linha. Continua inalcancavel pela
-   * tabela, porque o PropertyValueFactory resolve timeProperty () antes de olhar para o getter.
-   * Preservado sob a Regra 1 e registrado no BACKLOG-DEFEITOS.md.
-   */
+  // Bug legado: getTime() retorna o comando, mas PropertyValueFactory prioriza timeProperty().
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("getTime () devolve o nome do comando, e nao a hora")

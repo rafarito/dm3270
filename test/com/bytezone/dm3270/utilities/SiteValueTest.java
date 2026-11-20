@@ -9,19 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-/*
- * O SiteValue e a implementacao headless da porta Site.
- *
- * REPARE NO QUE ESTA CLASSE DE TESTE NAO TEM: nao ha @ExtendWith (JavaFxToolkit.class). E
- * essa ausencia que e o teste principal. O SiteFormTest precisa do toolkit para existir,
- * porque instanciar um TextField sem ele lanca excecao; aqui nada disso e necessario, e e
- * exatamente essa a propriedade que a interface Site foi criada para permitir. Se alguem
- * puser um widget dentro do SiteValue, esta classe para de compilar ou passa a falhar, e a
- * regra screenModelDoesNotKnowJavaFx tem uma irma vigiando o mesmo no ArchUnit.
- *
- * O toString e verificado contra o formato exato do SiteForm porque os dois precisam ser
- * intercambiaveis: quem recebe um Site nao sabe qual das duas implementacoes tem em maos.
- */
+// Testes headless (sem JavaFX) de SiteValue; toString deve coincidir com o de SiteForm.
 // -----------------------------------------------------------------------------------//
 @DisplayName ("SiteValue - a configuracao de conexao sem widget nenhum")
 class SiteValueTest
@@ -64,8 +52,7 @@ class SiteValueTest
     {
       Site site = new SiteValue ("prod", "host", 0, false, 9, false, false, false, "");
 
-      // o SiteForm corrigiria porta 0 para 23 e modelo 9 para 2, reescrevendo o widget.
-      // aqui nao ha widget para corrigir, e o valor informado sai como entrou.
+      // Diferente de SiteForm, SiteValue nao normaliza porta 0 ou modelo 9 nos getters.
       assertEquals (0, site.getPort ());
       assertEquals (0, site.getPort ());
       assertEquals (9, site.getModel ());
@@ -112,12 +99,6 @@ class SiteValueTest
   class DefaultMainframe
   // ---------------------------------------------------------------------------------//
   {
-    /*
-     * Os mesmos argumentos de Console.DEFAULT_MAINFRAME. Quando ele era um SiteForm, o
-     * construtor gravava "5555" e "2" nos widgets e os getters os liam de volta como
-     * numero; o SiteValue devolve os inteiros direto. Este teste registra que o resultado
-     * observavel e o mesmo, que e o que autoriza a troca.
-     */
     @Test
     @DisplayName ("devolve os mesmos valores que o formulario devolvia")
     void matchesWhatTheFormProduced ()

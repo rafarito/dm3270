@@ -25,25 +25,7 @@ import com.bytezone.dm3270.watch.ScreenWatcher;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
-/*
- * Caracterizacao dos layouts de lista de dataset do ScreenWatcher.
- *
- * ScreenWatcher tem 1.002 linhas e nao tinha teste nenhum. checkDatasetList classifica a tela
- * num screenType de 1 a 5 com um switch sobre a QUANTIDADE de campos de uma linha, e addDataset
- * tem um segundo switch que repete a numeracao e le os dados por deslocamento de coluna
- * cravado no codigo - 6, 11, 15 num ramo, 5, 11, 18 noutro, 6, 10, 14 noutro. Suportar um
- * layout novo obriga a editar os dois lugares.
- *
- * A onda 3 vai trocar isso por uma Strategy, uma classe por layout. Estes testes existem para
- * que a troca seja verificavel: cada um monta uma tela do ISPF como fluxo 3270 de verdade -
- * SBA, Start Field, atributo e texto em EBCDIC - deixa o parser processa-la, e confere o que o
- * ScreenWatcher extraiu. Se um layout deixar de ser reconhecido, ou um deslocamento de coluna
- * mudar, o teste correspondente quebra.
- *
- * As telas nao sao capturas reais: sao o minimo que satisfaz cada caminho de reconhecimento,
- * montado a partir da leitura do codigo. O que elas congelam e a decisao - qual screenType a
- * tela recebe - e o mapeamento de colunas para campos do dataset.
- */
+// Telas sinteticas minimas (nao capturas reais) para fixar layouts e offsets do ScreenWatcher.
 // -----------------------------------------------------------------------------------//
 @DisplayName ("ScreenWatcher - layouts de lista de dataset")
 class ScreenWatcherTest
@@ -60,8 +42,7 @@ class ScreenWatcherTest
   private static final int ROWS = 24;
   private static final int COLUMNS = 80;
 
-  // A linha de comando do ISPF. O texto tem de casar exatamente, e o campo de entrada
-  // seguinte tem de ter 66 ou 48 posicoes - e o que hasPromptField exige.
+  // hasPromptField exige texto exato seguido de campo de entrada com 66 ou 48 posicoes.
   private static final String COMMAND_PROMPT = "Command ===>";
 
   private HeadlessScreenTarget screen;
@@ -83,11 +64,7 @@ class ScreenWatcherTest
     stream.add ((int) WCC_RESET_KEYBOARD);
   }
 
-  /*
-   * Um campo: o atributo ocupa (row, col) e os dados comecam na coluna seguinte. O campo se
-   * estende ate o proximo atributo, entao o comprimento de cada um e decidido por onde o
-   * proximo comeca - e por isso que os testes posicionam os campos por coluna explicita.
-   */
+  // Atributo em (row, col); dados comecam em col+1 ate o proximo SF (define a largura).
   // ---------------------------------------------------------------------------------//
   private void field (int row, int col, int attribute, String text)
   // ---------------------------------------------------------------------------------//
@@ -112,15 +89,7 @@ class ScreenWatcherTest
     Command.getCommand (buffer, 0, buffer.length).process (screen);
   }
 
-  /*
-   * O cabecalho comum a todas as telas DSLIST:
-   *
-   *   linha 0   a barra de menus, so para haver campo
-   *   linha 1   "Command ===>" com exatamente 12 posicoes, seguido do campo de entrada, que
-   *             fica com 66 porque o proximo atributo esta na linha 2 coluna 0
-   *   linha 2   o titulo, de onde sai o volume ou o padrao de nomes
-   *   linhas 3-4 preenchimento, para o total de campos passar de 21
-   */
+  // Linha 1 cria entrada de 66 posicoes ate (2,0); linhas 3-4 ajudam a passar de 21 campos.
   // ---------------------------------------------------------------------------------//
   private void header (String title)
   // ---------------------------------------------------------------------------------//
@@ -133,11 +102,7 @@ class ScreenWatcherTest
     field (4, 0, PROTECTED, "");
   }
 
-  /*
-   * A linha 5 e a que decide o screenType, pela quantidade de campos e pelos titulos. Os
-   * campos entram lado a lado a partir da coluna zero, cada um consumindo o texto mais a
-   * coluna do proprio atributo.
-   */
+  // Linha 5 decide o screenType; +1 na coluna reserva o byte de atributo de cada campo.
   // ---------------------------------------------------------------------------------//
   private void headingRow (String... texts)
   // ---------------------------------------------------------------------------------//
@@ -150,10 +115,6 @@ class ScreenWatcherTest
     }
   }
 
-  /*
-   * Uma linha de dataset. O primeiro campo carrega nove posicoes de area de comando e depois
-   * o nome; o resto sao os campos de detalhe, um por coluna informada.
-   */
   // ---------------------------------------------------------------------------------//
   private void datasetRow (int row, String name, String... details)
   // ---------------------------------------------------------------------------------//
@@ -167,14 +128,7 @@ class ScreenWatcherTest
     }
   }
 
-  /*
-   * Fecha a lista e completa a contagem de campos.
-   *
-   * Uma linha com um unico campo faz o laco de leitura parar - ele desiste quando a linha tem
-   * um campo ou menos. E as linhas seguintes existem por outro motivo: checkDatasetList
-   * desiste de saida se a tela tiver menos de 21 campos, e o cabecalho mais uma linha de
-   * dataset dao doze. Cada linha restante contribui com um.
-   */
+  // Linha unica encerra o laco de leitura; demais completam >= 21 campos de checkDatasetList.
   // ---------------------------------------------------------------------------------//
   private void endOfList (int row)
   // ---------------------------------------------------------------------------------//
@@ -192,16 +146,6 @@ class ScreenWatcherTest
     return datasets.get (0);
   }
 
-  /*
-   * O outro lado da lista de dataset: o que o ScreenWatcher entrega ao DatasetStore.
-   *
-   * Ate agora nenhum teste de lista de dataset afirmava sobre isto - so os de membro
-   * afirmavam sobre store.members. Dava para conferir o que ia para a tabela do assistant, mas
-   * nao o que ia para o banco, e os dois lados sao preenchidos por ramos DIFERENTES do switch
-   * de addDataset: o screenType 1 chama setSpace e setDevice no Dataset e nunca
-   * setDisposition, o 2 faz o inverso, e o 4 e o 5 chamam quase tudo. Uma decomposicao que
-   * acertasse o DatasetSummary e errasse o Dataset passaria despercebida.
-   */
   // ---------------------------------------------------------------------------------//
   private Dataset onlyStoredDataset ()
   // ---------------------------------------------------------------------------------//
@@ -300,7 +244,6 @@ class ScreenWatcherTest
     {
       header ("DSLIST - Data Sets on volume PRD001");
       headingRow ("Command - Enter \"/\" to select action", "Tracks %Used XT Device", "");
-      //            0     6    11  15
       datasetRow (7, "MY.DATA.SET", "   150   75   3 3390");
       endOfList (8);
       send ();
@@ -374,7 +317,6 @@ class ScreenWatcherTest
     {
       header ("DSLIST - Data Sets on volume PRD001");
       headingRow ("Command - Enter \"/\" to select action", "Dsorg Recfm Lrecl Blksz", "");
-      //            0    5     11     18
       datasetRow (7, "MY.LOAD.LIB", "PO   FB         80  27920");
       endOfList (8);
       send ();
@@ -440,9 +382,8 @@ class ScreenWatcherTest
       header ("DSLIST - Data Sets on volume PRD001");
       headingRow ("Command - Enter \"/\" to select action", "Message", "Volume", "");
 
-      // O campo de mensagem vai com espacos, e nao vazio: um campo de largura zero e
-      // descartado por FieldManager.getFieldsInRange, e a linha voltaria com dois campos em
-      // vez de tres - o suficiente para criar o dataset e nao preencher o volume.
+      // Usa espacos: FieldManager.getFieldsInRange descarta campos vazios
+      // e reduziria a linha de tres para dois campos.
       datasetRow (7, "MY.DATA.SET", "      ", "PRD001");
       endOfList (8);
       send ();
@@ -471,20 +412,6 @@ class ScreenWatcherTest
     }
   }
 
-  /*
-   * Os dois layouts de varias linhas por dataset. Sao os que a onda 3 mais precisa ter
-   * congelados, por dois motivos.
-   *
-   * Primeiro, o reconhecimento nao para na linha 5: com seis campos ali, checkDatasetList vai
-   * olhar a linha 7 e decidir entre o screenType 4 e o 5 pelo que encontra - a palavra
-   * "Catalog" ou uma linha de tracos. Sao dois niveis de decisao encadeados.
-   *
-   * Segundo, e principal: os deslocamentos de coluna NAO sao os mesmos dos layouts de uma
-   * linha. O espaco e lido em 6/11/15 no screenType 1 e em 6/10/14 aqui; a disposicao em
-   * 5/11/18 no screenType 2 e em 5/10/16 aqui. Sao quatro conjuntos de numeros cravados em
-   * dois switches paralelos, e trocar por Strategy sem trocar nenhum deles e exatamente o que
-   * estes testes verificam.
-   */
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("screenType 4 - Catalog, tres linhas por dataset")
@@ -501,7 +428,6 @@ class ScreenWatcherTest
       // A linha 7 com um campo unico contendo "Catalog" e o que escolhe o screenType 4.
       field (7, 0, PROTECTED, "                    Catalog");
 
-      // Tres linhas por dataset, sete campos no total, na ordem em que addDataset os le.
       field (9, 0, UNPROTECTED, "         MY.BIG.DATASET");
       field (9, 45, PROTECTED, "      ");
       field (9, 55, PROTECTED, "PRD001");
@@ -513,7 +439,7 @@ class ScreenWatcherTest
       field (11, 0, PROTECTED, "2024/01/15 ***None*** 2024/06/30");
       field (11, 40, PROTECTED, "CATALOG.MASTER");
 
-      // Uma linha so na 12 faz o laco parar quando ele chega na 13.
+      // Campo unico na linha 12 faz o laco parar na linha 13.
       field (12, 0, PROTECTED, "");
       send ();
     }
@@ -595,13 +521,7 @@ class ScreenWatcherTest
       assertEquals (27920, stored.getBlksize ());
     }
 
-    /*
-     * A diferenca entre os dois tipos, e o motivo de eles nao virarem um so: o DatasetSummary
-     * guarda o TEXTO que a tela mostrou, e o Dataset guarda a data ja convertida para o banco.
-     * "***None***" nao converte - Dataset.setDates apanha a ParseException, loga
-     * "Invalid expires date" e deixa o campo nulo -, enquanto a tabela do assistant continua
-     * mostrando o texto. Unificar os dois mudaria o que a tabela mostra.
-     */
+    // DatasetSummary guarda texto bruto; Dataset converte para SQL e deixa null se falhar.
     @Test
     @DisplayName ("uma data que nao converte fica nula no banco, e visivel na tela")
     void anUnparseableDateIsNullInTheDatabaseOnly ()
@@ -633,14 +553,10 @@ class ScreenWatcherTest
       // Agora a linha 7 traz tracos, e nao "Catalog": e o screenType 5.
       field (7, 0, PROTECTED, "-------------------------------");
 
-      // Duas linhas por dataset, seis campos.
       field (8, 0, UNPROTECTED, "         MY.OTHER.DATASET");
       field (8, 45, PROTECTED, "      ");
       field (8, 55, PROTECTED, "PRD002");
-      // As colunas dos atributos dao a cada campo espaco para o texto inteiro: 19 posicoes
-      // para o espaco, 24 para a disposicao e 34 para as datas. Apertar qualquer um faz o
-      // texto seguinte sobrescrever a cauda do anterior, e o teste passa a medir o proprio
-      // erro de montagem em vez do comportamento do ScreenWatcher.
+      // Colunas espacadas para que cada campo comporte o texto sem sobrescrever o anterior.
       field (9, 0, PROTECTED, "   300  50   1 3380");
       field (9, 20, PROTECTED, "PS   VB      255  27998");
       field (9, 45, PROTECTED, "2023/02/20 2025/12/31 2024/03/01");
@@ -697,12 +613,6 @@ class ScreenWatcherTest
           "o ramo do screenType 5 nao le campo de catalogo");
     }
 
-    /*
-     * O ramo do screenType 5 e o UNICO que escreve o volume so no DatasetSummary e nao no
-     * Dataset - o 3 e o 4 chamam ds.setVolume, ele nao. O volume aparece na tabela do
-     * assistant e nunca chega ao banco. Esta no item 9 do BACKLOG-DEFEITOS.md e e preservado
-     * de proposito: Regra 1.
-     */
     @Test
     @DisplayName ("o banco recebe espaco e disposicao, mas nem volume nem catalogo")
     void storesSpaceAndDispositionButNotTheVolume ()
@@ -726,7 +636,6 @@ class ScreenWatcherTest
 
       assertNull (stored.getCatalog ());
 
-      // O screenType 5 le as datas mas NAO chama ds.setDevice, ao contrario do 4.
       assertNotNull (stored.getCreatedSQL ());
       assertNull (stored.getDevice (), "o ramo do screenType 5 nao chama setDevice");
     }
@@ -793,15 +702,7 @@ class ScreenWatcherTest
     }
   }
 
-  /*
-   * Os dois caminhos de addDataset que ficam entre o reconhecido e o lido.
-   *
-   * Cada ramo do switch tem uma guarda propria sobre a quantidade de campos da linha - == 2 no
-   * screenType 1, == 3 no 3, == 7 no 4, >= 3 e >= 6 no 5. Quando a guarda falha, o
-   * DatasetSummary nao recebe nada, mas o datasetStore.update (ds) esta FORA do switch e
-   * acontece assim mesmo. Sao os dois casos que uma Strategy pode perder sem que nenhum dos
-   * testes acima acuse.
-   */
+  // datasetStore.update(ds) fica fora do switch e grava o nome mesmo se a guarda falhar.
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("as guardas de cada ramo, e o que o banco recebe quando elas falham")
@@ -814,8 +715,6 @@ class ScreenWatcherTest
     {
       header ("DSLIST - Data Sets on volume PRD001");
       headingRow ("Command - Enter \"/\" to select action", "Tracks %Used XT Device", "");
-
-      // Tres campos na linha, e o ramo do screenType 1 so le com exatamente dois.
       datasetRow (7, "MY.DATA.SET", "   150   75   3 3390", "sobra");
       endOfList (8);
       send ();
@@ -839,9 +738,6 @@ class ScreenWatcherTest
                   "c");
       field (7, 0, PROTECTED, "-------------------------------");
 
-      // A primeira das duas linhas traz nome, mensagem e volume; a segunda vem vazia. Sao
-      // tres campos, e o ramo do screenType 5 le o volume com >= 3 e so entra em espaco,
-      // disposicao e datas com >= 6.
       field (8, 0, UNPROTECTED, "         MY.THIN.DATASET");
       field (8, 45, PROTECTED, "      ");
       field (8, 55, PROTECTED, "PRD003");
@@ -849,8 +745,7 @@ class ScreenWatcherTest
       field (10, 0, PROTECTED, "-------------------------------");
       field (11, 0, PROTECTED, "");
 
-      // Sem a linha de detalhe a tela ficaria com 18 campos, e checkDatasetList desiste
-      // abaixo de 21. As linhas seguintes so recompoem a contagem.
+      // Completa >= 21 campos exigidos por checkDatasetList (sem a linha 9 seriam 18).
       endOfList (12);
       send ();
 
@@ -860,8 +755,6 @@ class ScreenWatcherTest
       assertEquals (0, summary.getTracks (), "espaco so entra com seis campos");
       assertNull (summary.getDsorg ());
 
-      // O Dataset sai so com o nome: o volume e escrito apenas no DatasetSummary (item 9 do
-      // BACKLOG-DEFEITOS.md), e espaco, disposicao e datas dependem da guarda de seis campos.
       Dataset stored = onlyStoredDataset ();
       assertEquals ("MY.THIN.DATASET", stored.getName ());
       assertNull (stored.getVolume ());
@@ -870,15 +763,7 @@ class ScreenWatcherTest
     }
   }
 
-  // ---------------------------------------------------------------------------------//
-  // Telas que nao sao lista de dataset
-  // ---------------------------------------------------------------------------------//
-
-  /*
-   * A linha de comando do ISPF, na linha pedida. O campo de entrada fica com 66 posicoes
-   * porque o proximo atributo esta na linha seguinte, coluna zero - e 66 e um dos dois
-   * comprimentos que hasPromptField aceita.
-   */
+  // hasPromptField exige entrada de 66 posicoes (proximo SF na linha seguinte, col 0).
   // ---------------------------------------------------------------------------------//
   private void commandLine (int row)
   // ---------------------------------------------------------------------------------//
@@ -887,15 +772,7 @@ class ScreenWatcherTest
     field (row, 13, UNPROTECTED, "");
   }
 
-  /*
-   * A barra de menus da linha 0, que e o que checkMemberList usa para escolher entre os dois
-   * caminhos: pdsMenus tem cinco entradas e memberMenus tem quatro.
-   *
-   * getMenus le so a linha 0, so campos protegidos, visiveis e com mais de uma posicao, e
-   * descarta os de texto vazio. O campo em branco do fim entra na contagem de campos da tela
-   * - que e o que decide os indices que checkMemberList1 e checkMemberList2 esperam - sem
-   * entrar na lista de menus.
-   */
+  // Campo vazio no fim entra no indice de screenFields sem ser contado como menu.
   // ---------------------------------------------------------------------------------//
   private void menuBar (String... names)
   // ---------------------------------------------------------------------------------//
@@ -909,11 +786,7 @@ class ScreenWatcherTest
     field (0, col, PROTECTED, "");
   }
 
-  /*
-   * Preenche uma linha com a quantidade pedida de campos vazios, distribuidos por igual.
-   * Serve para levar a contagem de campos ate o indice exato que o codigo sob teste espera -
-   * checkPrefixScreen le screenFields.get (10), get (23), get (24), get (72) e get (73).
-   */
+  // Preenche uma linha com campos vazios para alinhar indices fixos de screenFields.
   // ---------------------------------------------------------------------------------//
   private void fillRow (int row, int count)
   // ---------------------------------------------------------------------------------//
@@ -923,13 +796,7 @@ class ScreenWatcherTest
       field (row, i * pitch, PROTECTED, "");
   }
 
-  /*
-   * A linha 4, de titulos. checkMemberList1 escolhe o formato dos detalhes so pela
-   * QUANTIDADE de campos aqui (7, 10 ou 13); checkMemberList2 tambem le o texto do sexto.
-   *
-   * Os campos vazios ficam com uma posicao cada, e o sexto recebe a largura exata do texto -
-   * escrever mais do que cabe ate o proximo Start Field sobrescreveria o campo seguinte.
-   */
+  // Linha 4: 7/10/13 campos escolhem o formato; o sexto define a largura ate o proximo SF.
   // ---------------------------------------------------------------------------------//
   private void headingsRow (int count, String sixth)
   // ---------------------------------------------------------------------------------//
@@ -943,11 +810,7 @@ class ScreenWatcherTest
     }
   }
 
-  /*
-   * Uma linha de membro: quatro campos, que e o que os dois checkMemberList exigem. O nome
-   * fica com oito posicoes, exatamente o tamanho de "**End** " - o marcador de fim de lista,
-   * que o codigo compara com equals e nao com trim.
-   */
+  // Quatro campos por membro; nome tem 8 posicoes por causa de equals("**End** ").
   // ---------------------------------------------------------------------------------//
   private void memberRow (int row, String name, String details)
   // ---------------------------------------------------------------------------------//
@@ -958,37 +821,27 @@ class ScreenWatcherTest
     field (row, 25, PROTECTED, details);
   }
 
-  /*
-   * O cabecalho de uma lista de membros do tipo 1 - a que checkMemberList1 reconhece.
-   *
-   * Os indices sao o contrato: a barra de menus mais o campo em branco dao seis campos, a
-   * linha de comando da mais dois, e o proximo campo - o atributo na linha 2, coluna 0 - e o
-   * de indice 8, que o codigo exige na posicao 161. O modo fica nele, e o nome do dataset no
-   * de indice 9, que tem de comecar em 179.
-   */
+  // checkMemberList1 exige mode/dataset nos campos 8 (pos 161) e 9 (pos 179).
   // ---------------------------------------------------------------------------------//
   private void pdsHeader (String mode, String datasetName)
   // ---------------------------------------------------------------------------------//
   {
     menuBar ("Menu", "Functions", "Confirm", "Utilities", "Help");
     commandLine (1);
-    field (2, 0, PROTECTED, mode);                    // campo 8, posicao 161
-    field (2, 18, PROTECTED, datasetName);            // campo 9, posicao 179
+    field (2, 0, PROTECTED, mode);
+    field (2, 18, PROTECTED, datasetName);
     field (3, 0, PROTECTED, "");
   }
 
-  /*
-   * O mesmo para o tipo 2. Sao quatro menus em vez de cinco, entao o campo do modo cai para o
-   * indice 7 - e o nome do dataset, para o 8, na posicao 170 em vez de 179.
-   */
+  // checkMemberList2 (4 menus) desloca mode/dataset para os campos 7 (161) e 8 (170).
   // ---------------------------------------------------------------------------------//
   private void memberHeader (String mode, String datasetName)
   // ---------------------------------------------------------------------------------//
   {
     menuBar ("Menu", "Functions", "Utilities", "Help");
     commandLine (1);
-    field (2, 0, PROTECTED, mode);                    // campo 7, posicao 161
-    field (2, 9, PROTECTED, datasetName);             // campo 8, posicao 170
+    field (2, 0, PROTECTED, mode);
+    field (2, 9, PROTECTED, datasetName);
     field (3, 0, PROTECTED, "");
   }
 
@@ -1001,11 +854,7 @@ class ScreenWatcherTest
     return members.get (0);
   }
 
-  /*
-   * Os detalhes de um membro, montados por bloco para que os deslocamentos fiquem visiveis no
-   * proprio teste. Cada bloco e preenchido com espacos ate a largura pedida, e a soma tem de
-   * dar as 54 posicoes do campo de detalhes.
-   */
+  // Concatena blocos ate preencher as 54 posicoes do campo de detalhes do membro.
   // ---------------------------------------------------------------------------------//
   private String details (String... blocks)
   // ---------------------------------------------------------------------------------//
@@ -1042,7 +891,6 @@ class ScreenWatcherTest
   class MemberListOne
   // ---------------------------------------------------------------------------------//
   {
-    // 12 + 13 + 13 + 9 + 7 = 54, que e a largura do campo de detalhes
     private String libraryDetails ()
     {
       return details (padLeft ("42", 12), pad ("2024/01/15", 13),
@@ -1067,11 +915,6 @@ class ScreenWatcherTest
       assertEquals ("USER01", onlyMember ().getCatalog ());
     }
 
-    /*
-     * Uma peculiaridade que a decomposicao tem de preservar: screenType1 le o MESMO trecho
-     * duas vezes, uma para setExtents e outra para o tamanho do Member. As duas colunas
-     * acabam com o mesmo numero.
-     */
     @Test
     @DisplayName ("o tamanho e os extents saem do mesmo trecho, e ficam iguais")
     void sizeAndExtentsShareTheSameSlice ()
@@ -1093,7 +936,6 @@ class ScreenWatcherTest
     {
       pdsHeader ("EDIT", "SYS1.PROCLIB");
       headingsRow (7, "");
-      // 9 + 12 + 12 + 9 + 12 = 54
       memberRow (5, "IEFBR14", details (padLeft ("7", 9), pad ("2024/01/15", 12),
           pad ("2025/06/01", 12), pad ("14:30:00", 9), pad ("USER01", 12)));
       endOfList (6);
@@ -1112,7 +954,6 @@ class ScreenWatcherTest
     {
       pdsHeader ("LIBRARY", "SYS1.PROCLIB");
       headingsRow (13, "");
-      // 12 + 9 + 10 + 12 + 11 = 54
       memberRow (5, "IEFBR14", details (padLeft ("10", 12), padLeft ("7", 9),
           padLeft ("3", 10), pad ("01.05", 12), pad ("USER02", 11)));
       endOfList (6);
@@ -1262,32 +1103,28 @@ class ScreenWatcherTest
   class PrefixScreen
   // ---------------------------------------------------------------------------------//
   {
-    /*
-     * checkPrefixScreen le por INDICE e por POSICAO ABSOLUTA: o titulo tem de ser o campo 10,
-     * " User ID . :" o campo 23 na posicao 457, o userid o campo 24 na 470, " TSO prefix:" o
-     * campo 72 na 1017 e o prefixo o campo 73 na 1030 - e a tela tem de ter 74 campos ou
-     * mais. A contagem de campos de cada linha abaixo existe so para acertar esses indices.
-     */
+    // checkPrefixScreen exige >= 74 campos e posicoes exatas: titulo[10],
+    // User ID[23@457, 24@470] e TSO prefix[72@1017, 73@1030]; fillRow acerta os indices.
     private void primaryOptionMenu (String heading, String userid, String prefix)
     {
-      fillRow (0, 10);                                  // campos 0 a 9
-      field (1, 0, PROTECTED, heading);                 // campo 10
-      field (1, 25, PROTECTED, "");                     // campo 11
-      commandLine (2);                                  // campos 12 e 13
-      fillRow (3, 4);                                   // campos 14 a 17
-      fillRow (4, 4);                                   // campos 18 a 21
-      field (5, 0, PROTECTED, "");                      // campo 22
-      field (5, 56, PROTECTED, " User ID . :");         // campo 23, posicao 457
-      field (5, 69, PROTECTED, userid);                 // campo 24, posicao 470
-      fillRow (6, 8);                                   // campos 25 a 32
-      fillRow (7, 8);                                   // campos 33 a 40
-      fillRow (8, 8);                                   // campos 41 a 48
-      fillRow (9, 8);                                   // campos 49 a 56
-      fillRow (10, 7);                                  // campos 57 a 63
-      fillRow (11, 7);                                  // campos 64 a 70
-      field (12, 0, PROTECTED, "");                     // campo 71
-      field (12, 56, PROTECTED, " TSO prefix:");        // campo 72, posicao 1017
-      field (12, 69, PROTECTED, prefix);                // campo 73, posicao 1030
+      fillRow (0, 10);
+      field (1, 0, PROTECTED, heading);
+      field (1, 25, PROTECTED, "");
+      commandLine (2);
+      fillRow (3, 4);
+      fillRow (4, 4);
+      field (5, 0, PROTECTED, "");
+      field (5, 56, PROTECTED, " User ID . :");
+      field (5, 69, PROTECTED, userid);
+      fillRow (6, 8);
+      fillRow (7, 8);
+      fillRow (8, 8);
+      fillRow (9, 8);
+      fillRow (10, 7);
+      fillRow (11, 7);
+      field (12, 0, PROTECTED, "");
+      field (12, 56, PROTECTED, " TSO prefix:");
+      field (12, 69, PROTECTED, prefix);
       endOfList (13);
     }
 
@@ -1330,16 +1167,12 @@ class ScreenWatcherTest
   class SingleDataset
   // ---------------------------------------------------------------------------------//
   {
-    /*
-     * checkSingleDataset procura, nas tres primeiras linhas, um campo na coluna 1 com nove ou
-     * dez posicoes cujo texto seja EDIT, VIEW ou BROWSE, e confere o campo DOIS a frente -
-     * sem trim - contra "Columns" ou "Line". O nome vem do campo do meio.
-     */
+    // checkSingleDataset exige mode (9-10 posicoes) e third sem trim dois campos a frente.
     private void editScreen (String mode, String name, String third)
     {
-      field (0, 0, PROTECTED, mode);          // dez posicoes: proximo atributo na coluna 11
+      field (0, 0, PROTECTED, mode);
       field (0, 11, PROTECTED, name);
-      field (0, 41, PROTECTED, third);        // largura exata do texto, sem preenchimento
+      field (0, 41, PROTECTED, third);
       field (0, 41 + third.length () + 1, PROTECTED, "");
       commandLine (1);
       endOfList (2);
@@ -1443,12 +1276,6 @@ class ScreenWatcherTest
     }
   }
 
-  /*
-   * O DatasetStore que o ScreenWatcher enxerga nestes testes. Ate agora esse caminho terminava
-   * no DatasetStore.NONE e era invisivel: dava para conferir o que ia para a tabela do
-   * assistant, mas nao o que ia para a persistencia. Sao os dois lados que a decomposicao do
-   * ScreenWatcher tem de preservar.
-   */
   // ---------------------------------------------------------------------------------//
   private static class RecordingStore implements DatasetStore
   // ---------------------------------------------------------------------------------//

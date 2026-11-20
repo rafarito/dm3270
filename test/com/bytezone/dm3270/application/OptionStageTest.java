@@ -43,40 +43,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioButton;
 import javafx.scene.layout.HBox;
 
-/*
- * Caracterizacao do OptionStage - a janela que escolhe o modo e lanca a aplicacao.
- *
- * Ate este commit o caminho inteiro de lancamento - Console, OptionStage e ConsoleKeyPress -
- * nao tinha um unico teste, e e justamente o caminho que o passo 7 vai mexer: o Console le
- * hoje DEZ membros package-private do OptionStage, 100% da superficie de pacote de uma
- * classe que nao tem acessor nenhum. Esta e a rede que falta antes de tocar nisso.
- *
- * O TESTE ALCANCA OS CONTROLES PELO GRAFO DE CENA, E NAO PELOS CAMPOS DA CLASSE. Isto e
- * deliberado, e e o que faz a rede sobreviver ao refactor que ela protege: os dez membros
- * viram private no fim deste passo, e um teste preso a eles teria de ser reescrito
- * exatamente no commit que prova o trabalho - uma rede que se ajusta quando incomoda deixa
- * de ser prova de coisa alguma. Pela cena, o teste continua valendo, e de quebra afirma o
- * que o usuario ve em vez do que a classe guarda.
- *
- * O que fica congelado aqui:
- *
- *   - a matriz de habilitacao. Cada uma das quatro opcoes desabilita um conjunto diferente,
- *     e sao PARES: o combo e o botao de edicao ao lado andam sempre juntos.
- *   - o caminho de fallback, quando a preferencia "Function" guarda valor fora da lista. O
- *     documento de contexto dizia que ali a chamada final de disableButtons e um no-op, e
- *     parava nisso; a medicao mostrou que ANTES dela o selectToggle dispara o listener com
- *     "Terminal", e e essa chamada que faz o trabalho. O efeito observavel e o estado de
- *     Terminal, nao um estado indefinido.
- *   - o modo Release, que nao desabilita nada: ele REMOVE da cena o painel de funcoes e o
- *     de cliente/replay, troca o titulo e forca a selecao em Terminal.
- *   - a lista de arquivos de replay, que so aceita spyNNNN com ate quatro digitos e
- *     extensao .txt opcional, e vem ordenada.
- *
- * As Preferences sao globais por JVM, entao cada teste recebe um no proprio sob userRoot,
- * removido no fim. Sem isso a suite escreveria nas preferencias reais de quem a roda - o
- * OptionStage le "Function", "Mode", "SpyFolder", "ReplayFile", "ServerName" e "ClientName"
- * ja no construtor.
- */
+// Usa no isolado sob userRoot por teste porque Preferences e estado global na JVM.
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
 @DisplayName ("OptionStage - a janela de abertura e as regras de habilitacao")
@@ -102,12 +69,6 @@ class OptionStageTest
     prefs.flush ();
   }
 
-  /*
-   * O construtor de uma Stage exige a thread do JavaFX. O item de menu e o que o
-   * OptionStage passou a receber em lugar do PluginsStage inteiro: construir um
-   * PluginsStage montaria um class loader, varreria a pasta de plugins e gravaria
-   * preferencias.
-   */
   // ---------------------------------------------------------------------------------//
   private OptionStage stage ()
   // ---------------------------------------------------------------------------------//
@@ -136,14 +97,7 @@ class OptionStageTest
     });
   }
 
-  // ---------------------------------------------------------------------------------//
-  //  Navegacao pelo grafo de cena
-  // ---------------------------------------------------------------------------------//
-
-  /*
-   * Nao desce por dentro de um Control: o skin de um ComboBox pode conter HBox propria, e a
-   * busca por rotulo de linha passaria a casar coisa que nao e linha do formulario.
-   */
+  // Nao entra em Controls porque o skin de um ComboBox pode conter HBox interna.
   // ---------------------------------------------------------------------------------//
   private static void collect (Node node, List<Node> found)
   // ---------------------------------------------------------------------------------//
@@ -166,10 +120,6 @@ class OptionStageTest
     return found;
   }
 
-  /*
-   * Uma linha do formulario e a HBox montada por OptionStage.row (): o primeiro filho e um
-   * Label com o texto pedido, e os seguintes sao os campos. Devolve so os campos.
-   */
   // ---------------------------------------------------------------------------------//
   private static List<Node> row (OptionStage stage, String labelText)
   // ---------------------------------------------------------------------------------//
@@ -236,13 +186,7 @@ class OptionStageTest
     throw new AssertionError ("nao achei o item de menu do modo");
   }
 
-  /*
-   * Um clique num CheckMenuItem sao DUAS coisas, e fire () e so a segunda: quem inverte o
-   * selected e o skin do menu (ContextMenuContent.doSelect), antes de disparar a acao.
-   * Chamar fire () sozinho deixa o selected como estava, e o switchMode le justamente esse
-   * valor - o modo nao mudaria, e o teste passaria a afirmar o contrario do que o usuario
-   * ve. Foi assim que este teste descobriu a armadilha, em tres casos de uma vez.
-   */
+  // fire() nao inverte CheckMenuItem.selected; o skin faz isso antes de disparar a acao.
   // ---------------------------------------------------------------------------------//
   private static void clickModeMenuItem (OptionStage stage)
   // ---------------------------------------------------------------------------------//
@@ -275,10 +219,6 @@ class OptionStageTest
     return (ComboBox<String>) row (stage, labelText).get (0);
   }
 
-  /*
-   * A matriz vale para PARES - o combo e o botao de edicao ao lado. Uma afirmacao que
-   * olhasse so o combo deixaria passar um setDisable que esquecesse o botao.
-   */
   // ---------------------------------------------------------------------------------//
   private static void assertRowDisabled (OptionStage stage, String labelText,
       boolean expected)
@@ -298,10 +238,6 @@ class OptionStageTest
   class DisableMatrix
   // ---------------------------------------------------------------------------------//
   {
-    /*
-     * disableButtons: Spy (false, false, true), Replay (true, true, false),
-     * Terminal (false, true, true), Test (true, false, true) - servidor, cliente, arquivos.
-     */
     @ParameterizedTest (name = "{0} => servidor {1}, cliente {2}, replay {3}")
     @CsvSource ({ "Spy, false, false, true",                //
                   "Replay, true, true, false",              //
@@ -337,12 +273,8 @@ class OptionStageTest
       assertRowDisabled (stage, "Replay", files);
     }
 
-    /*
-     * O caso que o documento de contexto descrevia pela metade. Com "Function" guardando
-     * algo fora da lista, o construtor cai no fallback: seleciona Terminal, o que dispara o
-     * listener e aplica a matriz de Terminal, e SO ENTAO chama disableButtons com a string
-     * desconhecida, que nao casa ramo nenhum e nao desfaz nada.
-     */
+    // Valor desconhecido cai no fallback Terminal (disparando o listener), e disableButtons
+    // em seguida e no-op.
     @Test
     @DisplayName ("uma funcao desconhecida cai em Terminal, com a matriz de Terminal")
     void unknownFunctionFallsBackToTerminal ()
@@ -362,10 +294,6 @@ class OptionStageTest
   class ReleaseAndDebug
   // ---------------------------------------------------------------------------------//
   {
-    /*
-     * Release e o padrao - prefs.get ("Mode", "Release"). Ele nao desabilita nada: remove
-     * da cena o painel de funcoes e o de cliente/replay, deixando so o servidor.
-     */
     @Test
     @DisplayName ("Release e o padrao, e esconde funcoes, cliente e replay")
     void releaseIsTheDefaultAndHidesEverythingButTheServer ()
@@ -427,11 +355,6 @@ class OptionStageTest
       assertTrue (hasRow (stage, "Client"));
     }
 
-    /*
-     * Ir para Release forca Terminal, e como o listener ja existe nesse momento a matriz de
-     * Terminal e aplicada junto - inclusive no cliente e no replay, que saem da cena.
-     * Voltar para Debug os traz de volta ja desabilitados.
-     */
     @Test
     @DisplayName ("ir para Release forca Terminal, e Debug devolve a matriz de Terminal")
     void goingToReleaseForcesTerminal ()
@@ -497,11 +420,7 @@ class OptionStageTest
       assertEquals (1, runs.get ());
     }
 
-    /*
-     * O Cancel nao precisa mais do Console: a acao e sempre esconder a janela, e a janela
-     * ja sabe faze-lo. Afirmar o handler, e nao o efeito, porque provar o hide () exigiria
-     * mostrar a janela - uma janela de verdade abrindo no meio da suite.
-     */
+    // Verifica apenas o handler para evitar abrir uma Stage real na suite.
     @Test
     @DisplayName ("o Cancel ja vem ligado, sem ajuda do Console")
     void cancelIsWiredByTheWindowItself ()
@@ -559,14 +478,8 @@ class OptionStageTest
       assertEquals ("spy0002.txt", combo (stage, "Replay").getValue ());
     }
 
-    /*
-     * Sem nada gravado o valor do combo e a STRING VAZIA, e nao null: buildComboBoxes faz
-     * select (prefs.get ("ReplayFile", "")), e o modelo de selecao aceita um item que nao
-     * esta na lista. Importa porque e com esse valor que o Console monta o caminho do
-     * arquivo por concatenacao - o caminho fica "<pasta>/", que nao existe, e a mensagem
-     * de erro mostra isso ao usuario. Medido, e nao deduzido: a expectativa inicial deste
-     * teste era null, e o codigo a desmentiu.
-     */
+    // SelectionModel.select("") aceita item fora da lista; Console usa esse valor na mensagem
+    // de arquivo ausente.
     @Test
     @DisplayName ("sem pasta gravada a lista e vazia e o valor e a string vazia")
     void noFolderMeansNoFiles ()
@@ -594,11 +507,7 @@ class OptionStageTest
   class Sites
   // ---------------------------------------------------------------------------------//
   {
-    /*
-     * Com um no de Preferences vazio nao ha site gravado, e e nesse estado que o Console
-     * produz "No server selected". O que o combo devolve aqui e o que o savePreferences
-     * grava de volta, entao o valor importa.
-     */
+    // O valor selecionado aqui ("") e o que savePreferences grava de volta.
     @ParameterizedTest
     @ValueSource (strings = { "Server", "Client" })
     @DisplayName ("sem sites gravados o combo fica vazio")
@@ -682,13 +591,8 @@ class OptionStageTest
       assertEquals ("", debugStage ("Replay").getLaunchRequest ().replayFile ());
     }
 
-    /*
-     * A afirmacao que protege a decisao central do desenho. O pedido tem de entregar o
-     * SiteForm VIVO - o objeto feito de widgets -, e nao uma copia dos seus valores: o
-     * getPort () dele corrige o campo quando acha valor invalido, e e o valor corrigido que
-     * o SiteListStage grava nas Preferences. Uma copia congelaria a porta antes da correcao
-     * e mudaria o que vai para o disco.
-     */
+    // Precisa entregar o SiteForm vivo (sem copia) para que a correcao de getPort() chegue
+    // as Preferences gravadas pelo SiteListStage.
     @Test
     @DisplayName ("o Site entregue e o formulario vivo, o mesmo objeto a cada chamada")
     void theSiteIsTheLiveFormAndAlwaysTheSameObject ()
@@ -707,10 +611,7 @@ class OptionStageTest
       assertEquals (992, first.getPort ());
     }
 
-    /*
-     * A consulta tardia, que o ramo do replay usa depois de descobrir na sessao gravada de
-     * que servidor ela veio. Ela nao olha o combo: casa so pelo nome.
-     */
+    // Usado pelo replay apos ler o nome do servidor na sessao gravada.
     @Test
     @DisplayName ("findServerSite acha pelo nome, mesmo sem nada selecionado no combo")
     void findServerSiteMatchesByNameAlone ()
@@ -774,11 +675,6 @@ class OptionStageTest
       assertEquals ("Release", prefs.get ("Mode", "?"));
     }
 
-    /*
-     * A ida e volta inteira, que e o que o roteiro manual chama de "fechar, reabrir e
-     * conferir que tudo voltou". A segunda janela nasce so das preferencias que a primeira
-     * gravou.
-     */
     @Test
     @DisplayName ("uma janela nova nasce no estado que a anterior gravou")
     void reopeningRestoresTheSavedState () throws Exception

@@ -10,14 +10,7 @@ import com.bytezone.dm3270.screen.Cursor;
 import com.bytezone.dm3270.screen.Field;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 
-/*
- * A tela que o subsistema de plugins enxerga, dublada. Implementa a porta PluginHost inteira
- * - oito metodos - e grava no PluginProbe, na MESMA lista dos dubles de plugin, para que um
- * caso possa afirmar a ordem entre o que o plugin faz e o que a tela recebe.
- *
- * O readModifiedFields devolve o AIDCommand que o teste combinar, ou null: e por ele que
- * passa a diferenca entre o caminho que trava o teclado e envia, e o que nao faz nada.
- */
+// Duble de PluginHost que grava chamadas em PluginProbe para preservar ordem com os plugins.
 // -----------------------------------------------------------------------------------//
 public class RecordingPluginHost implements PluginHost
 // -----------------------------------------------------------------------------------//
@@ -100,15 +93,7 @@ public class RecordingPluginHost implements PluginHost
     return reply;
   }
 
-  /*
-   * Cursor e classe, nao interface, e nenhum dos metodos usados e final - entao o duble e
-   * uma subclasse que grava em vez de executar. E de proposito que ele NAO executa: esta rede
-   * congela o DESPACHO, e a semantica do cursor ja tem o CursorTest, com 32 casos. O
-   * precedente e o RecordingCursor do ConsoleKeyPressTest, no passo 8.
-   *
-   * O construtor da superclasse so guarda dois campos, mas recebe colaboradores de verdade,
-   * para que o duble quebre alto se algum dia ele passar a usa-los.
-   */
+  // Subclasse duble de Cursor; passa colaboradores reais ao super para falhar rapido se usados.
   // ---------------------------------------------------------------------------------//
   private static final class RecordingCursor extends Cursor
   // ---------------------------------------------------------------------------------//

@@ -3,10 +3,7 @@ package com.bytezone.dm3270.plugins;
 import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.screen.AidSender;
 
-/*
- * O ConsolePane que o PluginsStage enxerga, dublado. Grava no PluginProbe, na mesma lista dos
- * demais, para que um caso afirme a ordem entre travar o teclado e enviar o AID.
- */
+// Duble de AidSender que grava em PluginProbe para verificar ordem com lockKeyboard().
 // -----------------------------------------------------------------------------------//
 public class RecordingAidSender implements AidSender
 // -----------------------------------------------------------------------------------//

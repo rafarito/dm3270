@@ -17,17 +17,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.bytezone.dm3270.testing.SyntheticPluginJar;
 
-/*
- * A rede do colaborador que saiu do PluginsStage no passo 9.
- *
- * REPARE NO QUE ESTA CLASSE NAO TEM: @ExtendWith (JavaFxToolkit.class). Ela exercita o
- * carregamento de JARs de plugin inteiro - listar, montar os loaders, descobrir, carregar e
- * fechar - sem subir toolkit grafico nenhum, porque nada disso precisava de janela. Enquanto
- * morava dentro de uma javafx.stage.Stage, so podia ser testado com o toolkit de pe.
- *
- * O PluginsStageDispatchTest continua precisando do toolkit, e isso esta certo: o que sobrou
- * la e menu, preferencias e formulario.
- */
 // -----------------------------------------------------------------------------------//
 @DisplayName ("PluginJars - os JARs da pasta de plugins, sem janela")
 class PluginJarsTest
@@ -38,10 +27,7 @@ class PluginJarsTest
 
   private PluginJars jars;
 
-  /*
-   * Obrigatorio: no Windows um URLClassLoader aberto mantem o JAR mapeado e a remocao do
-   * @TempDir pelo JUnit falha com DirectoryNotEmptyException.
-   */
+  // Obrigatorio no Windows: URLClassLoader aberto impede a remocao do @TempDir pelo JUnit.
   // ---------------------------------------------------------------------------------//
   @AfterEach
   void closeLoaders ()
@@ -70,18 +56,6 @@ class PluginJarsTest
       assertEquals (directory, jars.getDirectory ());
     }
 
-    /*
-     * So arquivos .jar entram, e este caso precisou de duas tentativas.
-     *
-     * A primeira versao punha um .txt e um .properties na pasta e afirmava que a descoberta
-     * achava um plugin so. Ela passava - e o mutante do PIT que fazia o filtro devolver sempre
-     * true TAMBEM passava: com ele os dois arquivos entram na lista, mas o new JarFile falha
-     * neles com IOException, que a varredura loga e engole. O resultado final era o mesmo, e a
-     * assercao nao distinguia nada.
-     *
-     * O que distingue e um arquivo que E um JAR valido, com um plugin dentro, mas NAO termina
-     * em .jar. O codigo certo o ignora pelo nome; o mutante o abre e descobre o segundo plugin.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("so a extensao .jar entra, mesmo que o arquivo seja um JAR valido")
@@ -100,10 +74,6 @@ class PluginJarsTest
       assertNull (jars.loadFromOwningJar ("com.example.dois.Segundo"));
     }
 
-    /*
-     * A pasta e CRIADA quando nao existe. E o que faz o dm3270 subir numa instalacao nova sem
-     * que ninguem precise criar plugins/ a mao.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("uma pasta que nao existe e criada")
@@ -140,11 +110,7 @@ class PluginJarsTest
       assertEquals ("com.example.um.Primeiro", discovered.get (0)[1]);
     }
 
-    /*
-     * As duas bordas do filtro: quem nao implementa Plugin fica de fora, e uma classe
-     * ANINHADA tambem - a varredura pula toda entrada de JAR cujo nome contenha cifrao. Um
-     * plugin declarado como classe aninhada e invisivel, e isso e comportamento antigo.
-     */
+    // Entradas com '$' (classes aninhadas) sao ignoradas intencionalmente na varredura.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("ignora quem nao e Plugin e ignora classe aninhada")
@@ -179,14 +145,6 @@ class PluginJarsTest
   class Loaders
   // ---------------------------------------------------------------------------------//
   {
-    /*
-     * O nucleo da correcao do passo 9, afirmado aqui sem passar pelo host: dois JARs com a
-     * MESMA classe auxiliar, e cada plugin resolvendo a copia que veio no proprio JAR.
-     *
-     * A verificacao vai pelo class loader de cada plugin - que e por onde o JVM resolve as
-     * referencias que ele faz -, e nao pelo que o PluginJars devolveria para o nome da classe
-     * auxiliar. Sao coisas diferentes, e e a primeira que importa em execucao.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("cada plugin resolve a copia que veio no proprio JAR")
@@ -219,11 +177,6 @@ class PluginJarsTest
       assertNull (jars.loadFromOwningJar ("com.example.um.NaoExiste"));
     }
 
-    /*
-     * O terceiro degrau da busca: um plugin continua achando uma classe que mora noutro JAR
-     * da pasta. Se o loader olhasse so o proprio JAR, isto quebraria em silencio, no meio de
-     * uma sessao.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("um plugin acha a biblioteca solta noutro JAR da pasta")
@@ -269,10 +222,6 @@ class PluginJarsTest
   }
 
   // ---------------------------------------------------------------------------------//
-  //  Apoio
-  // ---------------------------------------------------------------------------------//
-
-  // ---------------------------------------------------------------------------------//
   private void writePlugin (String pkg, String name, String jarName) throws Exception
   // ---------------------------------------------------------------------------------//
   {
@@ -288,10 +237,6 @@ class PluginJarsTest
         """.formatted (pkg, name, name)).writeTo (directory, jarName);
   }
 
-  /*
-   * Um JAR com um plugin e uma classe auxiliar de nome qualificado FIXO - o mesmo nos dois
-   * JARs -, cuja unica diferenca e a letra que ela devolve.
-   */
   // ---------------------------------------------------------------------------------//
   private void writeStamped (String suffix, String letter) throws Exception
   // ---------------------------------------------------------------------------------//
@@ -323,10 +268,7 @@ class PluginJarsTest
         .writeTo (directory, plugin + ".jar");
   }
 
-  /*
-   * Resolve com.example.shared.Stamp PELO class loader do plugin, que e o caminho que o JVM
-   * usa para as referencias que o proprio plugin faz.
-   */
+  // Usa o class loader do plugin para reproduzir a resolucao de simbolos feita pela JVM.
   // ---------------------------------------------------------------------------------//
   private static String stampSeenBy (Class<?> plugin) throws Exception
   // ---------------------------------------------------------------------------------//

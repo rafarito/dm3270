@@ -23,28 +23,6 @@ import com.bytezone.reporter.reports.ReportMaker;
 import com.bytezone.reporter.reports.TextReport;
 import com.bytezone.reporter.text.AsciiTextMaker;
 
-/*
- * Caracterizacao do ReportScore - a pontuacao de uma combinacao de makers, e as paginas em que
- * o relatorio foi dividido.
- *
- * REPARE NO QUE ESTA CLASSE NAO TEM MAIS: nao ha @ExtendWith (JavaFxToolkit.class). Ate o
- * commit que separou a view, o ReportScore construia um TextArea no proprio construtor, e
- * nenhum destes testes podia rodar sem toolkit grafico. Hoje a montagem de pagina do
- * subsistema - onde um registro comeca e termina, os quatro ramos de getSubrecord, o
- * encadeamento das paginas - e exercitada headless, e essa ausencia e o teste principal.
- *
- * O que sobrou de comportamento visual esta no ReportScoreViewTest.
- *
- * O que precisa sobreviver, e nao e obvio:
- *
- *   - createPages nao acontece sozinho: as paginas so existem depois que alguem pede. Antes
- *     disso getPages () esta vazia;
- *   - pagina fora da faixa nao lanca: loga "impossible pageNumber requested" e devolve texto
- *     vazio. O nome do logger e saida observavel (§5.13), entao o aviso tem de continuar
- *     saindo desta classe;
- *   - getSubrecord tem quatro ramos, escolhidos pelos deslocamentos que a pagina carrega, e so
- *     e alcancado quando a pagina inteira cabe num registro so.
- */
 // -----------------------------------------------------------------------------------//
 @DisplayName ("ReportScore - a pontuacao e as paginas, sem widget nenhum")
 class ReportScoreTest
@@ -138,11 +116,7 @@ class ReportScoreTest
     }
   }
 
-  /*
-   * getSubrecord so e alcancado quando a pagina inteira cabe num registro so - firstRecord ==
-   * lastRecord -, e ai os dois deslocamentos da pagina escolhem o ramo. Os quatro abaixo sao
-   * os quatro do metodo, na ordem em que ele os testa.
-   */
+  // getSubrecord so e alcancado com firstRecord == lastRecord; cobre os 4 ramos de offset.
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("um registro cortado pelos deslocamentos da pagina")
@@ -300,16 +274,7 @@ class ReportScoreTest
   class Text_
   // ---------------------------------------------------------------------------------//
   {
-    /*
-     * O SEPARADOR DECIMAL VEM DO LOCALE, e foi este teste que descobriu: o toString usa
-     * String.format com %6.2f e sem Locale explicito, entao imprime "95,50" numa maquina
-     * pt-BR e "95.50" numa en-US. Nao e corrigido aqui, porque a Regra 1 preserva
-     * comportamento - mas a expectativa e montada com o separador da plataforma, para que o
-     * teste valha nas duas.
-     *
-     * A string TERMINA NO PESO. Ate a view sair daqui havia um campo a mais no fim - a
-     * Pagination, que imprimia "null" enquanto ninguem a criasse -, e ele saiu com os widgets.
-     */
+    // toString() usa String.format sem Locale; a expectativa acompanha o separador do SO.
     @Test
     @DisplayName ("os tres makers, a pontuacao, o tamanho da amostra e o peso")
     void formatsEveryField ()

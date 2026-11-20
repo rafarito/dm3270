@@ -31,44 +31,7 @@ import com.bytezone.dm3270.screen.ScreenTarget;
 import com.bytezone.dm3270.streams.SessionDisplay;
 import com.bytezone.dm3270.streams.TelnetState;
 
-/*
- * Uma tela de verdade, sem interface grafica.
- *
- * E o retorno de toda a onda de desacoplamento. Ate agora nao existia forma de executar um
- * comando 3270 num teste: Buffer.process pedia a Screen concreta, que estende Canvas,
- * constroi o grafo da aplicacao inteira no construtor - banco SQLite, tres janelas, class
- * loader de plugins - e exige toolkit grafico ativo. Com ScreenTarget e CursorHost no lugar,
- * este dublê basta.
- *
- * O buffer de tela aqui NAO e simulado: sao um Pen e um vetor de ScreenPosition reais,
- * exatamente os que a aplicacao usa. As orders escrevem neles do mesmo jeito, e
- * getScreenText devolve o conteudo resultante. O que e dublê e apenas o desenho (um canvas
- * que descarta) e os colaboradores que ainda nao foram desacoplados.
- *
- * O QUE ESTE DUBLE AINDA NAO FAZ, e por que:
- *
- *   Campos: agora sao reais. O FieldManager parou de exigir a Screen concreta - recebe a
- *   porta FieldHost - e parou de subir uma thread SQLite no construtor - recebe um
- *   DatasetStore, e aqui entra o DatasetStore.NONE, que nao grava nada. Entao este dublê
- *   monta os campos de verdade a partir do buffer, e o que depende de haver campos passou a
- *   ser percorrido.
- *
- *   O que continua dublê e o que fica DEPOIS do campo: gravar a tela e rodar os plugins sao
- *   anotados em calls (checkRecording, processPluginAuto) em vez de executados, porque o
- *   primeiro depende do HistoryManager e o segundo do class loader de plugins - os dois
- *   ainda presos a Screen. A DECISAO de chama-los, essa e real: o dublê delega a mesma
- *   HostWriteCompletion que a Screen, e o teste verifica que foram alcancados, e em ordem.
- *
- *   TransferManager. Devolve null, porque exige um Site. Um teste que precise dele falha
- *   com NullPointerException, que e melhor do que um dublê silencioso devolvendo respostas
- *   inventadas. SystemMessage, ao contrario, e real: o construtor dele so guarda tres
- *   valores, e WriteCommand.process termina SEMPRE chamando checkSystemMessage - devolver
- *   null ali fazia todo comando estourar.
- *
- * A lista calls registra as operacoes que nao alteram o buffer, na ordem. Serve para verificar
- * intencao - "este comando travou o teclado", "aquele pediu alarme" - sem inspecionar estado
- * interno.
- */
+// Duble headless com buffer e campos reais; operacoes fora do buffer sao gravadas em calls.
 // -----------------------------------------------------------------------------------//
 public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, FieldHost
 // -----------------------------------------------------------------------------------//
@@ -114,12 +77,6 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
     this (defaultDimensions, alternateDimensions, DatasetStore.NONE);
   }
 
-  /*
-   * Com um DatasetStore proprio. O ScreenWatcher grava nele tudo o que reconhece numa lista
-   * de dataset ou de membros, e ate agora esse caminho terminava no NONE, invisivel para o
-   * teste. Passar um dublê que registra e o que permite conferir os valores que chegam a
-   * persistencia - que e exatamente o que a decomposicao do ScreenWatcher tem de preservar.
-   */
   // ---------------------------------------------------------------------------------//
   public HeadlessScreenTarget (ScreenDimensions defaultDimensions,
       ScreenDimensions alternateDimensions, DatasetStore datasetStore)
@@ -133,8 +90,6 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
 
     cursor = new Cursor (this, defaultDimensions);
 
-    // Sem banco, DatasetStore.NONE e o que a aplicacao usa quando nao ha site; o teste
-    // que quiser ver o que foi gravado passa um dublê no lugar.
     fieldManager = new FieldManager (this, contextManager, defaultDimensions,
         datasetStore);
 
@@ -152,9 +107,6 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
         newDimensions);
   }
 
-  /*
-   * O conteudo da tela como texto, linha por linha. E o que os testes comparam.
-   */
   // ---------------------------------------------------------------------------------//
   public String getScreenText ()
   // ---------------------------------------------------------------------------------//
@@ -183,8 +135,6 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
     return insertedCursorPosition;
   }
 
-  // ---------------------------------------------------------------------------------//
-  // DisplayScreen - o modelo, implementado de verdade
   // ---------------------------------------------------------------------------------//
 
   @Override
@@ -232,24 +182,19 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
   }
 
   // ---------------------------------------------------------------------------------//
-  // CursorHost
-  // ---------------------------------------------------------------------------------//
 
   @Override
   public void drawPosition (int position, boolean hasCursor)
   {
-    // nada a desenhar: o buffer e o que importa
   }
 
-  // So para teste: o ScreenWatcherTest precisa alcancar o observador que o FieldManager
-  // constroi, para conferir o que ele extraiu das telas do ISPF.
+  // Acesso de teste ao ScreenWatcher do FieldManager.
   public ScreenWatcher getScreenWatcher ()
   {
     return fieldManager.getScreenWatcher ();
   }
 
-  // So para teste: a aplicacao liga o modo de insercao pela tecla Insert, que passa pela
-  // Screen. Aqui o CursorTest precisa alcancar o ramo de insercao do typeChar.
+  // Controle direto para testes exercitarem o modo de insercao do Cursor.
   public void setInsertMode (boolean value)
   {
     insertMode = value;
@@ -269,11 +214,6 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
   }
 
   // ---------------------------------------------------------------------------------//
-  // A porta SessionDisplay, que o ScreenTarget nao cobre
-  //
-  // E a unica coisa que o TelnetListener pede a tela como widget: o resumo do telnet,
-  // escrito quando o socket cai. Anotada em calls, como o resto do que nao mexe no buffer.
-  // ---------------------------------------------------------------------------------//
 
   @Override
   public void displayText (String text)
@@ -281,8 +221,6 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
     calls.add ("displayText:" + text);
   }
 
-  // ---------------------------------------------------------------------------------//
-  // Teclado
   // ---------------------------------------------------------------------------------//
 
   @Override
@@ -313,8 +251,6 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
     insertMode = false;
   }
 
-  // ---------------------------------------------------------------------------------//
-  // Campos - ver a nota no topo: FieldManager ainda exige a Screen concreta
   // ---------------------------------------------------------------------------------//
 
   @Override
@@ -355,8 +291,6 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
   }
 
   // ---------------------------------------------------------------------------------//
-  // Resposta ao host
-  // ---------------------------------------------------------------------------------//
 
   @Override
   public AIDCommand readBuffer ()
@@ -387,10 +321,6 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
     return replyTypes;
   }
 
-  /*
-   * A mesma politica da Screen, com as duas pontas anotadas em calls: gravar depende do
-   * HistoryManager e rodar plugins do class loader, os dois ainda presos a Screen.
-   */
   private final HostWriteCompletion hostWriteCompletion = new HostWriteCompletion (
       this::getFieldCount, this::isKeyboardLocked, this::checkRecording,
       this::processPluginAuto);
@@ -406,8 +336,6 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
     calls.add ("checkRecording");
   }
 
-  // ---------------------------------------------------------------------------------//
-  // Comandos TSO
   // ---------------------------------------------------------------------------------//
 
   @Override
@@ -429,8 +357,6 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
   }
 
   // ---------------------------------------------------------------------------------//
-  // Sinais do WriteControlCharacter
-  // ---------------------------------------------------------------------------------//
 
   @Override
   public void soundAlarm ()
@@ -450,8 +376,6 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
     calls.add ("resetPartition");
   }
 
-  // ---------------------------------------------------------------------------------//
-  // Ciclo de vida
   // ---------------------------------------------------------------------------------//
 
   @Override
@@ -479,17 +403,8 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
   }
 
   // ---------------------------------------------------------------------------------//
-  // Colaboradores
-  // ---------------------------------------------------------------------------------//
 
-  /*
-   * SystemMessage e real: o construtor so guarda o alvo, o ouvinte e a largura da tela, e
-   * WriteCommand.process termina sempre chamando checkSystemMessage - devolver null aqui
-   * fazia todo comando estourar NullPointerException.
-   *
-   * O ouvinte de jobs e um no-op que apenas registra, para que um teste possa verificar que
-   * a tela foi reconhecida como saida de JOB sem precisar do assistant inteiro.
-   */
+  // Nao pode ser null: WriteCommand.process sempre chama getSystemMessage().
   @Override
   public SystemMessage getSystemMessage ()
   {
@@ -504,7 +419,6 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
     return new ReadStructuredFieldCommand (telnetState.getSecondary ());
   }
 
-  // O TelnetState real do dublê, para quem quiser inspecionar a negociacao.
   public TelnetState getTelnetState ()
   {
     return telnetState;
@@ -513,13 +427,10 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
   @Override
   public TransferManager getTransferManager ()
   {
-    return null;              // exige um Site - ver a nota no topo
+    return null;              // exige um Site
   }
 
-  /*
-   * O que o "plugin" responde. Por omissao nada, como uma tela sem plugin ativo; um teste
-   * que precise de resposta poe aqui o comando que o plugin teria produzido.
-   */
+  // Resposta simulada para processPluginAuto; testes podem atribuir antes do comando.
   public AIDCommand pluginReply;
 
   private AIDCommand processPluginAuto ()
@@ -528,15 +439,6 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
     return pluginReply;
   }
 
-  /*
-   * Ouve os eventos de job em batch e apenas anota. O assistant de verdade abre janela;
-   * aqui interessa so poder verificar que a tela foi reconhecida.
-   */
-  // ---------------------------------------------------------------------------------//
-  /*
-   * A tela de PROFILE do TSO e um dialogo do JavaFX. Aqui so registramos que o protocolo
-   * pediu para mostra-la, e com quais textos.
-   */
   // ---------------------------------------------------------------------------------//
   private final class RecordingSystemMessageView implements SystemMessageView
   // ---------------------------------------------------------------------------------//
@@ -559,10 +461,7 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
     }
   }
 
-  /*
-   * As linhas que o SystemMessage recortou. Guardamos o intervalo pedido, nao as linhas:
-   * o array tempLines e reaproveitado entre chamadas, entao guardar a referencia mentiria.
-   */
+  // Grava apenas o intervalo [firstLine, lastLine], pois o array lines e reutilizado.
   // ---------------------------------------------------------------------------------//
   private final class RecordingConsoleLines implements ConsoleLines
   // ---------------------------------------------------------------------------------//
@@ -608,10 +507,6 @@ public final class HeadlessScreenTarget implements SessionDisplay, CursorHost, F
     }
   }
 
-  /*
-   * Descarta todo o desenho. As coordenadas e cores continuam sendo calculadas por
-   * ScreenPosition exatamente como em producao - so nao chegam a lugar nenhum.
-   */
   // ---------------------------------------------------------------------------------//
   private static final class DiscardingCanvas implements ScreenCanvas
   // ---------------------------------------------------------------------------------//

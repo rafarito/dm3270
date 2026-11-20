@@ -30,28 +30,7 @@ import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.testing.JavaFxToolkit;
 
-/*
- * O ESTADO DO TECLADO DA Screen: travado, modo de insercao e o aviso aos ouvintes.
- *
- * Ate aqui so os dubles (HeadlessScreenTarget, RecordingPluginHost) respondiam por isto, e
- * um duble responde o que o teste manda. Esta classe existe para o ciclo C4 poder tirar o
- * estado da Screen sem mudar nada do que ela faz com ele, e por isso vigia a Screen real,
- * construida como no ScreenMouseTest.
- *
- * O que se observa e publico: isKeyboardLocked (), isInsertMode (), getAID (), o cursor e
- * os eventos que um KeyboardStatusListener recebe. Nenhum campo, nenhuma reflexao.
- *
- * Tres coisas que nao sao obvias e que os casos abaixo prendem:
- *
- *   O MOMENTO DO AVISO. restoreKeyboard mostra o cursor ANTES de avisar; lockKeyboard
- *   avisa ANTES de esconder o cursor. Quem ouve ve a diferenca.
- *
- *   O QUE NAO AVISA. pause e resume mudam o travamento em silencio, e resetInsertMode com
- *   o modo desligado nao faz nada.
- *
- *   A ORDEM ENTRE OUVINTES nao e vigiada de proposito: a Screen os guarda num HashSet, e o
- *   que se pode prometer e que todos recebem o mesmo evento.
- */
+// Ordem de notificacao entre ouvintes nao e garantida (armazenados em HashSet).
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
 @DisplayName ("Screen - o estado do teclado e o aviso aos ouvintes")
@@ -325,18 +304,13 @@ class ScreenKeyboardTest
     onFx ( () -> screen.lockKeyboard ("ENTR"));
 
     JavaFxToolkit.onFxThread (screen::pause);
-    onFx (screen::restoreKeyboard);             // destrava durante a pausa
+    onFx (screen::restoreKeyboard);
     onFx (screen::resume);
 
     assertTrue (screen.isKeyboardLocked ());
   }
 
-  /*
-   * Poe uma tela no historico pelo caminho de verdade: um Erase Write com cinco campos
-   * protegidos, cada um com texto, processado pela Screen. O WCC destrava o teclado, e a
-   * HostWriteCompletion grava a tela porque ha campos e o teclado esta livre. O historico
-   * so aceita telas com mais de tres ordens de texto.
-   */
+  // Historico so grava telas com campo, teclado destravado e > 3 ordens de texto.
   // ---------------------------------------------------------------------------------//
   private static void recordOneScreen (Screen screen)
   // ---------------------------------------------------------------------------------//

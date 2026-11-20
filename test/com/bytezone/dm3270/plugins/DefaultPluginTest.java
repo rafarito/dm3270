@@ -10,28 +10,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-/*
- * Os sete utilitarios do DefaultPlugin, que nunca tiveram teste.
- *
- * Eles sao API de terceiro: protected e package-private numa classe que os JARs instalados
- * estendem - o javap confirma "extends com.bytezone.dm3270.plugins.DefaultPlugin" dentro do
- * DownloadDataset.jar. Esta classe nasceu como a rede que precedeu a delegacao, e continua
- * sendo o que diz se ela preserva o resultado: hoje os cinco filtros de campo moram no
- * PluginData e os daqui apenas delegam, com assinatura e modificador intactos.
- *
- * O teste mora no MESMO pacote, entao "protected static" e package-private sao chamaveis
- * direto - nao e preciso subclasse nenhuma, salvo para o unico metodo de instancia, o
- * getMD5.
- *
- * MEDIDO, e e o que justifica o bloco 2: destes sete, so getModifiableFields e chamado por
- * alguem - seis sitios em tres dos seis plugins -, e ele e identico, linha por linha, ao
- * PluginData.getModifiableFields () que o proprio parametro ja oferece. Os outros seis tem
- * zero referencias nos dois repositorios, e o toHex nem sequer e visivel de
- * com.bytezone.plugins, que e onde os plugins moram. A heranca custa o unico slot de
- * superclasse dos seis plugins para entregar um metodo que tres deles usam.
- */
-// A classe sob teste e deprecated de proposito - ela e a camada de compatibilidade com
-// os JARs ja compilados -, e vigia-la e exatamente o trabalho desta rede.
 @SuppressWarnings ("deprecation")
 // -----------------------------------------------------------------------------------//
 @DisplayName ("DefaultPlugin - os sete utilitarios entregues por heranca")
@@ -81,11 +59,7 @@ class DefaultPluginTest
       assertEquals (2, DefaultPlugin.countModifiableFields (data));
     }
 
-    /*
-     * A tela de apoio tem dois protegidos e dois nao, e com ela a contagem da 2 tanto no
-     * codigo certo quanto num que contasse os PROTEGIDOS - foi um mutante sobrevivente do PIT
-     * que mostrou isso. Este caso usa uma tela assimetrica, onde as duas contagens diferem.
-     */
+    // Usa tela assimetrica (3 vs 1) porque mixedScreen() tem 2 protegidos e 2 modificaveis.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("a contagem e dos modificaveis, e nao dos protegidos")
@@ -103,11 +77,6 @@ class DefaultPluginTest
       assertEquals (1, data.countModifiableFields ());
     }
 
-    /*
-     * getNumericFields e o complemento de getAlphanumericFields, e nao um filtro proprio: o
-     * criterio dos dois e o mesmo campo isAlpha, negado num deles. Vale registrar porque os
-     * nomes sugerem duas classificacoes independentes, e nao sao.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("alfanumericos e numericos particionam a tela pelo isAlpha")
@@ -137,16 +106,6 @@ class DefaultPluginTest
       assertEquals (0, DefaultPlugin.countModifiableFields (data));
     }
 
-    /*
-     * A REDE DA DELEGACAO. Desde o passo 9 os cinco filtros moram no PluginData e o
-     * DefaultPlugin apenas delega, mantendo assinatura e modificador porque sao API de
-     * terceiro. Estes cinco pares sao o que prova que a delegacao nao inverteu nem trocou
-     * nenhum dos filtros - o erro mais facil de cometer quando cinco lacos quase iguais viram
-     * cinco chamadas quase iguais.
-     *
-     * Eles so podem ser escritos porque o teste mora no mesmo pacote e alcanca os
-     * "protected static" direto.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("os cinco utilitarios herdados dao o mesmo que os do PluginData")
@@ -167,11 +126,6 @@ class DefaultPluginTest
                     DefaultPlugin.countModifiableFields (data));
     }
 
-    /*
-     * E as quatro consultas novas do PluginData tambem respondem direito numa tela vazia -
-     * elas entram no <targetClasses> do PIT junto com o resto da classe, e um mutante que
-     * trocasse o filtro por "true" sobreviveria sem este caso.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("as consultas do PluginData filtram pelos mesmos criterios")
@@ -194,10 +148,6 @@ class DefaultPluginTest
   class Digest
   // ---------------------------------------------------------------------------------//
   {
-    /*
-     * Valores conhecidos, e nao recalculados no proprio teste - do contrario a assercao seria
-     * tautologica. Sao os dois MD5 mais publicados que existem.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("getMD5 de valores conhecidos, em maiusculas")
@@ -211,11 +161,7 @@ class DefaultPluginTest
                     plugin.getMD5 ("abc".getBytes (StandardCharsets.US_ASCII)));
     }
 
-    /*
-     * toHex escreve DOIS digitos por byte, com A-F em MAIUSCULAS, e trata o byte como sem
-     * sinal. O 0x0F com zero a esquerda e o 0xFF sao as duas bordas que uma reimplementacao
-     * por Integer.toHexString erraria - aquela come o zero e escreve minusculas.
-     */
+    // 0x0F testa zero a esquerda e 0xFF testa byte sem sinal em maiusculas.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("toHex: dois digitos por byte, maiusculas, sem sinal")
@@ -245,15 +191,7 @@ class DefaultPluginTest
     }
   }
 
-  // ---------------------------------------------------------------------------------//
-  //  Apoio
-  // ---------------------------------------------------------------------------------//
-
-  /*
-   * Quatro campos que separam as tres classificacoes de forma independente: dois protegidos e
-   * dois nao, dois alfa e dois nao, e as duas divisoes cruzadas de proposito - do contrario
-   * um metodo devolvendo a lista do outro passaria despercebido.
-   */
+  // Matriz 2x2 (protected x alpha) para distinguir cada filtro sem sobreposicao.
   // ---------------------------------------------------------------------------------//
   private static PluginData mixedScreen ()
   // ---------------------------------------------------------------------------------//
@@ -286,10 +224,7 @@ class DefaultPluginTest
     return values;
   }
 
-  /*
-   * getMD5 e o unico dos sete que e metodo de INSTANCIA, e protected - entao precisa de uma
-   * subclasse, que e exatamente a forma que um plugin de verdade tem.
-   */
+  // Subclasse necessaria apenas para alcancar getMD5(), unico metodo protected de instancia.
   // ---------------------------------------------------------------------------------//
   private static final class TestPlugin extends DefaultPlugin
   // ---------------------------------------------------------------------------------//

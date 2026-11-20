@@ -18,31 +18,7 @@ import com.bytezone.dm3270.attributes.TerminalColor;
 import com.bytezone.dm3270.screen.ContextManager;
 import com.bytezone.dm3270.screen.ScreenContext;
 
-/*
- * Caracterizacao do pool de ScreenContext.
- *
- * Existe por causa de uma armadilha: ScreenContext.matches compara as cores por
- * IDENTIDADE (==), nao por equals. Isso so funciona hoje porque toda cor vem da paleta
- * de ColorAttribute, que e um array de constantes - e nesse array tres posicoes apontam
- * para o MESMO objeto TerminalColor.WHITE_SMOKE (Neutral1, Neutral2 e White).
- *
- * Consequencia pratica: pedir um contexto com colors[0] e depois com colors[15] devolve
- * o mesmo ScreenContext, e o pool cresce uma vez so.
- *
- * Estes testes nasceram ANTES da troca de javafx.scene.paint.Color por TerminalColor,
- * justamente para que a substituicao fosse verificavel: era preciso provar que o aliasing
- * sobreviveu. Um enum com 16 constantes distintas, que seria o refactor obvio, teria
- * quebrado a equivalencia sem quebrar nada visivelmente - o pool ganharia entradas a mais e
- * matches passaria a responder diferente. Continuam valendo como guarda contra qualquer
- * mexida futura na paleta.
- *
- * Nao ha toolkit JavaFX envolvido, e agora nem tipo do JavaFX: TerminalColor e neutro.
- *
- * O pool de ContextManager e um campo static, compartilhado entre todas as instancias e
- * que so cresce. Por isso os testes abaixo verificam sempre relacoes de identidade e
- * variacoes de tamanho, nunca o tamanho absoluto - assim continuam validos qualquer que
- * seja a ordem de execucao da suite.
- */
+// Pool de ContextManager e static e cumulativo; testes verificam identidade, nao tamanho.
 // -----------------------------------------------------------------------------------//
 @DisplayName ("ScreenContext - pool e identidade de cor")
 class ScreenContextPoolingTest
@@ -102,7 +78,7 @@ class ScreenContextPoolingTest
     @DisplayName ("recusa uma cor igual por valor mas de outra instancia")
     void rejectsEqualButDistinctInstance ()
     {
-      TerminalColor sameValue = TerminalColor.rgb (245, 245, 245);   // igual a WHITE_SMOKE
+      TerminalColor sameValue = TerminalColor.rgb (245, 245, 245);
 
       assertEquals (TerminalColor.WHITE_SMOKE, sameValue,
           "as duas cores sao iguais por valor");

@@ -22,21 +22,7 @@ import com.bytezone.dm3270.screen.ScreenPosition;
 import com.bytezone.dm3270.testing.JavaFxToolkit;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
-/*
- * A PRIMEIRA REDE DA ScreenSelection, e ela so existe porque a porta SelectionHost existe.
- *
- * Antes do passo 13 a selecao recebia a Screen concreta, e a unica forma de exercita-la era
- * construir uma Screen inteira - o que arrasta TransfersStage, ReporterNode e o diretorio
- * pessoal de quem roda a suite (ScreenConstructionTest). Contra um SelectionHost que grava, ela
- * roda SEM TOOLKIT, e cada caso afirma a lista completa de redesenhos, na ordem.
- *
- * 24x80 de proposito: o construtor de ScreenDimensions escreve BufferAddress.setScreenWidth,
- * estado estatico global. 80 e o valor que as outras classes restauram, entao esta nao suja
- * ninguem.
- *
- * So flashSelection precisa do toolkit, porque a PauseTransition pede o timer da plataforma na
- * construcao. Ele tem classe aninhada propria, e so a metade sincrona e afirmada.
- */
+// Usa 24x80 para nao alterar o estado estatico global de BufferAddress.setScreenWidth.
 // -----------------------------------------------------------------------------------//
 @DisplayName ("ScreenSelection - a selecao com o mouse, vista pela porta")
 class ScreenSelectionTest
@@ -241,11 +227,6 @@ class ScreenSelectionTest
     }
   }
 
-  /*
-   * Grava os redesenhos em vez de executa-los. As posicoes sao ScreenPosition de verdade - a
-   * classe e final -, sobre um canvas que nao faz nada: e o estado de "selecionada" delas que
-   * os casos afirmam.
-   */
   // ---------------------------------------------------------------------------------//
   private static final class RecordingHost implements SelectionHost
   // ---------------------------------------------------------------------------------//

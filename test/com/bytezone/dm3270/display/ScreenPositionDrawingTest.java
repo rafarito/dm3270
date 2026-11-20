@@ -17,33 +17,6 @@ import com.bytezone.dm3270.screen.ScreenContext;
 import com.bytezone.dm3270.screen.ScreenDimensions;
 import com.bytezone.dm3270.screen.ScreenPosition;
 
-/*
- * A sequencia de desenho de uma posicao de tela, congelada.
- *
- * ScreenPosition desenhava chamando javafx.scene.canvas.GraphicsContext direto e media a
- * fonte por um FontDetails, que instancia um no Text do JavaFX. Agora fala com ScreenCanvas
- * e le um FontMetrics - os dois neutros. Nada disso exige toolkit grafico, e por isso este
- * teste existe: antes nao havia como executar draw fora de uma aplicacao JavaFX.
- *
- * A extracao foi mecanica, mas "mecanica" nao e prova. Estes testes gravam a sequencia exata
- * de operacoes que draw produz, COM os argumentos, e passam a cobrar essa sequencia. Sao o
- * que impede que a decomposicao de Screen, mais adiante, mude o desenho sem que ninguem
- * perceba - nao existe teste de pixel neste projeto.
- *
- * As metricas sao fixas e inventadas (10 x 20, base em 16) justamente para que as
- * coordenadas sejam exatas e iguais em qualquer maquina. Com FontDetails de verdade elas
- * dependeriam das fontes instaladas.
- *
- * Detalhes que precisam sobreviver e por isso estao verificados aqui:
- *
- *   - a ordem: fundo (setFill + fillRect) antes do primeiro plano
- *   - o offset de 0,5 aplicado antes de qualquer stroke ("stroke commands need to be offset
- *     for Windows"), tanto no sublinhado quanto nos caracteres graficos
- *   - a inversao por XOR entre cursor, video reverso e selecao, que decide qual cor vai no
- *     fundo e qual no primeiro plano
- *   - uma posicao invisivel (campo de senha) pinta o fundo e nao desenha o caractere
- *   - a traducao EBCDIC do byte para o caractere exibido
- */
 // -----------------------------------------------------------------------------------//
 @DisplayName ("ScreenPosition - sequencia de desenho")
 class ScreenPositionDrawingTest
@@ -56,8 +29,8 @@ class ScreenPositionDrawingTest
   private static final byte UNDERSCORE = (byte) 0xF4;
   private static final byte REVERSE_VIDEO = (byte) 0xF2;
 
-  private static final TerminalColor GREEN = ColorAttribute.colors[4];     // 0x00ff00ff
-  private static final TerminalColor BLACK = ColorAttribute.colors[8];     // 0x000000ff
+  private static final TerminalColor GREEN = ColorAttribute.colors[4];
+  private static final TerminalColor BLACK = ColorAttribute.colors[8];
 
   private static final String GREEN_FILL = "setFill(0x00ff00ff)";
   private static final String BLACK_FILL = "setFill(0x000000ff)";
@@ -65,7 +38,7 @@ class ScreenPositionDrawingTest
 
   private static final byte EBCDIC_A = (byte) 0xC1;
 
-  // largura 10, altura 20, base em 16: valores fixos para coordenadas reprodutiveis
+  // Metricas fixas (w=10, h=20, ascent=16) para evitar variacao entre fontes do sistema.
   private static final FontMetrics METRICS = new FontMetrics ("Fonte de teste", 10, 20, 16);
 
   private final RecordingCanvas canvas = new RecordingCanvas ();
@@ -102,7 +75,7 @@ class ScreenPositionDrawingTest
     void ebcdicIsTranslated ()
     {
       ScreenPosition position = position (NO_HIGHLIGHT);
-      position.setChar ((byte) 0xF1);                 // '1' em EBCDIC
+      position.setChar ((byte) 0xF1);
       position.draw (NO_CURSOR);
 
       assertEquals ("fillText(1, 4.0, 20.0)", canvas.calls.get (3));
@@ -122,9 +95,7 @@ class ScreenPositionDrawingTest
     }
   }
 
-  /*
-   * Cursor, video reverso e selecao se combinam por XOR: cada um inverte, dois se anulam.
-   */
+  // Cursor, video reverso e selecao se combinam por XOR (dois se anulam).
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("inversao de cores")
@@ -212,10 +183,7 @@ class ScreenPositionDrawingTest
     }
   }
 
-  /*
-   * Os caracteres graficos (GraphicsEscape) desenham linhas em vez de texto. Todas as
-   * coordenadas partem de x e y ja deslocados em 0,5, com dx e dy sendo metade da celula.
-   */
+  // Coordenadas graficas partem de (x+0.5, y+0.5) com passo dx=w/2 e dy=h/2.
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("caracteres graficos")
@@ -281,10 +249,6 @@ class ScreenPositionDrawingTest
     }
   }
 
-  /*
-   * Dublê que so anota. Nao ha assercao nenhuma dentro dele: o valor esta em registrar a
-   * sequencia com fidelidade e deixar cada teste comparar.
-   */
   // ---------------------------------------------------------------------------------//
   private static final class RecordingCanvas implements ScreenCanvas
   // ---------------------------------------------------------------------------------//

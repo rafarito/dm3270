@@ -17,30 +17,6 @@ import com.bytezone.dm3270.display.HeadlessScreenTarget;
 import com.bytezone.dm3270.orders.BufferAddress;
 import com.bytezone.dm3270.screen.Cursor.Direction;
 
-/*
- * Caracterizacao do cursor.
- *
- * Cursor tem 364 linhas e era a maior classe do modelo de tela sem teste nenhum: o PIT
- * gerava 117 mutantes e matava zero, e por isso ela ficou de fora do targetClasses - incluir
- * uma classe assim afunda a metrica sem informar nada. O HeadlessProcessingTest a exercitava
- * de passagem, mas nao verificava comportamento de cursor algum.
- *
- * Estes testes CONGELAM o comportamento atual, incluindo o que surpreende:
- *
- *   - o movimento da a volta na tela. move (LEFT) na posicao 0 vai para a ultima posicao,
- *     porque Pen.validate soma o tamanho da tela em vez de saturar em zero.
- *   - contains () inclui a posicao do atributo do campo, que nao e posicao de dados.
- *   - moveTo () para onde o cursor ja esta nao avisa ninguem.
- *   - setVisible (true) avisa os ouvintes de movimento sem que o cursor tenha movido.
- *   - getCurrentField () NAO e um getter: quando o campo corrente e nulo, ele o resolve.
- *     E moveTo () so atualiza o campo corrente se ele JA nao for nulo. Junto, isso quer
- *     dizer que tab () nao faz nada numa tela recem-montada, ate que alguem chame
- *     getCurrentField () ou setVisible (true) uma vez. Ha um teste dedicado a isso.
- *
- * A onda 3 vai decompor a Screen e mexer no cursor. Se algum destes testes quebrar la, ou o
- * comportamento mudou - e ai reverter - ou o teste dependia de detalhe interno, e ai ajustar
- * dizendo por que na mensagem do commit.
- */
 // -----------------------------------------------------------------------------------//
 @DisplayName ("Cursor - comportamento congelado")
 class CursorTest
@@ -57,7 +33,7 @@ class CursorTest
 
   private static final int ROWS = 24;
   private static final int COLUMNS = 80;
-  private static final int SIZE = ROWS * COLUMNS;              // 1920
+  private static final int SIZE = ROWS * COLUMNS;
 
   private HeadlessScreenTarget screen;
   private Cursor cursor;
@@ -82,11 +58,7 @@ class CursorTest
     Command.getCommand (buffer, 0, buffer.length).process (screen);
   }
 
-  /*
-   * Endereco de buffer no formato de 12 bits: seis bits por byte, traduzidos pela tabela de
-   * 64 entradas do proprio BufferAddress. Nao e um OR - a tabela salta faixas para que os
-   * bytes resultantes nao colidam com o formato de 14 bits nem com codigos de order.
-   */
+  // Codifica endereco de 12 bits (6 bits/byte) via tabela 3270 para evitar colisao com orders.
   // ---------------------------------------------------------------------------------//
   private int[] sba (int position)
   // ---------------------------------------------------------------------------------//
@@ -95,10 +67,7 @@ class CursorTest
                             BufferAddress.address[position & 0x3F] & 0xFF };
   }
 
-  /*
-   * Dois campos desprotegidos: um com o atributo em 0, outro com o atributo em 80. Um campo
-   * 3270 vai de um atributo ao proximo, entao o primeiro cobre 0..79 e o segundo 80..1919.
-   */
+  // Campos desprotegidos contiguos: 0..79 (atributo em 0) e 80..1919 (atributo em 80).
   // ---------------------------------------------------------------------------------//
   private void twoUnprotectedFields ()
   // ---------------------------------------------------------------------------------//
@@ -289,19 +258,7 @@ class CursorTest
       assertTrue (field != null && field.contains (90), "campo = " + field);
     }
 
-    /*
-     * As tres proximas descrevem juntas uma armadilha real, e por isso ficam vizinhas.
-     *
-     * moveTo () so chama setCurrentField () se currentField JA for diferente de nulo, e numa
-     * tela recem-montada ele e nulo. Quem o resolve e getCurrentField (), que apesar do nome
-     * tem efeito colateral. Como tab () desiste de saida quando o campo corrente e nulo, o
-     * resultado e que navegar por campo nao funciona ate alguem ter lido o campo corrente.
-     *
-     * Na aplicacao isso nunca aparece porque ConsolePane liga setVisible (true) na
-     * construcao, o que tambem resolve o campo. Mas e estado escondido, e a decomposicao da
-     * onda 3 pode desfaze-lo sem que nada reclame - se estes tres testes quebrarem juntos,
-     * foi isso.
-     */
+    // Na aplicacao, setVisible(true) no ConsolePane resolve currentField antes de tab().
     @Test
     @DisplayName ("numa tela recem-montada, tab nao faz nada")
     void tabDoesNothingBeforeTheCurrentFieldIsResolved ()
@@ -335,7 +292,7 @@ class CursorTest
     {
       twoUnprotectedFields ();
       cursor.moveTo (81);
-      cursor.getCurrentField ();                 // resolve o campo corrente
+      cursor.getCurrentField ();
 
       cursor.tab (true);
 
@@ -358,14 +315,6 @@ class CursorTest
     }
   }
 
-  /*
-   * As operacoes de edicao. Sao o grosso das 364 linhas do Cursor e nao tinham teste nenhum.
-   *
-   * Todas comecam pela mesma guarda tripla - campo corrente nao nulo, desprotegido, e
-   * cursorOffset maior que zero - e todas terminam redesenhando o campo. O que muda entre
-   * elas e o que fazem com os bytes: escrever, empurrar para a direita, puxar para a
-   * esquerda, ou limpar ate o fim do campo.
-   */
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("edicao")
@@ -375,10 +324,6 @@ class CursorTest
     private static final byte D = (byte) 0xC4;                 // 'D' em EBCDIC
     private static final byte X = (byte) 0xE7;                 // 'X' em EBCDIC
 
-    /*
-     * Deixa a tela com dois campos e o cursor no quarto byte de dados do primeiro, ou seja
-     * logo depois do "ABC". Resolve o campo corrente, sem o que nada de edicao funciona.
-     */
     private Field ready (int position)
     {
       twoUnprotectedFields ();
@@ -533,8 +478,7 @@ class CursorTest
     {
       Field field = ready (1);
 
-      // O campo tem de ficar SEM espaco no fim: a guarda do modo de insercao so recusa
-      // quando o ultimo byte nao e nulo nem branco.
+      // Preenche ate o ultimo byte, pois insert mode so recusa se o fim nao for nulo/branco.
       StringBuilder filler = new StringBuilder ();
       for (int i = 0; i < field.getDisplayLength (); i++)
         filler.append ('Z');

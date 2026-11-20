@@ -9,18 +9,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 import javafx.application.Platform;
 
-/*
- * Liga o toolkit JavaFX uma vez por JVM.
- *
- * Boa parte do dm3270 - SiteForm, ScreenPosition, Pen, Screen - so pode ser instanciada
- * com o toolkit ativo. Sem esta extensao nao existe teste nenhum para essas classes, que sao
- * justamente as que a refatoracao precisa desmontar.
- *
- * Use com @ExtendWith (JavaFxToolkit.class).
- *
- * No CI headless o job precisa rodar sob xvfb-run; do contrario Platform.startup falha e a
- * mensagem abaixo explica o motivo em vez de estourar um erro de toolkit sem contexto.
- */
+// Extensao JUnit 5 que inicia o toolkit JavaFX uma vez por JVM (requer xvfb-run em headless).
 // -----------------------------------------------------------------------------------//
 public final class JavaFxToolkit implements BeforeAllCallback
 // -----------------------------------------------------------------------------------//
@@ -36,8 +25,7 @@ public final class JavaFxToolkit implements BeforeAllCallback
     start ();
   }
 
-  // Platform.startup lanca IllegalStateException se ja tiver sido chamado, e o toolkit nao
-  // pode ser desligado e religado dentro da mesma JVM - por isso o controle explicito.
+  // Inicia o toolkit uma unica vez na JVM (Platform.startup falha se ja estiver ativo).
   // ---------------------------------------------------------------------------------//
   public static void start ()
   // ---------------------------------------------------------------------------------//
@@ -62,32 +50,13 @@ public final class JavaFxToolkit implements BeforeAllCallback
 
       awaitOrFail (ready, "o toolkit JavaFX nao subiu");
 
-      // SEM ISTO, O PRIMEIRO TESTE QUE MOSTRAR E FECHAR UMA JANELA MATA TODOS OS SEGUINTES.
-      //
-      // O implicitExit do JavaFX e true por default: quando a ultima janela e fechada, o
-      // runtime se desliga sozinho - e o toolkit nao religa na mesma JVM (ver o comentario
-      // de start (), acima). O sintoma nao aponta para a causa: os testes seguintes falham
-      // em "o trecho na thread do JavaFX nao terminou em 30s", num @BeforeEach que nao tem
-      // nada de errado, porque o Platform.runLater deles fica numa fila que ninguem mais
-      // atende.
-      //
-      // E por isso que nenhum teste de Stage desta suite jamais chamou show (): o
-      // OptionStageTest e o PluginsStageDispatchTest tem zero chamadas, e a disciplina foi
-      // registrada como "alcance pelo grafo de cena" sem que a razao aparecesse. A razao e
-      // esta.
+      // Evita encerrar o toolkit ao fechar a ultima janela, pois nao reinicia na mesma JVM.
       Platform.setImplicitExit (false);
 
       started = true;
     }
   }
 
-  /*
-   * Executa um trecho na thread da aplicacao JavaFX e devolve o resultado.
-   *
-   * So e necessario para o que exige mesmo a thread da UI. Construir controles e ler ou
-   * escrever suas propriedades funciona fora dela - e e o que o proprio codigo de producao
-   * faz, por exemplo em SiteForm.getPort, chamado a partir do codigo de rede.
-   */
   // ---------------------------------------------------------------------------------//
   public static <T> T onFxThread (FxSupplier<T> supplier)
   // ---------------------------------------------------------------------------------//

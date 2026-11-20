@@ -11,26 +11,7 @@ import com.tngtech.archunit.library.freeze.FreezingArchRule;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
-
-/*
- * As regras de arquitetura da refatoracao, como teste.
- *
- * O diagnostico que motivou este trabalho apontou tres problemas estruturais: a camada de
- * protocolo depende da GUI, nao existe camada nenhuma (25 ciclos mutuos entre pacotes) e as
- * classes mais problematicas sao as que nao tem teste. As regras abaixo descrevem o destino.
- *
- * As regras de dependencia comecam CONGELADAS. O FreezingArchRule grava as violacoes atuais
- * em test/archunit-baseline e passa a cobrar apenas o que for novo: hoje nada quebra, mas
- * nenhuma violacao inedita entra sem quebrar a build. Conforme cada onda da refatoracao
- * elimina violacoes, o baseline encolhe sozinho - o arquivo versionado e o placar do
- * progresso, e o diff dele conta o que cada commit realmente destravou.
- *
- * Quando uma regra chegar a zero violacao, troque FreezingArchRule.freeze (regra) pela
- * propria regra: dali em diante ela passa a valer integralmente.
- *
- * A contagem de ciclos, no fim do arquivo, e a excecao: e um numero, nao um baseline
- * congelado, pelos motivos explicados la.
- */
+// Regras de arquitetura: violacoes legadas ficam congeladas em test/archunit-baseline.
 // -----------------------------------------------------------------------------------//
 @AnalyzeClasses (packages = "com.bytezone",
     importOptions = ImportOption.DoNotIncludeTests.class)
@@ -42,49 +23,25 @@ class LayeringTest
     ArchUnitStore.configure ();
   }
 
-  // Os pacotes que podem legitimamente conhecer JavaFX. Todo o resto e dominio, protocolo
-  // ou persistencia, e nao deveria ter a menor ideia de que existe uma interface grafica.
   private static final String[] UI_PACKAGES =
       { "com.bytezone.dm3270.application..", "com.bytezone.dm3270.assistant..",
         "com.bytezone.dm3270.console..", "com.bytezone.dm3270.display..",
         "com.bytezone.dm3270.plugins..", "com.bytezone.reporter.application.." };
 
-  // O modelo de tela: o buffer, os campos, o cursor, a paleta e as portas por onde o
-  // protocolo fala com a tela. Saiu de dentro de display, que ficou sendo so a view.
   private static final String[] SCREEN_MODEL = { "com.bytezone.dm3270.screen.." };
 
-  // O dominio dos datasets: o que a tela observa e o que o banco grava. Saiu de dentro de
-  // database na onda 3, e database passou a depender dele.
   private static final String[] DATASET_DOMAIN = { "com.bytezone.dm3270.datasets.." };
 
-  // A conversa gravada: os registros, quem esta nas duas pontas, e o leitor do arquivo de
-  // replay. Saiu do JavaFX no passo 5; a projecao para a tabela mora em application.
   private static final String[] SESSION = { "com.bytezone.dm3270.session.." };
 
-  // Os sockets e o telnet. Falam com a tela por ScreenTarget e SessionDisplay, e entregam o
-  // que e da thread grafica por um Executor recebido de fora.
   private static final String[] STREAMS = { "com.bytezone.dm3270.streams.." };
 
-  // A pilha que transforma bytes do socket em estrutura. E o que precisa rodar headless.
   private static final String[] PROTOCOL_PACKAGES =
       { "com.bytezone.dm3270.buffers..", "com.bytezone.dm3270.commands..",
         "com.bytezone.dm3270.orders..", "com.bytezone.dm3270.telnet..",
         "com.bytezone.dm3270.extended..", "com.bytezone.dm3270.structuredfields..",
         "com.bytezone.dm3270.replyfield..", "com.bytezone.dm3270.attributes.." };
 
-  /*
-   * A regra central do trabalho todo - e a primeira a valer integralmente.
-   *
-   * A causa raiz do acoplamento era Buffer.process (Screen): ela obrigava 25 implementacoes
-   * espalhadas pelo protocolo a importar JavaFX. Comecou em 58 violacoes; a onda de
-   * desacoplamento levou a 31, e tres commits fecharam a conta - o item de menu morto do
-   * SystemMessage, o dialogo de PROFILE que morava em commands e a criacao do ConsoleLog.
-   *
-   * NAO ESTA CONGELADA, de proposito. Chegou a zero, entao vale inteira: qualquer classe de
-   * buffers, commands, orders, telnet, extended, structuredfields, replyfield ou attributes
-   * que voltar a tocar em JavaFX quebra a build, sem baseline nenhum para absorver. E a
-   * garantia permanente de que a pilha que transforma bytes em estrutura roda headless.
-   */
   // ---------------------------------------------------------------------------------//
   @ArchTest
   static final ArchRule protocolDoesNotKnowJavaFx =                                     //
@@ -92,18 +49,6 @@ class LayeringTest
           .should ().dependOnClassesThat ().resideInAnyPackage ("javafx..")             //
           .because ("a pilha de protocolo tem de rodar headless");
 
-  /*
-   * A segunda regra a valer integralmente, e a que da nome ao trabalho.
-   *
-   * Comecou em 163 violacoes, todas apontando para nove tipos: ScreenTarget, DisplayScreen,
-   * ScreenContext, ContextManager, ScreenDimensions, Pen, Field, Cursor e ScreenOption.
-   * Nenhuma apontava para Screen, FieldManager ou ScreenWatcher. Ou seja: o protocolo nunca
-   * quis o widget - queria o modelo de tela, que por acidente historico morava no mesmo
-   * pacote que o widget.
-   *
-   * Separar os dois pacotes zerou a regra de uma vez. NAO ESTA CONGELADA: display e agora
-   * so a view JavaFX, e nenhuma classe de protocolo pode voltar a nomea-la.
-   */
   // ---------------------------------------------------------------------------------//
   @ArchTest
   static final ArchRule protocolDoesNotDependOnDisplay =                                //
@@ -112,12 +57,6 @@ class LayeringTest
           .resideInAnyPackage ("com.bytezone.dm3270.display..")                         //
           .because ("o protocolo fala com uma abstracao de tela, nao com o widget");
 
-  /*
-   * As duas regras que sustentam a separacao. Enquanto valerem, o modelo de tela roda
-   * headless e pode ser extraido para um modulo proprio no dia em que isso interessar.
-   *
-   * Nenhuma das duas e congelada, porque as duas nascem em zero.
-   */
   // ---------------------------------------------------------------------------------//
   @ArchTest
   static final ArchRule screenModelDoesNotKnowJavaFx =                                  //
@@ -133,34 +72,6 @@ class LayeringTest
           .resideInAnyPackage ("com.bytezone.dm3270.display..")                         //
           .because ("o modelo nao conhece o widget que o desenha");
 
-  /*
-   * A quarta regra a valer integralmente. Comecou em 46 violacoes, de duas causas bem
-   * diferentes, e as duas cairam.
-   *
-   * A primeira era encanamento: o FieldManager - cuja responsabilidade e agrupar posicoes de
-   * tela em campos - abria o arquivo do banco, subia uma thread e enfileirava um OPEN dentro
-   * do proprio construtor, e o ScreenWatcher montava requests e os empurrava na mesma fila.
-   * Isso acabou na fase 2: as duas recebem um DatasetStore pronto, e quem decide se existe
-   * banco e o Console, que e o composition root.
-   *
-   * A segunda era modelagem, e sobrou em 35: mencoes a Dataset e Member, os dois DTOs de
-   * acesso direto a campo. O DatabaseThread lia dataset.tracks, member.vv e mais duas dezenas
-   * de campos para montar o SQL. A leitura de entao era que move-los exigiria tornar 28
-   * campos publicos - trocar uma violacao de camada por uma pior de encapsulamento.
-   *
-   * Nao era o caso. O que os prendia ao pacote database nao era o dominio: era o
-   * DatabaseThread. Dar acessores de leitura aos dois tipos, mover o binding do
-   * PreparedStatement para DatasetMapper e MemberMapper e fechar TODOS os campos como private
-   * deixou a mudanca de pacote trivial - e o encapsulamento ficou melhor, nao pior. Dataset,
-   * Member, DatasetStore e StoreListener foram para com.bytezone.dm3270.datasets, e o pacote
-   * database passou a depender do dominio em vez do contrario.
-   *
-   * O ganho e real e nao de placar: display alcancava, em tempo de compilacao, um pacote com
-   * Thread, BlockingQueue e JDBC dentro. Hoje nomeia dois objetos de valor e duas interfaces.
-   *
-   * NAO ESTA CONGELADA. As duas regras seguintes protegem o dominio novo, para que ele nao
-   * vire um segundo lugar onde a persistencia mora.
-   */
   // ---------------------------------------------------------------------------------//
   @ArchTest
   static final ArchRule displayDoesNotDependOnDatabase =                                //
@@ -169,15 +80,6 @@ class LayeringTest
           .resideInAnyPackage ("com.bytezone.dm3270.database..")                        //
           .because ("a persistencia entra por uma porta injetada, nao construida aqui");
 
-  /*
-   * O dominio dos datasets e o que a tela observa e o que o banco grava, e nao pode conhecer
-   * nenhum dos dois. Se um dia alguem precisar de um DatabaseRequest la dentro, o certo e
-   * ampliar a porta DatasetStore - nao importar a fila.
-   *
-   * A regra nasce em zero e nunca foi congelada. java.sql.Date nao a viola: e tipo do JDK, e
-   * os quatro acessores que o devolvem existem porque createdSQL e created podem divergir, o
-   * que esta explicado em Dataset.
-   */
   // ---------------------------------------------------------------------------------//
   @ArchTest
   static final ArchRule datasetsDomainDoesNotKnowPersistence =                          //
@@ -193,26 +95,6 @@ class LayeringTest
           .should ().dependOnClassesThat ().resideInAnyPackage ("javafx..")             //
           .because ("o dominio dos datasets tem de rodar headless, como o modelo de tela");
 
-  /*
-   * As duas regras que o passo 5 acrescentou, e as duas nascem em zero.
-   *
-   * session tinha 44 violacoes, as terceira e setima maiores do baseline. SessionRecord
-   * guardava cinco Property que existiam so para o SessionTable ligar colunas por nome de
-   * string, e Session guardava um ObservableList, um Label e um Platform.runLater. Nada disso
-   * e conversa gravada: e linha de tabela. As Property foram para application.SessionRow, a
-   * lista observavel para application.SessionRows e o Label para as duas janelas que o
-   * mostravam, atras das portas SessionRecordListener e SessionHeaderListener.
-   *
-   * streams tinha 3, todas Platform.runLater: duas no TelnetListener e uma no MainframeServer.
-   * Viraram um java.util.concurrent.Executor recebido no construtor, e o composition root
-   * passa Platform::runLater. E o que permitiu escrever o primeiro teste do TelnetListener.
-   *
-   * POR QUE DUAS REGRAS PROPRIAS SE A CONGELADA JA COBRE OS DOIS PACOTES. Porque a congelada
-   * cobre por AUSENCIA no baseline, e um baseline pode ser refrozen. Uma regra nua nao pode:
-   * uma violacao nova em session ou em streams quebra a build sem que exista comando algum
-   * para absorve-la. E a mesma razao pela qual datasetsDomainDoesNotKnowJavaFx existe ao lado
-   * da congelada desde a onda 3.
-   */
   // ---------------------------------------------------------------------------------//
   @ArchTest
   static final ArchRule sessionDoesNotKnowJavaFx =                                      //
@@ -227,24 +109,6 @@ class LayeringTest
           .should ().dependOnClassesThat ().resideInAnyPackage ("javafx..")             //
           .because ("quem le bytes de um socket nao decide em que thread a tela desenha");
 
-  /*
-   * As duas regras que o passo 6 acrescenta, e as duas nascem em zero - pelo mesmo motivo das
-   * duas do passo 5. A congelada ja cobria os tres pacotes, mas cobre por AUSENCIA no
-   * baseline, e um baseline pode ser refrozen; uma regra nua nao pode ser absorvida por
-   * comando nenhum. E a regra 5 na direcao contraria: apertar a rede assim que o refactor a
-   * torna apertavel.
-   *
-   * A primeira tranca a direcao do composition root. streams nomeava application por um tipo
-   * vivo so - a interface Mainframe, que agora e declarada aqui, do lado que a consome - e por
-   * um import morto de Console em SpyServer. Enquanto valer, application monta o grafo de
-   * objetos e ninguem o nomeia de volta, sem excecao documentada nenhuma.
-   *
-   * A segunda protege os dois cortes de dentro do protocolo. NAO PODE SER PROTOCOL_PACKAGES
-   * INTEIRO, e isso e o ponto: telnet depende de TelnetState legitimamente - TelnetCommand e
-   * as duas subclasses de subcomando negociam contra ele -, e streams <-> telnet e um dos
-   * ciclos que ficam. O que a regra diz e mais estreito e verdadeiro: um bloco de bytes
-   * (buffers) e um comando 3270 (commands) nao tem por que saber que existe uma sessao telnet.
-   */
   // ---------------------------------------------------------------------------------//
   @ArchTest
   static final ArchRule streamsDoesNotDependOnApplication =                             //
@@ -253,6 +117,7 @@ class LayeringTest
           .resideInAnyPackage ("com.bytezone.dm3270.application..")                     //
           .because ("quem le bytes de um socket nao conhece o composition root");
 
+  // Exclui telnet porque TelnetCommand e subcomandos dependem legitimamente de TelnetState.
   // ---------------------------------------------------------------------------------//
   @ArchTest
   static final ArchRule buffersAndCommandsDoNotKnowStreams =                            //
@@ -262,20 +127,6 @@ class LayeringTest
           .should ().dependOnClassesThat ().resideInAnyPackage (STREAMS)                //
           .because ("o bloco de bytes e o comando 3270 nao conhecem a sessao telnet");
 
-  /*
-   * A terceira regra a valer integralmente.
-   *
-   * Comecou em 14 violacoes, de tres causas: os eventos de teclado, que foram para o pacote
-   * screen porque descrevem estado do modelo de tela; Console.Function, que virou
-   * runtime.TerminalFunction porque um modo de execucao e um dado e nao a composicao da
-   * aplicacao; e o ConsolePane, que a Screen guardava inteiro para chamar tres metodos.
-   *
-   * NAO ESTA CONGELADA. O pacote application e o composition root: ele monta o grafo de
-   * objetos e por isso conhece todo mundo. Ninguem conhece ele de volta, e desde o passo 6
-   * isso vale SEM EXCECAO: a ultima era streams, por Mainframe em MainframeServer e por um
-   * import morto de Console em SpyServer, e as duas cairam. A regra
-   * streamsDoesNotDependOnApplication, acima, e o que impede a excecao de voltar.
-   */
   // ---------------------------------------------------------------------------------//
   @ArchTest
   static final ArchRule displayDoesNotDependOnApplication =                              //
@@ -284,37 +135,7 @@ class LayeringTest
           .resideInAnyPackage ("com.bytezone.dm3270.application..")                     //
           .because ("a composicao da aplicacao pertence ao composition root");
 
-  /*
-   * A DECISAO do lancamento roda sem toolkit grafico.
-   *
-   * Nasceu em zero, no passo 12, junto com o LaunchCoordinator. Ate ali o lancamento era o
-   * Console.startSelectedFunction: um switch de 92 linhas dentro de uma classe que estende
-   * javafx.application.Application, misturando a decisao - qual funcao, o que falta preencher,
-   * que mensagem de erro dar - com a construcao de Screen, ConsolePane, SpyPane, Scene,
-   * WindowSaver, ReplayStage e MainframeStage. Nada disso podia ser observado num teste sem
-   * abrir arquivo SQLite, mostrar janela e abrir socket.
-   *
-   * POR QUE UMA REGRA PROPRIA, SE A CONGELADA JA COBRE JAVAFX. Porque a congelada NAO cobre:
-   * ela olha para fora de UI_PACKAGES, e application esta dentro. Uma classe nova em
-   * application e estruturalmente incapaz de violar a congelada, entao um import de javafx no
-   * coordenador passaria em silencio - e com ele iria embora a unica coisa que este passo
-   * comprou, que e os quatro caminhos felizes do lancamento serem observaveis sem janela.
-   *
-   * A regra e NUA, e nao congelada, pelo motivo do passo 5: um baseline pode ser refrozen por
-   * comando; uma regra nua nao pode ser absorvida por comando nenhum.
-   *
-   * A REGRA NOMEIA OS TRES TIPOS, e nao o pacote inteiro nem um prefixo, e isso foi medido e
-   * nao escolhido. A primeira versao dizia "toda classe de application cujo nome comeca com
-   * Launch", e ela FALHOU no primeiro mvn test: existe um application.Launcher, o ponto de
-   * entrada estavel do "java -jar", cujo unico trabalho e chamar Application.launch. Ele TEM
-   * de conhecer JavaFX. A regra achou um erro meu antes de achar um erro do codigo, o que e o
-   * comportamento desejado, mas o registro fica aqui para ninguem alargar o predicado de novo.
-   *
-   * A porta e o pedido entram junto com o coordenador de proposito. Se o LaunchTarget passasse
-   * a nomear Stage, Scene ou um painel, a decisao voltaria a depender do toolkit por tabela,
-   * mesmo que o coordenador continuasse limpo - e e justamente a ausencia de widget nas
-   * assinaturas da porta que sustenta o desenho.
-   */
+  // Nomeia as tres classes em vez de prefixo "Launch*" porque Launcher usa Application.launch.
   // ---------------------------------------------------------------------------------//
   @ArchTest
   static final ArchRule theLaunchDecisionDoesNotKnowJavaFx =                            //
@@ -332,227 +153,8 @@ class LayeringTest
           .should ().dependOnClassesThat ().resideInAnyPackage ("javafx..")             //
           .because ("JavaFX so pode vazar para os pacotes de interface"));
 
-  /*
-   * O placar dos ciclos.
-   *
-   * O diagnostico contou 25 ciclos mutuos entre pacotes - pares A -> B e B -> A - com
-   * display participando de 9. Esta e a metrica que a refatoracao promete derrubar.
-   *
-   * Aqui a verificacao e uma contagem, e nao um FreezingArchRule, de proposito: congelar
-   * beFreeOfCycles gerava um baseline de quase 7.000 linhas, porque a regra lista cada
-   * dependencia de cada ciclo. Um arquivo desse tamanho nao serve de placar - o diff nao e
-   * legivel e ninguem percebe o que mudou. Um numero unico e.
-   *
-   * Zero nao e a meta realista. commands e o modelo de tela se referenciam por natureza do
-   * 3270: um ReadCommand pede a tela que produza um AIDCommand, e AIDCommand e um comando
-   * de protocolo. A meta e eliminar os ciclos acidentais - display para database, plugins e
-   * application - e deixar documentados os poucos inerentes a camada de protocolo.
-   *
-   * Ao fim de cada onda, baixe MAX_MUTUAL_CYCLES para o valor alcancado. O teste tambem
-   * falha se a contagem ficar ABAIXO do limite, para forcar essa atualizacao: progresso que
-   * ninguem registra e progresso que se perde na proxima regressao.
-   *
-   * O ponto de partida medido foi 24, e nao os 25 do diagnostico. A diferenca e de
-   * metodo: o relatorio contou declaracoes de import, enquanto o ArchUnit le as
-   * dependencias reais do bytecode - o que inclui tipos de campo e de assinatura que nao
-   * aparecem como import, e exclui import declarado mas nao usado. As duas listas se
-   * sobrepoem quase todo; a do bytecode e a que vale como placar, porque e a que descreve o
-   * acoplamento que o compilador realmente impoe.
-   *
-   * QUEM RECONTAR POR grep VAI ACHAR 11, E NAO 9, e o placar nao esta mentindo. Os dois pares
-   * a mais existem no import e somem do bytecode, porque a unica coisa que o consumidor usa e
-   * uma constante de compilacao, que o javac embute no chamador - a classe de origem nao chega
-   * a aparecer no constant pool:
-   *
-   *   assistant -> commands              TSOCommand:120 le AIDCommand.AID_ENTER
-   *   replyfield -> structuredfields     QueryReplyField:78 e OEMAuxilliaryDevice:56 leem
-   *                                      StructuredField.QUERY_REPLY, os dois num assert
-   *
-   * As duas sao "public static final byte", e por isso invisiveis a qualquer analise de
-   * bytecode - inclusive a do ArchUnit. Sao acoplamento de fonte real, mas nao acoplamento
-   * que o compilador imponha, que e o que este placar mede.
-   *
-   * SOBRE O 24 DE AGORA, que subiu de 23: e o unico aumento desta refatoracao, e tem uma
-   * causa so, nomeada. Separar o modelo de tela da view criou um pacote novo, e tres ciclos
-   * que estavam escondidos DENTRO de display passaram a ser contados duas vezes - uma pela
-   * view, outra pelo modelo. Dois foram cortados antes do split, de proposito:
-   *
-   *   screen <-> plugins   Field.getPluginField foi para o FieldManager
-   *   screen <-> streams   getTelnetState () virou buildQueryReply ()
-   *
-   * O terceiro nao da para cortar aqui: ScreenTarget.getTransferManager () existe porque a
-   * Screen possui o gerenciador de transferencias, como possui tudo o mais, e
-   * FileTransferOutboundSF o guarda num campo e despacha sobre ele - nao ha o que estreitar.
-   * Sai na onda 3, quando o composition root passar a injetar o gerenciador em quem precisa.
-   * Esta marcado com TODO na propria ScreenTarget.
-   *
-   * O acoplamento nao cresceu: o conjunto de dependencias entre tipos e o mesmo de antes do
-   * split. Cresceu a contagem, porque ha um pacote a mais para conta-la.
-   *
-   * E ja voltou a 23: tirar Console.Function de dentro do pacote application desfez o ciclo
-   * application <-> session por inteiro, porque o enum era a unica coisa que session
-   * importava de la.
-   *
-   * Depois caiu a 20. O ConsolePane era o UNICO tipo do pacote application que assistant,
-   * display, filetransfer e plugins importavam - e cada um o guardava inteiro, 432 linhas de
-   * JavaFX, para usar dois ou tres metodos. Substitui-lo pelas portas AidSender e ConsoleView
-   * desfez tres ciclos de uma vez: application <-> assistant, application <-> display e
-   * application <-> plugins.
-   *
-   * Sobra application <-> streams, de MainframeServer e SpyServer, que usam Mainframe e
-   * Console. E o unico caminho de volta para o composition root que ainda existe.
-   *
-   * E caiu a 19. O ConsoleLogStage recebia uma Screen no construtor e nao fazia nada com
-   * ela - nem guardava. Era a UNICA aresta de console para display, entao apagar o parametro
-   * desfez o ciclo inteiro. E o corte mais barato que esta refatoracao encontrou, e so
-   * apareceu porque a medicao foi feita aresta por aresta em vez de por tamanho de classe.
-   *
-   * E caiu a 18. O PluginsStage guardava a Screen inteira e pedia a ela o FieldManager a
-   * cada chamada, so para converter os campos no formato da API de plugins. A porta
-   * plugins.PluginHost esta declarada no lado que consome - e isso que inverte a dependencia
-   * - e a traducao Field -> PluginField saiu do FieldManager para plugins.PluginFields, onde
-   * mora quem define o formato. plugins deixou de nomear display.
-   *
-   * E caiu a 17. O TelnetListener usa a tela de dois jeitos: como ScreenTarget, para entregar
-   * cada comando montado ao process (), e uma vez so como widget, em close (), para escrever
-   * o resumo da sessao quando o socket cai. Por causa dessa unica chamada o pacote streams
-   * inteiro nomeava display. streams.SessionDisplay estende ScreenTarget e acrescenta
-   * displayText (); a TerminalFunction, a outra coisa que o construtor pedia ao widget, passou
-   * a vir de quem constroi. SpyServer so repassava a tela e seguiu junto.
-   *
-   * E caiu a 16. O ScreenWatcher produzia assistant.TableDataset - o modelo de linha da
-   * TableView, feito de StringProperty - e os tres dialogos de transferencia liam duas datas
-   * dele. Era a causa UNICA de filetransfer nomear assistant, e portanto do ciclo
-   * assistant <-> filetransfer. Agora o ScreenWatcher produz datasets.DatasetSummary, o mesmo
-   * dado sem JavaFX, e a conversao para linha de tabela acontece em assistant.TableDatasets,
-   * na borda da interface.
-   *
-   * E caiu a 15. O ScreenWatcher, o ScreenChangeListener e o TSOCommandListener foram para o
-   * pacote com.bytezone.dm3270.watch. Eram a razao inteira de filetransfer nomear display -
-   * quatro classes importavam o observador para ler o dataset selecionado e o campo de comando
-   * TSO -, e display precisa nomear o observador de volta, porque o FieldManager e quem o
-   * constroi e quem dispara o screenChanged.
-   *
-   * Mover sozinho nao resolveria: o ScreenWatcher levaria o FieldManager junto e o ciclo
-   * reapareceria como watch <-> display. O que corta e a porta watch.ScreenFields, sete
-   * metodos declarados do lado que consome e implementados pelo FieldManager. Agora display
-   * nomeia watch numa direcao so.
-   *
-   * Este e o passo que a Regra 5 mandava adiar ate o acoplamento cair de verdade: mover o
-   * ScreenWatcher antes de a regra de banco chegar a zero teria feito displayDoesNotDependOnDatabase
-   * ler zero sem que uma aresta fosse cortada. A ordem foi a inversa, e por isso as duas
-   * medidas valem.
-   *
-   * E caiu a 14, que fecha a onda 3. Sobrava assistant <-> display por duas coisas so: as abas
-   * guardavam a classe Screen inteira para chamar isKeyboardLocked (), e o TransfersStage fazia
-   * screen.getFieldManager ().addScreenChangeListener (tsoCommand) - dois saltos para alcancar
-   * uma inscricao. Viraram screen.KeyboardState, um metodo, e watch.ScreenChangeSource, um
-   * metodo. O campo Screen do AbstractTransferTab, que era atribuido e nunca lido em quatro das
-   * cinco abas, saiu junto.
-   *
-   * E caiu a 13, no passo 4. reporter.file <-> reporter.reports era sustentado pelo
-   * ReportScore: os SEIS arquivos de reports que importavam reporter.file importavam so ele, e
-   * usavam dele quatro membros - getPages (), addPage () e os dois makers. Guardavam uma
-   * classe de 226 linhas, com uma Pagination e um TextArea dentro, para chamar quatro
-   * coisas. Como o ReportScore precisa de ReportMaker e de Page para existir, os dois
-   * pacotes se nomeavam nos dois sentidos.
-   *
-   * A porta reports.ReportContext esta declarada do lado que consome, com exatamente os quatro
-   * membros que a medicao encontrou, e o ReportScore a implementa. E o mesmo corte do
-   * ConsoleLogStage e do PluginsStage na onda 3, e a medicao que o achou foi a mesma: olhar o
-   * que o consumidor REALMENTE usa antes de mover qualquer coisa.
-   *
-   * E caiu a 12, no passo 5, e este documento dizia que nao daria. O §7.2 do relatorio
-   * classificava session <-> streams entre os que "dependem do composition root". Nao dependia.
-   * A medicao aresta por aresta mostrou que session nomeava streams por tres tipos so:
-   * TelnetSocket.Source, um enum de duas constantes aninhado dentro da classe que abre a
-   * conexao, e TelnetListener mais TelnetState, que a Session usava EXCLUSIVAMENTE dentro de
-   * init () para reconstruir uma sessao a partir de um arquivo.
-   *
-   * Nenhum dos tres e sobre o que uma sessao gravada e. O Source foi para runtime, ao lado do
-   * TerminalFunction, pelo mesmo motivo que o TerminalFunction foi: e um dado, e nao a
-   * composicao da aplicacao. O carregamento foi para streams.SessionLoader, do lado de quem
-   * tem o listener - reconstruir uma sessao EXIGE o TelnetListener, mas ser uma sessao nao. O
-   * campo TelnetState da Session existia so para chegar ate ali, e saiu junto.
-   *
-   * session -> streams chegou a zero, e streams -> session continua existindo numa direcao so:
-   * o TelnetListener produz SessionRecord e o SpyServer repassa a Session. E a quinta vez que
-   * a leitura do codigo contradisse o plano, e a segunda vez que contradisse para melhor.
-   *
-   * E caiu a 11, no passo 6, e de novo contra o que estava escrito aqui. O paragrafo acima
-   * classificava os quatro de streams como dependentes do composition root. A medicao aresta
-   * por aresta - a mesma dos dois greps da licao 1 - mostrou que streams -> application era
-   * sustentada por UM tipo vivo: a interface Mainframe, sete linhas e um metodo, que morava em
-   * application. O outro import, o de Console em SpyServer, estava morto havia ondas e nunca
-   * chegou a contar, porque esta contagem le bytecode e nao declaracao de import.
-   *
-   * Mainframe nao e composicao de aplicacao: e o que o MainframeServer chama quando um comando
-   * chega do cliente. Pela regra desta refatoracao a porta se declara no pacote que CONSOME,
-   * entao ela foi para streams e application.MainframeStage continua implementando. Mesmo
-   * corte de SessionDisplay na onda 3 e de ReportContext no passo 4, e nenhuma aresta nova:
-   * Mainframe nomeia commands.Command, e streams -> commands ja existia.
-   *
-   * E caiu a 10, no mesmo passo e pelo mesmo metodo. commands -> streams era um import, num
-   * arquivo, para um metodo: o construtor ReadStructuredFieldCommand (TelnetState) chamava
-   * buildReply, e buildReply lia getSecondary () e mais nada das 483 linhas do TelnetState -
-   * so para chegar num ScreenDimensions. Estreitar o parametro para o que ele de fato usa
-   * zerou a direcao. Quem constroi continua sendo Screen.buildQueryReply (), que tem o
-   * TelnetState em maos e agora passa telnetState.getSecondary (): a mesma leitura, no mesmo
-   * instante, feita por quem ja conhece os dois lados.
-   *
-   * E caiu a 9, fechando o passo 6. buffers -> streams era um import num arquivo de vinte
-   * linhas: AbstractTelnetCommand, que guarda um campo protected TelnetState e NAO O USA -
-   * quem le sao as subclasses, e as subclasses que existem sao duas, TelnetCommand e
-   * TelnetSubcommand, as duas em telnet. buffers e a abstracao mais baixa do sistema, um bloco
-   * de bytes vindo do socket, e o pacote inteiro so nomeava tres coisas de fora; que uma delas
-   * fosse o estado de uma sessao telnet era acidente historico, nao camada.
-   *
-   * A classe foi para junto de quem a estende, e continua estendendo
-   * buffers.AbstractReplyBuffer - telnet -> buffers ja existia e nao muda. Isto e movimento de
-   * classe, entao vale dizer por que nao e desonestidade de placar (regra 5): depois dele
-   * buffers nao conhece streams em
-   * ponto nenhum, e o pacote volta a ser so a abstracao de bloco de bytes. O acoplamento caiu;
-   * nao foi trocado de rotulo.
-   *
-   * OS 9 QUE SOBRAM sao de duas naturezas. Inerentes ao 3270, e nao se pretende mexer:
-   * commands <-> screen (um ReadCommand pede a tela que produza um AIDCommand, e AIDCommand e
-   * comando de protocolo), attributes <-> screen, attributes <-> orders, orders <-> screen,
-   * commands <-> structuredfields - sao CINCO, e nao se espera que caiam. Acidentais, TRES, e
-   * a descricao deles aqui estava errada em dois pontos ate o passo 10:
-   *
-   *   filetransfer <-> screen        depende de tirar getTransferManager () do ScreenTarget.
-   *                                  Do lado de screen sao DUAS linhas - o import e a
-   *                                  declaracao; do lado de filetransfer, tres tipos em dois
-   *                                  arquivos
-   *   commands <-> filetransfer      NAO depende do getTransferManager, ao contrario do que
-   *                                  este comentario e o TODO do ScreenTarget afirmavam. Sao
-   *                                  quatro construcoes que nao tocam a tela:
-   *                                  WriteStructuredFieldCommand:77,
-   *                                  ReadStructuredFieldCommand:107 e as tres
-   *                                  "new ReadStructuredFieldCommand" de FileTransferOutboundSF
-   *   streams <-> telnet             o unico mesmo estrutural, mas por TelnetState, e nao pelo
-   *                                  enum Function. TelnetListener implementa
-   *                                  TelnetCommandProcessor, e as cinco classes de telnet
-   *                                  recebem TelnetState no construtor e mutam 12 metodos
-   *                                  dele. O "~30 call sites" que este comentario dizia sobre
-   *                                  TN3270ExtendedSubcommand.Function sao TRES linhas de
-   *                                  src/, todas em TelnetState: o import, o tipo do campo
-   *                                  functions e o parametro de setFunctions
-   *
-   * E A TERCEIRA SAIDA PARA O getTransferManager () TAMBEM ESTA FECHADA, medido no passo 6. O
-   * relatorio ja registrava duas recusadas - interface-marcador com cast, e mudar
-   * Buffer.process para receber um contexto de sessao. A terceira seria o padrao desta
-   * refatoracao: declarar em screen uma porta estreita com o que o parser realmente usa. Nao
-   * serve. Os quatro metodos que FileTransferOutboundSF chama - openTransfer, getTransfer,
-   * process e closeTransfer - sao package-private, devolvem Optional<Transfer> e recebem
-   * FileTransferOutboundSF: a porta nomearia filetransfer de qualquer jeito.
-   *
-   * SOBRA UM DE reporter, e ele NAO e alvo: record <-> text. Vem de tres metodos de TextMaker
-   * que recebem Record - getText, test e countAlphanumericBytes - e que so desempacotam
-   * buffer, offset e length. Remove-los quebraria o ciclo, mas text continuaria acoplado ao
-   * layout de Record, por convencao espalhada em oito chamadores em vez de por tipo. Seria
-   * trocar desenho por placar, e a decisao de deixar como esta foi tomada com o usuario.
-   */
+  // Usa contagem para evitar baseline gigante do beFreeOfCycles; exige baixar se reduzir.
+  // Os 9 restantes: 5 inerentes ao 3270, 3 residuais (filetransfer/telnet) e record<->text.
   private static final int MAX_MUTUAL_CYCLES = 9;
 
   // ---------------------------------------------------------------------------------//

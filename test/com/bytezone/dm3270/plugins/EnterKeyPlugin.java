@@ -2,10 +2,7 @@ package com.bytezone.dm3270.plugins;
 
 import com.bytezone.dm3270.commands.AIDCommand;
 
-/*
- * Marca a tecla ENTER no PluginData, que e como um plugin diz ao host "mande isto para o
- * mainframe". E o que faz processReply sair do ramo que devolve null.
- */
+// Define AID_ENTER no PluginData para acionar o envio de resposta pelo host.
 // -----------------------------------------------------------------------------------//
 public class EnterKeyPlugin extends RecordingPlugin
 // -----------------------------------------------------------------------------------//

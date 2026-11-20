@@ -15,19 +15,6 @@ import com.bytezone.dm3270.commands.AIDCommand;
 import com.bytezone.dm3270.commands.Command;
 import com.bytezone.dm3270.commands.WriteCommand;
 
-/*
- * Comandos 3270 executados de verdade, sem interface grafica.
- *
- * Ate a onda de desacoplamento isto era impossivel. Buffer.process pedia a Screen concreta -
- * 1.010 linhas que estendem Canvas e constroem banco SQLite, tres janelas e um class loader
- * de plugins no construtor. Nao havia como executar um Write e verificar o que ele escreveu.
- * Era essa a razao pela qual display, application, assistant e console estavam fora do PIT:
- * nao "faltou escopo", eram intestaveis.
- *
- * Agora um HeadlessScreenTarget basta, e o buffer de tela dentro dele e o real - o mesmo Pen
- * e o mesmo vetor de ScreenPosition que a aplicacao usa. Os bytes abaixo sao fluxo 3270
- * legitimo, montado a mao, e o que se verifica e o texto que sobra na tela.
- */
 // -----------------------------------------------------------------------------------//
 @DisplayName ("Processamento headless de comandos 3270")
 class HeadlessProcessingTest
@@ -45,17 +32,11 @@ class HeadlessProcessingTest
   private static final byte SF = 0x1D;               // Start Field
   private static final byte IC = 0x13;               // Insert Cursor
 
-  // Byte de atributo do Start Field. O bit 0x20 e o de protecao.
   private static final int UNPROTECTED = 0x00;
   private static final int PROTECTED = 0x20;
 
-  /*
-   * Enderecos de buffer. No formato de 12 bits que os hosts usam, os dois bytes carregam
-   * seis bits cada: posicao = (b1 & 0x3F) << 6 | (b2 & 0x3F), e o bit alto de b1 tem de
-   * estar ligado para nao cair no formato de 14 bits. Os valores vem da tabela de
-   * BufferAddress.
-   */
-  private static final int AT_0_LOW = 0x40;          // posicao 0
+  // Enderecos 12-bit: 6 bits por byte com bit alto ligado em b1 para evitar modo 14-bit.
+  private static final int AT_0_LOW = 0x40;
   private static final int AT_0_HIGH = 0x40;
   private static final int AT_80_HIGH = 0xC1;        // posicao 80 = 1 * 64 + 16
   private static final int AT_80_LOW = 0x50;
@@ -72,10 +53,7 @@ class HeadlessProcessingTest
     return buffer;
   }
 
-  /*
-   * Texto em EBCDIC. 0xC1 e 'A', 0x81 e 'a', 0x40 e espaco - a tabela nao e contigua, entao
-   * os testes usam bytes explicitos em vez de aritmetica sobre caracteres.
-   */
+  // Bytes EBCDIC explicitos (0xC1='A', 0x81='a', 0x40=' ') porque a tabela nao e contigua.
   // ---------------------------------------------------------------------------------//
   private void process (int... data)
   // ---------------------------------------------------------------------------------//
@@ -102,7 +80,6 @@ class HeadlessProcessingTest
     @DisplayName ("um texto no inicio da tela aparece na primeira linha")
     void writesTextAtOrigin ()
     {
-      // Erase Write, WCC, SBA 0000, "HI"
       process (ERASE_WRITE, WCC_RESET_KEYBOARD, SBA, AT_0_HIGH, AT_0_LOW, 0xC8, 0xC9);
 
       assertTrue (line (0).startsWith ("HI"), "linha 0 = [" + line (0) + "]");
@@ -112,7 +89,6 @@ class HeadlessProcessingTest
     @DisplayName ("o endereco de buffer posiciona o texto na linha certa")
     void bufferAddressPositionsText ()
     {
-      // SBA para a posicao 80 (inicio da linha 1 numa tela de 80 colunas)
       process (ERASE_WRITE, WCC_RESET_KEYBOARD, SBA, AT_80_HIGH, AT_80_LOW, 0xC1, 0xC2);
 
       assertTrue (line (1).startsWith ("AB"), "linha 1 = [" + line (1) + "]");
@@ -155,7 +131,6 @@ class HeadlessProcessingTest
     @DisplayName ("Start Field ocupa uma posicao da tela")
     void startFieldOccupiesAPosition ()
     {
-      // SF com atributo protegido, seguido de texto
       process (ERASE_WRITE, WCC_RESET_KEYBOARD, SBA, AT_0_HIGH, AT_0_LOW, SF, 0xF0, 0xC1,
           0xC2);
 
@@ -235,14 +210,6 @@ class HeadlessProcessingTest
     }
   }
 
-  /*
-   * Os campos da tela, e os dois ramos de WriteCommand.process que dependem deles.
-   *
-   * Estes testes nao existiam porque nao podiam existir: getFieldCount deste dublê devolvia
-   * 0 fixo, ja que o FieldManager exigia a Screen concreta e subia uma thread SQLite no
-   * construtor. Com a porta FieldHost e o DatasetStore injetado, o FieldManager e real aqui -
-   * e os ramos guardados por `getFieldCount () > 0` passaram a ser percorridos.
-   */
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("os campos da tela")
@@ -335,17 +302,6 @@ class HeadlessProcessingTest
     }
   }
 
-  /*
-   * O que o WriteCommand dispara depois de escrever: gravar a tela, rodar os plugins
-   * automaticos, desenhar. O ciclo C2 tira as condicoes disto de dentro do comando; estes
-   * casos congelam o que tem de sobreviver a mudanca.
-   *
-   * Tres coisas sao observaveis. A ORDEM: grava-se a tela ja destravada pelo WCC, antes que o
-   * plugin a altere, e so depois se desenha. As CONDICOES: as duas exigem campo e teclado
-   * livre, e o plugin exige ainda que haja orders ou que o WCC nao zere os MDT. E a RESPOSTA:
-   * setReply so e chamado quando o ramo do plugin roda - o CommandPane reprocessa o mesmo
-   * comando no replay, e a resposta anterior fica quando o ramo nao roda.
-   */
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("depois de escrever")
@@ -355,7 +311,6 @@ class HeadlessProcessingTest
     private static final List<String> HOOKS =
         List.of ("restoreKeyboard", "checkRecording", "processPluginAuto", "draw");
 
-    // uma tela com um campo desprotegido, e as anotacoes zeradas
     // -------------------------------------------------------------------------------//
     private HeadlessScreenTarget screenWithAField ()
     // -------------------------------------------------------------------------------//
@@ -462,7 +417,7 @@ class HeadlessProcessingTest
       Command write = command (WRITE, WCC_RESET_KEYBOARD);
       write.process (first);
 
-      HeadlessScreenTarget empty = new HeadlessScreenTarget ();       // sem campo nenhum
+      HeadlessScreenTarget empty = new HeadlessScreenTarget ();
       write.process (empty);
 
       assertFalse (empty.calls.contains ("processPluginAuto"), "calls = " + empty.calls);
@@ -478,7 +433,7 @@ class HeadlessProcessingTest
       Command write = command (WRITE, WCC_RESET_KEYBOARD);
       write.process (first);
 
-      write.process (screenWithAField ());         // pluginReply nulo: nenhum plugin ativo
+      write.process (screenWithAField ());
 
       assertTrue (write.getReply ().isEmpty (), "resposta = " + write.getReply ());
     }

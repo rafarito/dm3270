@@ -27,29 +27,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 
-/*
- * O setModel do Console, e os DOIS defeitos que ele preserva de proposito.
- *
- * Sao o item 1 do BACKLOG-DEFEITOS.md, e ate este commit estavam DESCONGELADOS - o backlog
- * afirmava que "a caracterizacao de setModel" os cobria, e o passo 8 mediu que ela nunca
- * existiu: "grep -rn setModel test/" nao devolvia nada. Este e o primeiro teste a ve-los.
- *
- * NAO HA @ExtendWith (JavaFxToolkit.class), e isso e o ponto. O Console estende
- * javafx.application.Application, mas "new Console ()" nao toca o toolkit: os inicializadores
- * estaticos sao um Logger, um int e um SiteValue - classe que nao tem UM import -, e os de
- * instancia sao new ScreenDimensions (24, 80) e new TelnetState (), os dois sem JavaFX. O
- * CLAUDE.md dizia que "nada na suite instancia um Console"; agora instancia, e de graca.
- *
- * O QUE ELE NAO ALCANCA, e vale dizer: so o setModel. startSelectedFunction, setConsolePane,
- * setSpyPane e savePreferences dependem de optionStage, primaryStage e pluginsStage, que so
- * existem depois de start (Stage) - e start termina mostrando janela. O setModel e o unico
- * metodo do Console que e decisao em vez de fiacao, e por isso o unico que roda num Console
- * nu.
- *
- * COMO ELE OBSERVA: pelos tres acessores de pacote que a costura abriu, mais o log. O
- * doDeviceType () do TelnetState ja era publico (TelnetState:389) - metade do efeito sempre
- * esteve visivel, e ninguem olhava.
- */
+// Instancia Console sem toolkit JavaFX; setModel nao toca widgets nem Stages.
 // -----------------------------------------------------------------------------------//
 @DisplayName ("Console.setModel - o item 1 do backlog, congelado")
 class ConsoleModelTest
@@ -82,9 +60,7 @@ class ConsoleModelTest
     consoleLogger.detachAppender (warnings);
     warnings.stop ();
 
-    // E o construtor de ScreenDimensions chama BufferAddress.setScreenWidth (columns), que e
-    // estado estatico GLOBAL (relatorio, 5.22). O modelo 5 o deixa em 132, e o Surefire roda
-    // as classes numa JVM so, em ordem nao especificada.
+    // Restaura BufferAddress.screenWidth (estado estatico global que o modelo 5 deixa em 132).
     new ScreenDimensions (24, 80);
   }
 
@@ -128,12 +104,7 @@ class ConsoleModelTest
     }
   }
 
-  /*
-   * O DEFEITO, METADE UM: o modelo 5 e valido - 27x132 - e o switch original nao tinha break
-   * no case 5, entao ele configurava-se corretamente e SO ENTAO caia no default e reclamava
-   * de si mesmo. A ordem esta preservada de proposito, e o comentario de Console.java:187
-   * manda preserva-la: configura primeiro, reclama depois.
-   */
+  // Comportamento preservado do switch sem break no case 5: configura 27x132 e depois avisa.
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("o modelo 5 - valido, e mesmo assim reclamado")
@@ -156,10 +127,6 @@ class ConsoleModelTest
       assertEquals (List.of ("Invalid model number: 5"), warningMessages ());
     }
 
-    /*
-     * E o efeito global chega ate o BufferAddress, que e como o ScreenDimensionsTest ja
-     * observa esse estado estatico: a mesma posicao passa a ser descrita noutra linha/coluna.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("e o efeito colateral global do ScreenDimensions acontece de verdade")
@@ -185,11 +152,7 @@ class ConsoleModelTest
     }
   }
 
-  /*
-   * O DEFEITO, METADE DOIS: o ramo invalido nao atribui alternateScreenDimensions, que e
-   * campo de INSTANCIA reaproveitado entre lancamentos na mesma JVM. Um modelo invalido herda
-   * a dimensao do lancamento anterior.
-   */
+  // Comportamento preservado: modelo invalido nao sobrescreve alternateScreenDimensions.
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("os modelos invalidos")
@@ -212,11 +175,7 @@ class ConsoleModelTest
       assertEquals (List.of ("Invalid model number: " + model), warningMessages ());
     }
 
-    /*
-     * setDoDeviceType lanca IllegalArgumentException fora de 0..5 (TelnetState:431). Ela
-     * nunca escapa do setModel porque a chamada esta atras do isPresent () - e o 6 e o 99
-     * acima sao a prova, ja que o teste nao declara throws e passaria a falhar se ela subisse.
-     */
+    // TelnetState.setDoDeviceType rejeitaria 99, mas o switch nao o chama para modelo invalido.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("o modelo invalido nunca chega ao setDoDeviceType")
@@ -229,11 +188,6 @@ class ConsoleModelTest
           "continua o valor que o construtor do TelnetState poe em TelnetState:71");
     }
 
-    /*
-     * ESTE E O CASO QUE PROVA A HERANCA, e ele TEM de ser um metodo so: duas chamadas no
-     * MESMO Console. Dividido em dois @Test, cada um receberia um Console novo e a heranca
-     * desapareceria - e ela e justamente o defeito.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("HERANCA: depois de um modelo valido, o invalido fica com a dimensao dele")

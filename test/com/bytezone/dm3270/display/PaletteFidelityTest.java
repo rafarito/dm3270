@@ -17,33 +17,12 @@ import com.bytezone.dm3270.attributes.TerminalColor;
 
 import javafx.scene.paint.Color;
 
-/*
- * A prova de que tirar o JavaFX da paleta nao mudou um pixel.
- *
- * ColorAttribute deixou de usar javafx.scene.paint.Color e passou a usar TerminalColor, um
- * tipo neutro. A conversao para o tipo do JavaFX acontece em FxPalette, no momento de
- * desenhar. Para que o desenho continue identico, duas coisas precisam valer:
- *
- * 1. Cada TerminalColor da paleta tem exatamente os mesmos componentes da constante JavaFX
- *    que substituiu. E o que a maior parte deste teste verifica, cor por cor.
- *
- * 2. FxPalette.toFx devolve uma cor igual - nao necessariamente a MESMA instancia - da
- *    constante original. Para o GraphicsContext isso basta: ele le os componentes. A
- *    identidade so importava dentro do modelo, e la quem responde e TerminalColor.
- *
- * Color.rgb (r, g, b, opacity) constroi a cor como r / 255.0, a mesma expressao que o
- * JavaFX usa nas suas constantes nomeadas - por isso a igualdade e exata, e nao aproximada.
- */
+// Color.rgb usa r/255.0 como as constantes do JavaFX, por isso a igualdade e exata.
 // -----------------------------------------------------------------------------------//
 @DisplayName ("Paleta - fidelidade entre TerminalColor e as cores do JavaFX")
 class PaletteFidelityTest
 // -----------------------------------------------------------------------------------//
 {
-  /*
-   * O par a par entre a paleta neutra e as constantes JavaFX que estavam em ColorAttribute
-   * antes da troca. Esta lista e o contrato: se alguem mexer numa cor de um lado sem mexer
-   * do outro, o teste acusa.
-   */
   // ---------------------------------------------------------------------------------//
   private static Stream<Arguments> palette ()
   // ---------------------------------------------------------------------------------//
@@ -89,7 +68,6 @@ class PaletteFidelityTest
     {
       Color converted = FxPalette.toFx (neutral);
 
-      // igualdade de valor, nao de instancia: e o que o GraphicsContext le
       assertEquals (fx, converted, name + " - a cor convertida diverge da original");
       assertEquals (fx.getRed (), converted.getRed (), name + " - vermelho");
       assertEquals (fx.getGreen (), converted.getGreen (), name + " - verde");
@@ -102,8 +80,7 @@ class PaletteFidelityTest
     @MethodSource ("com.bytezone.dm3270.display.PaletteFidelityTest#palette")
     void textMatches (String name, TerminalColor neutral, Color fx)
     {
-      // ColorAttribute.getName cai neste toString para cores fora da paleta, e
-      // ScreenContext.toString imprime o resultado no log
+      // ColorAttribute.getName e ScreenContext.toString dependem deste formato.
       assertEquals (fx.toString (), neutral.toString (), name);
     }
   }
@@ -150,8 +127,7 @@ class PaletteFidelityTest
     @DisplayName ("converter a mesma cor duas vezes devolve a mesma instancia")
     void conversionIsCached ()
     {
-      // ScreenPosition.draw converte tres vezes por posicao, para as 1.920 posicoes da
-      // tela, a cada redesenho: sem cache seriam milhares de objetos descartaveis
+      // Evita milhar de alocacoes por redesenho (3 conversoes x 1920 posicoes).
       assertSame (FxPalette.toFx (TerminalColor.LIME), FxPalette.toFx (TerminalColor.LIME));
     }
 
@@ -159,7 +135,6 @@ class PaletteFidelityTest
     @DisplayName ("cores iguais por valor compartilham a conversao")
     void equalColoursShareTheConversion ()
     {
-      // o cache e por valor, nao por identidade: TerminalColor e um record
       assertSame (FxPalette.toFx (TerminalColor.WHITE_SMOKE),
           FxPalette.toFx (TerminalColor.rgb (245, 245, 245)));
     }

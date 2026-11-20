@@ -25,38 +25,6 @@ import com.bytezone.dm3270.testing.JavaFxToolkit;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
-/*
- * A rede do ConsoleKeyPress, que ate este commit tinha ZERO testes - 213 linhas de despacho,
- * seis guardas sequenciais e quatro switch, no caminho por onde passa cada tecla que o usuario
- * aperta num terminal 3270.
- *
- * COMO ELE ALCANCA A CLASSE, e por que assim. O precedente e o OptionStageTest: um teste de
- * janela que le os campos da classe vira refem do refactor que deveria vigiar. Aqui o
- * equivalente e nao tocar em nada de dentro do ConsoleKeyPress - nem no handle, nem nos campos,
- * nem nas tabelas que ele vai ganhar no proximo commit. Ele monta um KeyEvent, chama handle e
- * afirma DUAS coisas: o que os colaboradores receberam, na ordem, e se o evento foi consumido.
- * Os dois lados sao comportamento observavel; as tabelas de despacho sao detalhe.
- *
- * O LOG COMPARTILHADO. Os tres dubles escrevem na MESMA lista, e por isso cada caso afirma
- * tambem a ORDEM entre colaboradores diferentes - que a selecao e limpa ANTES de o AID ser
- * mandado, por exemplo. Uma lista por duble perderia exatamente isso.
- *
- * POR QUE PRECISA DO TOOLKIT. O CLAUDE.md dizia que um KeyEvent se monta a mao sem toolkit.
- * Montar, sim. Mas isShortcutDown () chama com.sun.javafx.tk.Toolkit.getToolkit () - conferido
- * com javap no javafx-graphics-21.0.7 - e ela e a PRIMEIRA guarda do handle. Todo caso deste
- * arquivo passa por ela, entao a extensao nao e opcional.
- *
- * A PLATAFORMA E CARGA UTIL. isShortcutDown () e controlDown no Windows e no Linux, e metaDown
- * no macOS, e por isso a tecla de atalho COLIDE com um dos dois blocos de modificador, conforme
- * a plataforma. Ate a correcao do item 17 do BACKLOG-DEFEITOS.md a colisao matava o bloco
- * inteiro - o Meta no macOS, inclusive as teclas PA1 a PA3, e o Ctrl+H no Windows e no Linux -,
- * e este arquivo nasceu congelando isso, com as asserticoes ramificando por SHORTCUT_IS_META.
- *
- * Depois da correcao os dois blocos valem nas duas plataformas, e as asserticoes voltaram a ser
- * unicas. O SHORTCUT_IS_META continua, medido do proprio toolkit, porque os casos de copiar e
- * colar precisam apertar a tecla certa - e porque e ele que permite a este arquivo afirmar, nas
- * duas plataformas, que o atalho nao engole mais a cadeia.
- */
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
 @DisplayName ("ConsoleKeyPress - o despacho de tecla do terminal")
@@ -81,10 +49,6 @@ class ConsoleKeyPressTest
     screen = new RecordingScreen (log);
     keyPress = new ConsoleKeyPress (console, screen);
   }
-
-  // ---------------------------------------------------------------------------------//
-  //  Os eventos
-  // ---------------------------------------------------------------------------------//
 
   // ---------------------------------------------------------------------------------//
   private static KeyEvent press (KeyCode code, boolean shift, boolean control, boolean alt,
@@ -122,10 +86,7 @@ class ConsoleKeyPressTest
     return press (code, false, true, false, false);
   }
 
-  /*
-   * A tecla de atalho da plataforma: Cmd no macOS, Ctrl no resto. E o que o usuario aperta para
-   * copiar e colar, e e por isso que ela colide com um dos dois blocos de modificador.
-   */
+  // Cmd no macOS, Ctrl nas demais plataformas; colide com Meta ou Control na cadeia.
   // ---------------------------------------------------------------------------------//
   private static KeyEvent withShortcut (KeyCode code)
   // ---------------------------------------------------------------------------------//
@@ -133,8 +94,8 @@ class ConsoleKeyPressTest
     return SHORTCUT_IS_META ? withMeta (code) : withControl (code);
   }
 
-  // isShortcutDown () chama Toolkit.getToolkit (), entao o toolkit tem de estar de pe antes -
-  // este metodo roda no inicializador estatico, ANTES do beforeAll da extensao.
+  // isShortcutDown() exige Toolkit inicializado; como roda no inicializador estatico,
+  // inicia o toolkit antes do @BeforeAll da extensao.
   // ---------------------------------------------------------------------------------//
   private static boolean shortcutIsMeta ()
   // ---------------------------------------------------------------------------------//
@@ -142,10 +103,6 @@ class ConsoleKeyPressTest
     JavaFxToolkit.start ();
     return withMeta (KeyCode.A).isShortcutDown ();
   }
-
-  // ---------------------------------------------------------------------------------//
-  //  As asserticoes
-  // ---------------------------------------------------------------------------------//
 
   // ---------------------------------------------------------------------------------//
   private void assertConsumed (KeyEvent event, String... calls)
@@ -156,10 +113,6 @@ class ConsoleKeyPressTest
     assertTrue (event.isConsumed (), "este caminho consome o evento");
   }
 
-  /*
-   * Nem todo caminho tratado consome, e isso e comportamento observavel: o evento segue para
-   * quem estiver ouvindo depois. Afirmar so a acao deixaria passar um consume () esquecido.
-   */
   // ---------------------------------------------------------------------------------//
   private void assertNotConsumed (KeyEvent event, String... calls)
   // ---------------------------------------------------------------------------------//
@@ -169,13 +122,6 @@ class ConsoleKeyPressTest
     assertFalse (event.isConsumed (), "este caminho NAO consome - ver o mapa do handle");
   }
 
-  /*
-   * Os dois helpers abaixo RAMIFICAVAM por plataforma ate a correcao do item 17: num Windows o
-   * assertControlBinding afirmava que o Ctrl+H nao chegava ao cursor, e num macOS era o bloco
-   * Meta inteiro que nao chegava. Hoje os dois blocos valem nas duas plataformas, e a
-   * asserticao e unica - e e por isso que eles continuam existindo como helper: se alguem
-   * reintroduzir o return na guarda de atalho, quebram os dez casos de uma vez.
-   */
   // ---------------------------------------------------------------------------------//
   private void assertMetaBinding (KeyCode code, String expected)
   // ---------------------------------------------------------------------------------//
@@ -208,10 +154,7 @@ class ConsoleKeyPressTest
       assertNotConsumed (released);
     }
 
-    /*
-     * A guarda da linha 67 e !isModifierKey (): apertar Ctrl sozinho NAO limpa a selecao. Se
-     * limpasse, segurar Ctrl para clicar apagaria a selecao que o usuario acabou de fazer.
-     */
+    // Modificador isolado nao limpa a selecao para nao desfazer Ctrl+clique.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("um modificador sozinho nao limpa a selecao nem consome")
@@ -247,7 +190,7 @@ class ConsoleKeyPressTest
       assertConsumed (withShortcut (KeyCode.C), "copySelection");
     }
 
-    // limpa ANTES de colar: o texto colado nao pode herdar o realce da selecao anterior
+    // Limpa antes de colar para o texto colado nao herdar o realce da selecao.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("atalho+V limpa a selecao e so entao cola")
@@ -267,13 +210,7 @@ class ConsoleKeyPressTest
       assertNotConsumed (withShortcut (modifier));
     }
 
-    /*
-     * Correcao 2 do mapa do handle: este caminho muda estado e NAO consome. Um despacho por
-     * tabela que consumisse tudo o quebraria, e o atalho deixaria de chegar a quem ouve depois.
-     *
-     * Note que ele passou INALTERADO pela correcao do item 17: o X nao tem binding em bloco
-     * nenhum, entao cair na cadeia ou ser engolido pela guarda da no mesmo.
-     */
+    // Limpa a selecao sem consumir para o atalho propagar aos listeners seguintes.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("qualquer outro atalho limpa a selecao e NAO consome")
@@ -283,12 +220,6 @@ class ConsoleKeyPressTest
       assertNotConsumed (withShortcut (KeyCode.X), "clearSelection");
     }
 
-    /*
-     * A CORRECAO DO ITEM 17, afirmada nas duas plataformas de uma vez. A tecla de atalho e a
-     * mesma que um dos dois blocos de modificador usa - Ctrl no Windows e no Linux, Cmd no
-     * macOS -, e o H tem binding nos dois. Antes da correcao a guarda de atalho retornava aqui
-     * e o home nunca acontecia; hoje a cadeia segue e ele acontece, seja qual for a plataforma.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("um atalho com binding no bloco de modificador segue a cadeia")
@@ -298,11 +229,6 @@ class ConsoleKeyPressTest
       assertConsumed (withShortcut (KeyCode.H), "clearSelection", "home");
     }
 
-    /*
-     * Efeito colateral da correcao, dito em vez de escondido: com a cadeia voltando a rodar, a
-     * guarda do teclado travado - que sempre foi a primeira depois do atalho - passa a ver o
-     * atalho+seta. E coerente com a intencao, e nao com a implementacao anterior.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("atalho+seta navega o historico quando o teclado esta travado")
@@ -313,9 +239,7 @@ class ConsoleKeyPressTest
       assertConsumed (withShortcut (KeyCode.LEFT), "clearSelection", "back");
     }
 
-    // segundo efeito colateral: o shift+ENTER passa a ser alcancavel com a tecla de atalho
-    // presa. No macOS quem atende e o bloco Meta, no resto e a guarda do shift+ENTER, e as
-    // duas fazem newLine - o resultado e o mesmo nas duas plataformas.
+    // No macOS passa pelo bloco Meta; nas demais plataformas, pela guarda de shift+ENTER.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("atalho+shift+ENTER insere uma linha")
@@ -361,11 +285,6 @@ class ConsoleKeyPressTest
       assertConsumed (plain (KeyCode.RIGHT), "clearSelection", "forward");
     }
 
-    /*
-     * A guarda do teclado travado retorna SEMPRE, e engole todo o resto sem consumir. E isto
-     * que uma tabela unica de KeyCombination nao consegue exprimir: "neste modo, nada mais
-     * vale".
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("todo o resto e engolido, sem consumir")
@@ -463,7 +382,6 @@ class ConsoleKeyPressTest
       assertMetaBinding (KeyCode.F3, "sendAID PA3 " + AIDCommand.AID_PA3);
     }
 
-    // o default do switch de Meta retorna sem consumir
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("meta+tecla sem binding nao faz nada e nao consome")
@@ -514,15 +432,8 @@ class ConsoleKeyPressTest
       assertConsumed (plain (KeyCode.valueOf (key)), "clearSelection", "move " + direction);
     }
 
-    /*
-     * Item 16 do BACKLOG-DEFEITOS.md. KeyCode.isArrowKey () e (mask & 4) != 0, e KP_LEFT tem o
-     * bit ligado tanto quanto LEFT - medido com javap no javafx-graphics-21.0.7. Entao a seta
-     * do teclado numerico PASSA pela guarda, ERRA os quatro case e cai no default, que loga
-     * "Impossible arrow key" e nao consome. O cursor nao se move.
-     *
-     * O aviso no log e o terceiro efeito disto, e nao esta afirmado aqui - o que esta afirmado
-     * sao os dois que o usuario ve: o cursor parado e o evento seguindo adiante.
-     */
+    // KP_* satisfazem KeyCode.isArrowKey(), passam pela guarda e caem no default do switch,
+    // logando "Impossible arrow key" sem mover o cursor nem consumir o evento.
     // -------------------------------------------------------------------------------//
     @ParameterizedTest (name = "{0} do teclado numerico nao move o cursor e nao consome")
     @CsvSource ({ "KP_LEFT", "KP_RIGHT", "KP_UP", "KP_DOWN" })
@@ -567,7 +478,6 @@ class ConsoleKeyPressTest
       assertConsumed (plain (KeyCode.TAB), "clearSelection", "tab false");
     }
 
-    // o shift nao e um binding separado: entra como ARGUMENTO do tab
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("shift+TAB volta de campo")
@@ -577,11 +487,6 @@ class ConsoleKeyPressTest
       assertConsumed (withShift (KeyCode.TAB), "clearSelection", "tab true");
     }
 
-    /*
-     * Correcao 1 do mapa do handle. BACK_SPACE, DELETE e END sao TRES metodos diferentes, e so
-     * COM Meta e que os dois primeiros viram eraseEOL. Uma tabela que unificasse os tres pelo
-     * nome da tecla trocaria "apagar um caractere" por "apagar ate o fim da linha".
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("BACK_SPACE apaga UM caractere, nao a linha")
@@ -627,8 +532,6 @@ class ConsoleKeyPressTest
       assertConsumed (plain (KeyCode.HOME), "clearSelection", "home");
     }
 
-    // consome e nao chama colaborador nenhum: so o logger.debug ("escape"), com o comentario
-    // "// CLR key?" que registra uma duvida antiga
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("ESCAPE consome e nao faz mais nada")
@@ -665,7 +568,7 @@ class ConsoleKeyPressTest
           "sendAID " + name + " " + AIDCommand.getKey (name));
     }
 
-    // o shift soma 12 ao numero, e e assim que PF13 a PF24 existem num teclado de 12 teclas
+    // Shift soma 12 para mapear F1..F12 em PF13..PF24.
     // -------------------------------------------------------------------------------//
     @ParameterizedTest (name = "shift+{0} e a tecla {1}")
     @CsvSource ({ "F1,PF13", "F2,PF14", "F3,PF15", "F4,PF16", "F5,PF17", "F6,PF18",
@@ -678,15 +581,7 @@ class ConsoleKeyPressTest
     }
   }
 
-  /*
-   * Quatro acoes sao alcancaveis por mais de uma combinacao, e e isto que um despacho por
-   * tabela precisa preservar sem fundir. Cada caso abaixo dispara TODAS as combinacoes e conta
-   * quantas vezes a acao saiu - se alguem fundir dois bindings num so, a conta muda.
-   *
-   * Desde a correcao do item 17 as contas batem com os bindings escritos no arquivo. Antes
-   * dela uma das combinacoes de modificador estava morta em cada plataforma, e estes quatro
-   * casos eram o lugar onde isso aparecia como numero.
-   */
+  // Garante que combinacoes multiplas para a mesma acao permanecam independentes.
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("as quatro acoes repetidas")
@@ -743,10 +638,6 @@ class ConsoleKeyPressTest
           count ("toggleInsertMode", withMeta (KeyCode.I), plain (KeyCode.INSERT)));
     }
   }
-
-  // ---------------------------------------------------------------------------------//
-  //  Os dubles. Os tres escrevem na MESMA lista, e por isso a ordem entre eles e afirmavel.
-  // ---------------------------------------------------------------------------------//
 
   // ---------------------------------------------------------------------------------//
   private static final class RecordingConsole implements ConsoleKeyTarget
@@ -836,15 +727,7 @@ class ConsoleKeyPressTest
     }
   }
 
-  /*
-   * Cursor e classe, nao interface, e nenhum dos sete metodos e final - entao o duble e uma
-   * subclasse que grava em vez de executar. E de proposito que ele NAO executa: esta rede
-   * congela o DESPACHO, e a semantica do cursor ja tem o CursorTest, com 32 casos.
-   *
-   * O construtor da superclasse so guarda dois campos, mas recebe colaboradores de verdade -
-   * um HeadlessScreenTarget e as dimensoes padrao - para que o duble quebre alto se algum dia
-   * ele passar a usa-los.
-   */
+  // Subclasse duble de Cursor com colaboradores reais no super() caso passe a usa-los.
   // ---------------------------------------------------------------------------------//
   private static final class RecordingCursor extends Cursor
   // ---------------------------------------------------------------------------------//

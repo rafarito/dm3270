@@ -29,33 +29,8 @@ import javafx.scene.Parent;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-/*
- * O PRIMEIRO CAMINHO FELIZ DO LANCAMENTO OBSERVADO PELO EFEITO, e nao so pela decisao.
- *
- * O passo 12 deu 22 casos aos quatro caminhos felizes, e todos afirmam DECISAO e ORDEM contra
- * um gravador da porta LaunchTarget: ninguem afirmava que o ConsolePane nasceu, que a janela
- * apareceu ou que a tela recebeu alguma coisa. Este caso afirma, com o Console, a Screen, o
- * ConsolePane e a ReplayStage REAIS. O que o tornou possivel foi o construtor de pacote
- * Console (Preferences), do commit anterior.
- *
- * POR QUE SO O REPLAY, e e honesto dizer: e o unico dos quatro ramos que nao abre socket.
- * TERMINAL conecta no host (connectConsole), SPY sobe um servidor (spyPane.startServer) e TEST
- * faz os dois. Afirma-los por efeito exige um host falso, e isso e outro trabalho.
- *
- * E o REPLAY e justamente o ramo com a dependencia de ordem mais escondida: a ReplayStage
- * recebe o campo screen que showConsole acabou de atribuir, e nenhuma assinatura diz isso. O
- * caso central abaixo afirma pelo efeito: a tela que esta DENTRO da janela principal e a que
- * recebeu a primeira tela da sessao gravada. Inverter as duas chamadas entregaria a ReplayStage
- * uma tela nula, ou a de um lancamento anterior, e a da janela ficaria em branco.
- *
- * A sessao e o mf.txt, o mesmo do golden master. O servidor gravado nele, "FanDeZhi", nao
- * esta na lista de sites, entao o console nasce sem site - e portanto com DatasetStore.NONE,
- * sem abrir SQLite no diretorio corrente.
- *
- * DUAS JANELAS ABREM DE VERDADE - Stage.show () e final - e o @AfterEach fecha as tres. O
- * JavaFxToolkit ja desliga o implicitExit, sem o que fechar a ultima derrubaria o toolkit para
- * o resto da JVM.
- */
+// Testa o ramo REPLAY com Console/Screen/ReplayStage reais (unico modo que nao abre socket).
+// "FanDeZhi" nao esta nos sites gravados, evitando criar banco SQLite via DatasetStore.NONE.
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
 @DisplayName ("Console - o lancamento do replay, observado pelo efeito")
@@ -159,11 +134,7 @@ class ConsoleReplayLaunchTest
     assertEquals ("Replay Commands - mf.txt", replays.get (0).getTitle ());
   }
 
-  /*
-   * A dependencia de ordem do ramo do replay, afirmada pelo efeito. A ReplayStage processa a
-   * primeira tela da sessao na tela que recebeu; se ela recebesse outra tela que nao a da
-   * janela principal, esta estaria em branco.
-   */
+  // Garante que ReplayStage recebeu a mesma Screen montada no ConsolePane.
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("a tela DENTRO da janela principal e a que recebeu a sessao gravada")

@@ -29,21 +29,7 @@ import javafx.event.EventType;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 
-/*
- * O MOUSE DA Screen, pela entrada que o usuario usa: eventos disparados no proprio Canvas.
- *
- * Os tres handlers (press, drag, release) nao tinham rede. A ScreenSelectionTest vigia a
- * selecao com um SelectionHost de mentira, e nada vigiava a traducao de coordenada em posicao
- * nem o que o press faz com o cursor. Esta classe existe para o ciclo C3 poder tirar os
- * handlers da Screen sem mudar nada disso.
- *
- * O que se observa e publico ou de pacote: getScreenPositions () (o flag isSelected de cada
- * posicao), getScreenCursor () e getScreenSelection (). Nenhum campo, nenhuma reflexao - o
- * refactor que vem a seguir move exatamente os campos.
- *
- * Fica de fora o requestFocus () do press: sem Scene, o Canvas nao ganha foco, e montar uma
- * Scene so para isto mediria o JavaFX, nao a Screen.
- */
+// Omite requestFocus() do press: sem Scene, o Canvas nao ganha foco.
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
 @DisplayName ("Screen - o mouse seleciona e move o cursor")

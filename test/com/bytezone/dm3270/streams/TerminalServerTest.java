@@ -280,12 +280,7 @@ class TerminalServerTest
     }
   }
 
-  /*
-   * A falha de conexao acontece na thread do TerminalServer, e connect() retorna antes de
-   * saber o resultado. Sem estes avisos a falha ficava so no log: a janela do terminal abria
-   * em branco e o usuario nao tinha como saber o que aconteceu, nem para onde o programa
-   * tentou conectar.
-   */
+  // Falhas ocorrem na thread do servidor apos connect(); ConnectionListener notifica o erro.
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("aviso de falha de conexao")
@@ -298,7 +293,7 @@ class TerminalServerTest
     void reportsRefusedConnection () throws Exception
     {
       int closedPort = port ();
-      serverSocket.close ();              // ninguem mais escuta nessa porta
+      serverSocket.close ();
 
       RecordingConnectionListener failures = new RecordingConnectionListener ();
       TerminalServer server =
@@ -345,7 +340,7 @@ class TerminalServerTest
       TerminalServer server =
           new TerminalServer (host (), closedPort, listener, false, false);
 
-      server.run ();                      // nenhum ConnectionListener registrado
+      server.run ();
 
       assertEquals (1, listener.closes, "o listener de buffer ainda deveria ser fechado");
     }

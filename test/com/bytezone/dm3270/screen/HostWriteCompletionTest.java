@@ -12,12 +12,6 @@ import org.junit.jupiter.api.Test;
 
 import com.bytezone.dm3270.commands.AIDCommand;
 
-/*
- * A politica de fim de escrita, isolada: o que o WriteCommand decidia ate o ciclo C2. O
- * HeadlessProcessingTest a exercita pelo comando; aqui cada condicao e cada ponta e vista
- * sozinha, inclusive a releitura do teclado depois da gravacao, que pelo comando nao da para
- * provocar.
- */
 // -----------------------------------------------------------------------------------//
 @DisplayName ("HostWriteCompletion - o que a tela faz quando o host termina de escrever")
 class HostWriteCompletionTest

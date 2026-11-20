@@ -29,33 +29,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 
-/*
- * A primeira rede do PluginsStage - 750 linhas que ate aqui nao tinham teste nenhum, e que
- * estao fora do <targetClasses> do PIT.
- *
- * O QUE ESTA CLASSE CONGELA, e por que importa para o passo 9:
- *
- *   doesAuto () e perguntado A CADA TELA, por plugin ativado, dentro de processAll. Nao e
- *   propriedade do plugin: cinco dos seis plugins reais ligam e desligam esse campo durante
- *   a execucao - sao 39 transicoes medidas -, e no FanLogon esse vaivem E a maquina de
- *   estados do logon automatico. O plano escrito do passo 9 pedia despacho por
- *   "instanceof AutoPlugin com fallback para doesAuto ()"; instanceof e uma resposta
- *   ESTATICA para uma pergunta que muda a cada tela, e trocar uma pela outra quebraria os
- *   cinco sem que teste nenhum acusasse. O caso doesAutoEPerguntadoACadaTela e o que torna
- *   essa troca uma build vermelha.
- *
- * COMO O TESTE OBSERVA, e este detalhe e reusavel: o host instancia cada plugin por
- * reflexao, dentro de PluginEntry.instantiate (), e nunca devolve a instancia - nao ha
- * referencia para segurar. Os dubles falam pelo PluginProbe, que e estatico por isso. E o
- * teste alcanca o menu por getMenu ().getItems (), NUNCA pela lista privada plugins nem por
- * reflexao: e a disciplina do OptionStageTest, que por causa dela atravessou sem uma linha
- * mudada o commit que fechou dez campos. Os blocos 1 e 3 vao mexer justamente aqui dentro.
- *
- * As Preferences sao globais por JVM e o PluginsStage le e GRAVA as dez posicoes ja no
- * construtor, entao cada teste recebe um no proprio. E a pasta de plugins aponta para um
- * @TempDir: sem isso a suite varreria a pasta real de quem a roda e auto-registraria os JARs
- * instalados nas preferencias do teste.
- */
+// Plugins sao instanciados por reflexao sem retorno, entao os dubles usam PluginProbe.
+// Cada teste isola Preferences e @TempDir para nao ler JARs reais da maquina.
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
 @DisplayName ("PluginsStage - o despacho para os plugins")
@@ -77,12 +52,7 @@ class PluginsStageDispatchTest
     PluginProbe.reset ();
   }
 
-  /*
-   * O closeClassLoader e obrigatorio, e nao higiene: no Windows um URLClassLoader aberto
-   * mantem o JAR mapeado e a remocao do @TempDir pelo JUnit falha com
-   * DirectoryNotEmptyException. O TESTING.md ja registra uma falha intermitente de @TempDir
-   * por handle aberto; esta seria uma segunda, e reprodutivel.
-   */
+  // Obrigatorio no Windows: URLClassLoader aberto impede a remocao do @TempDir pelo JUnit.
   // ---------------------------------------------------------------------------------//
   @AfterEach
   void closeAndRemove () throws Exception
@@ -101,12 +71,6 @@ class PluginsStageDispatchTest
   class AutoDispatch
   // ---------------------------------------------------------------------------------//
   {
-    /*
-     * O caso central do bloco 0. Roteiro [true, false, true] em tres telas consecutivas: o
-     * plugin e perguntado NAS TRES e processa em duas. Um despacho resolvido uma vez so -
-     * por instanceof, por cache, por campo lido na ativacao - produziria tres processAuto ou
-     * nenhum, e falharia aqui.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("doesAuto e perguntado a cada tela, e a resposta nao vale para a seguinte")
@@ -143,10 +107,6 @@ class PluginsStageDispatchTest
       assertEquals (List.of (), PluginProbe.calls ());
     }
 
-    /*
-     * Os dois dubles escrevem na MESMA lista, entao este caso afirma tambem a ordem ENTRE
-     * eles - que e a ordem das posicoes nas Preferences.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("dois plugins sao perguntados na ordem das posicoes, e um nao pula o outro")
@@ -166,19 +126,7 @@ class PluginsStageDispatchTest
                     PluginProbe.calls ());
     }
 
-    /*
-     * A sequencia exata da montagem, e ela desmentiu a expectativa escrita antes de rodar:
-     * doesRequest () e perguntado DUAS vezes, nao uma. A primeira esta em
-     * PluginEntry.select (), logo depois do activate () e guardada por
-     * requestMenuItem == null; a segunda em setMenu (), quando o menu decide se acrescenta a
-     * secao de request. Nenhum documento do projeto registra isso.
-     *
-     * E note a ordem: activate () roda ANTES da primeira pergunta. E o que permite ao
-     * FanLogon real armar o campo doesRequest dentro do proprio activate () e ainda assim
-     * ganhar item de menu.
-     *
-     * doesAuto (), por outro lado, nao e perguntado nenhuma vez aqui - so em processAll.
-     */
+    // activate() roda antes de doesRequest(), permitindo ao plugin habilitar request na ativacao.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("na montagem: activate primeiro, e doesRequest perguntado duas vezes")
@@ -190,9 +138,9 @@ class PluginsStageDispatchTest
       stage ();
       menu ();
 
-      assertEquals (List.of ("ScriptedPlugin.activate",        // select (), :470
-                             "ScriptedPlugin.doesRequest->false",   // select (), :474
-                             "ScriptedPlugin.doesRequest->false"),  // setMenu (), :250
+      assertEquals (List.of ("ScriptedPlugin.activate",              // select ()
+                             "ScriptedPlugin.doesRequest->false",     // select ()
+                             "ScriptedPlugin.doesRequest->false"),    // setMenu ()
                     PluginProbe.calls ());
     }
 
@@ -228,26 +176,6 @@ class PluginsStageDispatchTest
     }
   }
 
-  /*
-   * A TRAVA DO doesRequest, que e a outra metade da razao pela qual o plano escrito do passo
-   * 9 nao pode ser implementado como esta.
-   *
-   * doesRequest () NAO e perguntado a cada passo, ao contrario do doesAuto (). Sao dois
-   * sitios, com vidas diferentes:
-   *
-   *   PluginEntry.select () :474 - guardado por requestMenuItem == null. Quem responde false
-   *   na PRIMEIRA ativacao nunca ganha item de menu, por mais que responda true depois;
-   *
-   *   setMenu () :250 - decide se o item ja criado entra na secao de request do menu.
-   *
-   * E rebuildMenu (), que e o que roda a cada clique no menu, NAO PERGUNTA doesRequest () -
-   * ele gateia em isActivated && requestMenuItem != null. Ou seja: depois da montagem, a
-   * presenca do item depende do campo travado e nao mais da resposta do plugin.
-   *
-   * Isso importa porque doesRequest tambem muda durante a execucao - 10 transicoes vivas em
-   * cinco dos seis plugins, e nenhum documento do projeto registra isso. O FanLogoff real
-   * zera o proprio doesRequest no meio do fluxo (linha 115) e mesmo assim mantem o item.
-   */
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("A trava do doesRequest")
@@ -267,19 +195,7 @@ class PluginsStageDispatchTest
       assertTrue (hasItemNamed (menu, "Scripted", 2));
     }
 
-    /*
-     * A TRAVA NAO E "na primeira ativacao", e esta medicao desmentiu tanto o plano escrito
-     * quanto a expectativa que eu tinha escrito neste mesmo arquivo.
-     *
-     * O guarda e requestMenuItem == null, e ele e reavaliado em TODA chamada de select () -
-     * nao so na primeira. Um plugin que responde false enquanto o item nao existe continua
-     * sendo perguntado, e ganha o item na hora em que responder true, seja em que ativacao
-     * for. Depois disso, nunca mais e perguntado por select ().
-     *
-     * E o item pode nascer numa DESATIVACAO: select (false) chama deactivate () e logo em
-     * seguida cai no mesmo guarda. E o que este caso mostra - o item so aparece no menu na
-     * religada, porque rebuildMenu () exige isActivated.
-     */
+    // select() cria o item mesmo ao desativar; rebuildMenu() exige isActivated para exibi-lo.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("o item de request pode nascer numa ativacao posterior, e ate numa desativacao")
@@ -298,11 +214,6 @@ class PluginsStageDispatchTest
       assertEquals (2, countItemsNamed (menu, "Scripted"));
     }
 
-    /*
-     * A trava pelo outro lado: criado o item, ele volta ao menu num rebuild mesmo com
-     * doesRequest () ja respondendo false - porque rebuildMenu () nao pergunta. O log prova
-     * que nao pergunta: depois da montagem nao ha mais nenhum doesRequest.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("criado o item, ele sobrevive a doesRequest virar false - rebuildMenu nao pergunta")
@@ -318,15 +229,10 @@ class PluginsStageDispatchTest
 
       assertEquals (2, countItemsNamed (menu, "Scripted"));
 
-      // o toggle limpa o log antes de disparar, entao o que sobra e so a religada: nenhum
-      // doesRequest, que e exatamente o ponto - rebuildMenu nao pergunta
+      // toggle() limpa o log antes de disparar; sobra apenas a religada, sem doesRequest().
       assertEquals (List.of ("ScriptedPlugin.activate"), PluginProbe.calls ());
     }
 
-    /*
-     * Desligar o plugin tira o item de request do menu, e religar traz de volta - pelo campo
-     * isActivated, nao por nova consulta.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("desligar o plugin tira o item de request, religar traz de volta")
@@ -344,12 +250,7 @@ class PluginsStageDispatchTest
       assertEquals (2, countItemsNamed (menu, "Scripted"));
     }
 
-    /*
-     * Os aceleradores saem de uma lista fixa, na ordem em que os itens sao criados. A tecla
-     * de atalho e medida do proprio toolkit, nunca suposta: e control no Windows e no Linux
-     * e meta no macOS, e um teste que fixe uma das duas passa numa plataforma e quebra na
-     * outra. O precedente e o helper shortcutIsMeta () do ConsoleKeyPressTest.
-     */
+    // Usa SHORTCUT_DOWN para funcionar tanto com Ctrl (Windows/Linux) quanto Meta (macOS).
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("os dois primeiros plugins de request ficam com os digitos 1 e 2")
@@ -368,17 +269,7 @@ class PluginsStageDispatchTest
                     requestItem (menu, "Quiet").getAccelerator ());
     }
 
-    /*
-     * getMenu () chamado duas vezes re-instancia todo plugin - instantiate () zera o campo e
-     * constroi de novo -, entao activate () roda outra vez, num objeto NOVO, enquanto o
-     * requestMenuItem sobrevive do anterior. Em producao getMenu () e chamado uma vez so, em
-     * ConsolePane:107, entao isto e latente. Congelado aqui e registrado no backlog.
-     *
-     * E repare na contagem, que tambem desmentiu a expectativa escrita antes: na SEGUNDA
-     * montagem doesRequest () e perguntado UMA vez, nao duas. O sitio de select () :474 sai
-     * pelo curto-circuito, porque requestMenuItem ja nao e null; sobra o de setMenu () :250.
-     * E a trava se mostrando de novo, agora pela reducao do numero de perguntas.
-     */
+    // Na segunda montagem, requestMenuItem ja existe, entao select() nao rechama doesRequest().
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("getMenu chamado de novo re-instancia o plugin e ativa outra vez")
@@ -391,24 +282,12 @@ class PluginsStageDispatchTest
 
       menu ();
 
-      assertEquals (List.of ("ScriptedPlugin.activate",            // select (), :470
-                             "ScriptedPlugin.doesRequest->true"),  // setMenu (), :250
+      assertEquals (List.of ("ScriptedPlugin.activate",              // select ()
+                             "ScriptedPlugin.doesRequest->true"),     // setMenu ()
                     PluginProbe.calls ());
     }
   }
 
-  /*
-   * O ISOLAMENTO DO processAll, e o que ele NAO isola.
-   *
-   * O laco de processAll envolve cada plugin num try/catch e loga "Error processing auto",
-   * entao um plugin que quebra nao impede os seguintes. Mas o catch e de Exception, nao de
-   * Throwable: um Error escapa do laco, cancela os plugins que faltavam e sobe ate
-   * WriteCommand.process (), que depois de destravar o teclado avisa a tela, e a tela chama
-   * processPluginAuto () pela HostWriteCompletion.
-   *
-   * Os dois casos estao aqui juntos de proposito - o que se esta congelando e a FRONTEIRA
-   * entre o que e isolado e o que nao e. O bloco 1 mexe neste laco.
-   */
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("O isolamento do processAll")
@@ -435,10 +314,6 @@ class PluginsStageDispatchTest
                     PluginProbe.calls ());
     }
 
-    /*
-     * A assimetria. Nao ha nada a corrigir aqui sob a Regra 1 - o defeito vai para o
-     * BACKLOG-DEFEITOS.md e o teste o congela como esta.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("um Error escapa do laco e cancela os plugins seguintes")
@@ -459,24 +334,7 @@ class PluginsStageDispatchTest
     }
   }
 
-  /*
-   * O CAMINHO DE REQUEST, e as duas coisas que ele NAO faz.
-   *
-   * processPluginRequest (Plugin) e simetrico ao processAll so na aparencia. Ele:
-   *
-   *   NAO pergunta doesRequest () antes de chamar processRequest. Quem aciona e o item de
-   *   menu, e a decisao de existir item ja foi tomada la atras, na trava; o plugin e chamado
-   *   sem que ninguem confira se ele ainda quer ser chamado - e doesRequest muda durante a
-   *   execucao em cinco dos seis plugins reais;
-   *
-   *   NAO tem try/catch. O processAll envolve cada plugin e loga; aqui a excecao sobe para
-   *   quem acionou o item de menu.
-   *
-   * E a resposta tem forma diferente da do caminho automatico: processPluginAuto () DEVOLVE
-   * o AIDCommand para o WriteCommand usar como reply e so trava o teclado; processPluginRequest
-   * trava o teclado E envia, pelo ConsolePane. Uma extracao que "unificasse" os dois caminhos
-   * apagaria essa diferenca sem que nada acusasse - por isso ela esta congelada aqui.
-   */
+  // Diferente de processPluginAuto() (que devolve AIDCommand), o request trava e envia direto.
   // ---------------------------------------------------------------------------------//
   @Nested
   @DisplayName ("O caminho de request")
@@ -510,10 +368,6 @@ class PluginsStageDispatchTest
                     () -> stage.processPluginRequest (new ThrowingRequestPlugin ()));
     }
 
-    /*
-     * Sem tecla marcada pelo plugin, processReply devolve null: nao ha setAID, nao ha
-     * readModifiedFields, nao se trava o teclado e nada e enviado.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("sem tecla marcada, nao trava o teclado nem envia nada")
@@ -528,11 +382,6 @@ class PluginsStageDispatchTest
                     PluginProbe.calls ());
     }
 
-    /*
-     * Com tecla marcada, a ordem e: setAID, readModifiedFields, e so entao - e so se a
-     * leitura devolveu comando - lockKeyboard seguido de sendAID. As quatro numa lista so,
-     * que e o que prova a ordem ENTRE a tela e o ConsolePane.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("com tecla marcada: setAID, leitura, trava e envio, nesta ordem")
@@ -546,16 +395,11 @@ class PluginsStageDispatchTest
 
       assertEquals (List.of ("EnterKeyPlugin.processRequest:0", "cursor.moveTo:0",
                              "host.setAID:125", "host.readModifiedFields",
-                             // "ENTR", e nao "ENTER": e o nome que o proprio AIDCommand da
-                             // a tecla, e ele aparece na barra de status do usuario
+                             // AIDCommand abrevia ENTER para "ENTR" na barra de status.
                              "host.lockKeyboard:ENTR", "consolePane.sendAID:ENTR"),
                     PluginProbe.calls ());
     }
 
-    /*
-     * E se a leitura devolver null, para nele: sem trava e sem envio, ainda que a tecla
-     * tenha sido marcada.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("com tecla marcada mas leitura vazia, nao trava nem envia")
@@ -571,10 +415,6 @@ class PluginsStageDispatchTest
                     PluginProbe.calls ());
     }
 
-    /*
-     * O contraste com o caminho automatico: sem plugin ativo nenhum, processPluginAuto ()
-     * devolve null sem construir PluginData e sem tocar na tela.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("processPluginAuto devolve null quando nao ha plugin ativo")
@@ -589,10 +429,6 @@ class PluginsStageDispatchTest
   }
 
   // ---------------------------------------------------------------------------------//
-  //  Apoio
-  // ---------------------------------------------------------------------------------//
-
-  // ---------------------------------------------------------------------------------//
   private void register (int slot, String name, Class<?> type, boolean active)
   // ---------------------------------------------------------------------------------//
   {
@@ -601,10 +437,7 @@ class PluginsStageDispatchTest
     prefs.putBoolean (String.format ("PluginActivate-%02d", slot), active);
   }
 
-  /*
-   * O construtor de uma Stage exige a thread do JavaFX. O PluginsStage le as Preferences e
-   * monta o class loader aqui dentro, entao as posicoes tem de estar gravadas ANTES.
-   */
+  // Exige FX thread; as posicoes nas Preferences devem ser gravadas antes desta chamada.
   // ---------------------------------------------------------------------------------//
   private PluginsStage stage ()
   // ---------------------------------------------------------------------------------//
@@ -620,11 +453,7 @@ class PluginsStageDispatchTest
     return JavaFxToolkit.onFxThread ( () -> stage.getMenu ());
   }
 
-  /*
-   * Monta o menu e apaga o log, deixando os roteiros de pe: getMenu () instancia, ativa e ja
-   * pergunta doesRequest () antes de o teste chegar ao que quer medir. Quem afirma essa
-   * sequencia de montagem e o caso activateRodaNaMontagem, que nao limpa nada.
-   */
+  // Limpa chamadas da montagem (activate/doesRequest), mantendo os roteiros configurados.
   // ---------------------------------------------------------------------------------//
   private Menu buildMenu ()
   // ---------------------------------------------------------------------------------//
@@ -644,13 +473,7 @@ class PluginsStageDispatchTest
         .orElseThrow ( () -> new AssertionError ("item de menu nao encontrado: " + text));
   }
 
-  /*
-   * Reproduz o CLIQUE inteiro num CheckMenuItem, e nao so o fire (). CheckMenuItem.fire ()
-   * NAO inverte o selected - quem inverte e o skin do menu, antes de disparar a acao -, e
-   * como itemSelected () le justamente isSelected (), um teste que chamasse so fire ()
-   * afirmaria o contrario do que o usuario ve, e passaria. E a mesma armadilha que derrubou
-   * tres casos do OptionStageTest de uma vez.
-   */
+  // CheckMenuItem.fire() nao altera selected (papel do skin), por isso setSelected() antes.
   // ---------------------------------------------------------------------------------//
   private void toggle (Menu menu, String text, boolean selected)
   // ---------------------------------------------------------------------------------//
@@ -679,10 +502,7 @@ class PluginsStageDispatchTest
     });
   }
 
-  /*
-   * O item de request e um MenuItem simples com o mesmo texto do CheckMenuItem que liga o
-   * plugin - por isso a contagem por nome, e nao a busca pelo primeiro.
-   */
+  // Plugins com request tem um CheckMenuItem e um MenuItem com o mesmo texto.
   // ---------------------------------------------------------------------------------//
   private static long countItemsNamed (Menu menu, String text)
   // ---------------------------------------------------------------------------------//
@@ -707,10 +527,7 @@ class PluginsStageDispatchTest
         .orElseThrow ( () -> new AssertionError ("nao achei o item de request " + text));
   }
 
-  /*
-   * Liga a tela e o ConsolePane dublados. O processPluginRequest abre com
-   * assert consolePane != null e o Surefire roda com -ea, entao os dois sao obrigatorios.
-   */
+  // Ambos obrigatorios: processPluginRequest() valida assert consolePane != null (-ea).
   // ---------------------------------------------------------------------------------//
   private RecordingPluginHost wireHost ()
   // ---------------------------------------------------------------------------------//
@@ -723,10 +540,7 @@ class PluginsStageDispatchTest
     return host;
   }
 
-  /*
-   * Um AIDCommand de ENTER montado dos bytes crus, que e como o protocolo o produz: o AID no
-   * primeiro byte e o endereco do cursor nos dois seguintes.
-   */
+  // Formato 3270 de entrada AID: byte 0 = AID, bytes 1-2 = endereco do cursor.
   // ---------------------------------------------------------------------------------//
   private static AIDCommand enterCommand ()
   // ---------------------------------------------------------------------------------//

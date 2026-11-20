@@ -35,35 +35,7 @@ import com.bytezone.dm3270.runtime.TerminalFunction;
 import com.bytezone.dm3270.structuredfields.StructuredField;
 import com.bytezone.dm3270.utilities.Dm3270Utility;
 
-/*
- * Caracterizacao da Session - o acumulado de uma conversa TN3270, gravada ou espionada.
- *
- * A classe guarda tres coisas que nao sao a mesma: os registros da conversa, a identificacao
- * de quem esta nas duas pontas, e os widgets que mostram isso - um ObservableList e um Label,
- * com um Platform.runLater no meio. Os testes abaixo congelam o comportamento de HOJE, antes
- * de as tres serem separadas.
- *
- * O que precisa sobreviver, e nao e obvio:
- *
- *   - a identificacao acontece DENTRO de add (), uma vez por lado. Assim que o nome do
- *     servidor e conhecido, nenhuma mensagem posterior e examinada de novo - trocar isso
- *     mudaria o que a barra de titulo mostra numa sessao longa;
- *   - o nome do cliente e as dimensoes de tela sao lidos so de mensagens do CLIENTE, e o nome
- *     do servidor so de mensagens do SERVIDOR;
- *   - antes de qualquer identificacao os dois nomes leem "Unknown", mas o Label nasce VAZIO -
- *     o texto so e escrito quando um dos dois e reconhecido. Um Label preenchido com
- *     "Unknown : Unknown" desde o inicio seria mudanca visivel no modo Spy;
- *   - save () grava o que o SessionReader sabe reler: e um ciclo fechado, e e assim que os
- *     arquivos de replay sao produzidos e consumidos. Por isso os testes de persistencia sao
- *     de ida e volta, e nao de texto literal;
- *   - safeSave () embaralha o texto digitado pelo usuario para 0x7B antes de gravar, e volta
- *     a gravar normalmente depois. O flag e de instancia, nao de chamada.
- *
- * REPARE NO QUE ESTA CLASSE NAO TEM MAIS: nao ha @ExtendWith (JavaFxToolkit.class). Ate o
- * commit que levou o Label para a borda, a Session construia um Control no proprio campo, e
- * nenhum destes testes podia rodar sem toolkit grafico. Hoje a identificacao das duas pontas, o
- * acumulado e a persistencia sao exercitados headless, e essa ausencia e o teste principal.
- */
+// Testes headless de caracterizacao da Session (sem dependencia de JavaFX).
 // -----------------------------------------------------------------------------------//
 @DisplayName ("Session - a conversa acumulada, e quem esta nas duas pontas")
 class SessionTest
@@ -89,7 +61,6 @@ class SessionTest
     return new WriteCommand (buffer, 0, buffer.length);
   }
 
-  // Um Write cuja unica order e o texto dado, em EBCDIC.
   // ---------------------------------------------------------------------------------//
   private static WriteCommand serverText (String text)
   // ---------------------------------------------------------------------------------//
@@ -97,7 +68,7 @@ class SessionTest
     return write (text.getBytes (CP1047));
   }
 
-  // Monta um RSF: o AID de campo estruturado seguido de campos com prefixo de tamanho.
+  // Monta um RSF (AID + campos com prefixo de tamanho de 2 bytes).
   // ---------------------------------------------------------------------------------//
   private static byte[] rsf (byte[]... fields)
   // ---------------------------------------------------------------------------------//
@@ -129,7 +100,6 @@ class SessionTest
     return field;
   }
 
-  // Um RSF com area utilizavel de 24x80, que e o que carrega as dimensoes de tela.
   // ---------------------------------------------------------------------------------//
   private static ReadStructuredFieldCommand clientReply ()
   // ---------------------------------------------------------------------------------//
@@ -150,7 +120,6 @@ class SessionTest
     return new SessionRecord (SessionRecordType.TN3270, message, source, WHEN, true);
   }
 
-  // Conta os avisos de cabecalho, que e o que o Label ouvia.
   // ---------------------------------------------------------------------------------//
   private static class HeaderSpy implements SessionHeaderListener
   // ---------------------------------------------------------------------------------//
@@ -396,10 +365,7 @@ class SessionTest
   class Header
   // ---------------------------------------------------------------------------------//
   {
-    /*
-     * O Label nascia vazio, e nao escrito "Unknown : Unknown". O que garantia isso era nao
-     * haver aviso nenhum antes da primeira identificacao - e e isto que o teste afirma.
-     */
+    // Garante que o Label na UI comece vazio ate a primeira identificacao.
     @Test
     @DisplayName ("nao avisa nada antes de identificar alguem")
     void staysQuietUntilSomeoneIsIdentified ()
@@ -441,11 +407,7 @@ class SessionTest
       assertEquals ("Unknown", session.getClientName ());
     }
 
-    /*
-     * O caso do modo Replay: a sessao e carregada inteira antes de a janela existir, e quem se
-     * inscreve depois tem de receber o aviso mesmo assim - senao o cabecalho ficaria em branco
-     * numa sessao ja identificada.
-     */
+    // Cobre o modo Replay, onde a sessao e carregada antes de a janela se inscrever.
     @Test
     @DisplayName ("quem se inscreve depois da identificacao e avisado na hora")
     void aLateSubscriberIsToldImmediately ()
@@ -478,10 +440,6 @@ class SessionTest
   class Persistence
   // ---------------------------------------------------------------------------------//
   {
-    /*
-     * De ida e volta de proposito: o formato de save () so importa porque o SessionReader o
-     * le, e e assim que os arquivos de replay circulam.
-     */
     @Test
     @DisplayName ("o que save grava o SessionReader rele igual")
     void savedSessionReadsBack (@TempDir Path folder) throws Exception

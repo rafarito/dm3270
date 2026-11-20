@@ -7,13 +7,6 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/*
- * O digest que saiu do DefaultPlugin no passo 9.
- *
- * Os valores de MD5 sao conhecidos e publicados, nao recalculados no proprio teste - do
- * contrario a assercao seria tautologica e passaria contra qualquer implementacao errada.
- */
-// O caso da delegacao alcanca o DefaultPlugin, que e deprecated de proposito.
 @SuppressWarnings ("deprecation")
 // -----------------------------------------------------------------------------------//
 @DisplayName ("PluginDigest - o MD5 e o hexadecimal da API de plugins")
@@ -31,10 +24,7 @@ class PluginDigestTest
                   PluginDigest.md5 ("abc".getBytes (StandardCharsets.US_ASCII)));
   }
 
-  /*
-   * As duas bordas que uma reimplementacao por Integer.toHexString erraria: o 0x0F perderia o
-   * zero a esquerda, e o 0xFF sairia em minusculas e com sinal.
-   */
+  // 0x0F testa zero a esquerda e 0xFF testa byte sem sinal em maiusculas.
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("toHex: dois digitos por byte, maiusculas, sem sinal")
@@ -46,12 +36,6 @@ class PluginDigestTest
                   PluginDigest.toHex (new byte[] { 0x00, 0x0F, 0x10, (byte) 0xFF }));
   }
 
-  /*
-   * A FRONTEIRA do "digit < 10", que e onde a conversao decide entre somar a '0' e somar a
-   * 'A'. Nenhum dos outros casos exercitava o digito 10 - nem os dois MD5, que por acaso nao
-   * tem um unico 'A' -, e um mutante do PIT que trocava "<" por "<=" sobrevivia. Com "<=", o
-   * digito 10 sairia como ':', que e o caractere seguinte ao '9'.
-   */
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("o digito 10 vira A, e nao o caractere seguinte ao 9")
@@ -79,11 +63,6 @@ class PluginDigestTest
     assertEquals ("FDFEFF", hex.substring (506));
   }
 
-  /*
-   * A delegacao: o que o DefaultPlugin entrega por heranca e o que o PluginDigest calcula tem
-   * de ser a mesma coisa. E o que impede a implementacao de divergir da fachada que os JARs
-   * ja compilados enxergam.
-   */
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("o DefaultPlugin delega os dois sem mudar o resultado")

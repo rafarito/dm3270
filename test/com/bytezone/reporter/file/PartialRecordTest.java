@@ -13,22 +13,8 @@ import com.bytezone.reporter.reports.AsaReport;
 import com.bytezone.reporter.reports.NatloadReport;
 import com.bytezone.reporter.reports.Page;
 
-/*
- * O "Not possible" do item 3 do backlog, provado.
- *
- * DefaultReportMaker devolve a literal "Not possible" nas duas sobrecargas de
- * getFormattedRecord. AsaReport e NatloadReport sobrescrevem a de dois argumentos mas nao a de
- * quatro, e o ReportScore.getSubrecord chama a de quatro em dois casos: quando a pagina tem um
- * registro so, e quando a pagina comeca ou termina no meio de um registro. Nos dois, o
- * relatorio mostra a literal no lugar do conteudo.
- *
- * O backlog registrava isso como "devem mostrar", sem caso que o provasse. Estes sao os casos,
- * e existem antes do ciclo C8 tornar os metodos da base abstract: o comportamento tem de
- * continuar o mesmo, so que declarado nas duas subclasses em vez de herdado em silencio.
- *
- * NAO E A EXPECTATIVA CERTA, E O COMPORTAMENTO DE HOJE. Corrigir e o item 3, e exige
- * autorizacao (Regra 1); quando vier, estes casos mudam no mesmo commit do fix.
- */
+// Caracteriza bug conhecido: AsaReport e NatloadReport herdam "Not possible" da sobrecarga
+// de 4 argumentos de getFormattedRecord, chamada em paginas de 1 registro ou partido.
 // -----------------------------------------------------------------------------------//
 @DisplayName ("registro partido - o \"Not possible\" do ASA e do Natload")
 class PartialRecordTest
@@ -53,11 +39,7 @@ class PartialRecordTest
       assertEquals (NOT_POSSIBLE, reportScore.getFormattedText (0));
     }
 
-    /*
-     * 65 registros de uma linha enchem 65 das 66 linhas da pagina; o seguinte, com '-', pede
-     * tres. Com allowSplitRecords a pagina fica com o registro partido no fim (sobra uma
-     * linha), e a pagina seguinte comeca por ele.
-     */
+    // 65 linhas enchem 65/66 da pagina; '-' pede 3 linhas e forca a quebra entre paginas.
     @Test
     @DisplayName ("registro partido entre duas paginas: a literal no fim de uma e no inicio da outra")
     void splitRecord ()
@@ -92,11 +74,7 @@ class PartialRecordTest
   class Natload
   // ---------------------------------------------------------------------------------//
   {
-    /*
-     * Um registro de linha e depois um cabecalho de modulo (primeiro byte acima de 0x95,
-     * sequencia 1 nos bytes 16 e 17): o cabecalho fecha a pagina anterior, que fica so com o
-     * registro de linha.
-     */
+    // Cabecalho Natload (1o byte > 0x95, seq 1 em [16..17]) fecha a pagina com 1 registro.
     @Test
     @DisplayName ("pagina de um registro so: a literal no lugar do registro")
     void singleRecordPage ()

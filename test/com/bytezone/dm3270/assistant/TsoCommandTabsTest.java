@@ -43,37 +43,8 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.layout.HBox;
 
-/*
- * Caracterizacao do TSOCommand e do que as abas do assistant fazem com ele.
- *
- * O pacote assistant nao tinha teste nenhum, e as cinco abas escreviam direto no campo de
- * texto e no botao Execute do TSOCommand - onze acessos a dois campos de pacote. E isso que o
- * ciclo C7 vai fechar, e esta e a rede que falta antes.
- *
- * O TESTE ALCANCA O CAMPO E O BOTAO PELO GRAFO DE CENA (a HBox do TSOCommand), E NAO PELOS
- * CAMPOS - a mesma receita do OptionStageTest, e pela mesma razao: os dois campos viram
- * private no fim do ciclo, e um teste preso a eles teria de ser reescrito no commit que ele
- * protege. As abas sao alcancadas pelo conteudo (getContent) e pelos metodos que o resto da
- * aplicacao ja chama nelas; nenhum show ().
- *
- * O que fica congelado:
- *
- *   - a regra de habilitacao do Execute: desabilitado se o teclado esta travado, se nao ha
- *     ScreenWatcher, se a tela nao tem campo de comando TSO, ou se o texto esta vazio;
- *   - que o evento de teclado so recalcula o botao na aba selecionada;
- *   - apagar o comando: texto vazio E botao desabilitado, sem consultar a regra;
- *   - o texto que cada aba monta - Commands, Batch Jobs, Datasets e Transfers;
- *   - o Execute: poe o texto no campo TSO e manda ENTER; sem texto ou sem tela, nada.
- *
- * A aba Local Files fica de fora: o ReporterNode dela varre ~/dm3270/files, e o no de arquivo
- * que dispara o texto so existe com arquivo de verdade em disco. O acesso dela e o mesmo
- * setText das outras.
- *
- * O ScreenWatcher e um dublê que so fixa as tres respostas que as abas leem - o campo de
- * comando, se a tela e a do TSO e o prefixo. O campo em si e de verdade: vem de uma tela
- * minima com "Command ===>" processada pelo HeadlessScreenTarget, porque o Execute escreve
- * nele.
- */
+// Inspeciona os controles pelo grafo de cena de TSOCommand.getBox().
+// LocalFilesTab fica de fora porque ReporterNode exige arquivos reais em ~/dm3270/files.
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
 @DisplayName ("TSOCommand - o comando que as abas do assistant montam")
@@ -101,10 +72,6 @@ class TsoCommandTabsTest
     tsoCommand = onFx ( () -> new TSOCommand ());
     tsoCommand.setConsolePane (aidSender);
   }
-
-  // ---------------------------------------------------------------------------------//
-  //  Dublês
-  // ---------------------------------------------------------------------------------//
 
   private static class Keyboard implements KeyboardState
   {
@@ -180,8 +147,7 @@ class TsoCommandTabsTest
     }
   }
 
-  // uma tela que o ScreenWatcher de verdade reconhece como tendo linha de comando: o
-  // rotulo com 12 posicoes na coluna 1 da linha 1 e o campo de entrada de 66 depois dele
+  // Monta tela minima reconhecida por ScreenWatcher ("Command ===>" + campo de 66 colunas).
   // ---------------------------------------------------------------------------------//
   private static Field commandField ()
   // ---------------------------------------------------------------------------------//
@@ -220,10 +186,6 @@ class TsoCommandTabsTest
     for (char ch : text.toCharArray ())
       stream.add (Dm3270Utility.asc2ebc[ch]);
   }
-
-  // ---------------------------------------------------------------------------------//
-  //  Utilitarios
-  // ---------------------------------------------------------------------------------//
 
   private static <T> T onFx (JavaFxToolkit.FxSupplier<T> supplier)
   {
@@ -272,8 +234,7 @@ class TsoCommandTabsTest
     return onFx ( () -> executeButton ().isDisable ());
   }
 
-  // a aba vai para uma TabPane depois de uma aba qualquer, que e a que a TabPane seleciona
-  // sozinha; select (tab) e o que torna isSelected () verdadeiro
+  // TabPane auto-seleciona a 1a aba; "outra" garante que tab comece nao selecionada.
   private void select (Tab tab)
   {
     onFx ( () ->
@@ -481,7 +442,6 @@ class TsoCommandTabsTest
     @DisplayName ("apagar desliga o botao mesmo quando a regra o ligaria")
     void eraseIgnoresTheRule ()
     {
-      // a tela e o teclado deixariam o botao ligado; e o apagar que o desliga
       chooseCommand (ordinaryScreen (), "TSO LISTC");
       onFx ( () -> tab.eraseCommand ());
 

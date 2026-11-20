@@ -12,17 +12,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.Dependency;
 
-/*
- * Conta os ciclos mutuos entre pacotes: pares em que A depende de B e B depende de A.
- *
- * E a mesma metrica do diagnostico que motivou a refatoracao, que encontrou 25 desses pares
- * e apontou display participando de 9. Manter a contagem aqui permite acompanhar o
- * progresso com um numero unico, em vez de um baseline congelado de milhares de linhas.
- *
- * A granularidade e a do relatorio: o primeiro nivel abaixo de com.bytezone.dm3270 e de
- * com.bytezone.reporter - ou seja, display, commands, orders, reporter.file, e assim por
- * diante.
- */
+// Detecta ciclos mutuos (A <-> B) no primeiro nivel abaixo de dm3270.* e reporter.*.
 // -----------------------------------------------------------------------------------//
 final class PackageCycles
 // -----------------------------------------------------------------------------------//
@@ -36,10 +26,7 @@ final class PackageCycles
   {
   }
 
-  /*
-   * Devolve os pares mutuos em ordem alfabetica estavel, no formato "a <-> b", para que a
-   * mensagem de falha seja diffavel entre execucoes.
-   */
+  // Ordem alfabetica estavel ("a <-> b") para manter mensagens de falha comparaveis.
   // ---------------------------------------------------------------------------------//
   static List<String> mutualCycles (JavaClasses classes)
   // ---------------------------------------------------------------------------------//
@@ -87,10 +74,6 @@ final class PackageCycles
     return graph;
   }
 
-  /*
-   * Reduz um pacote ao seu primeiro nivel dentro do projeto. Classes que ficam direto em
-   * com.bytezone.dm3270 ou fora do projeto devolvem null e nao entram no grafo.
-   */
   // ---------------------------------------------------------------------------------//
   private static String sliceOf (String packageName)
   // ---------------------------------------------------------------------------------//

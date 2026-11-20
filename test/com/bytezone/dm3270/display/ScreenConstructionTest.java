@@ -30,53 +30,7 @@ import com.bytezone.dm3270.streams.TelnetState;
 import com.bytezone.dm3270.streams.TelnetStateListener;
 import com.bytezone.dm3270.testing.JavaFxToolkit;
 
-/*
- * A PRIMEIRA REDE DO CONSTRUTOR DA Screen - 1.109 linhas que ate este commit nao tinham um
- * teste sequer, e que sao o unico alvo que resta da refatoracao estrutural.
- *
- * NAO HOUVE COSTURA NENHUMA. Nenhuma linha de src/ mudou para esta classe existir, e esse e
- * o achado que decidiu o passo: o construtor da Screen e publico, recebe oito parametros, e
- * um teste consegue fornecer os oito - ScreenDimensions, um no de Preferences descartavel,
- * TerminalFunction, o PluginsStage pelo construtor de pacote que o passo 9 abriu, um Site que
- * pode ser nulo, um TelnetState headless e um DatasetStore. O documento de handoff dizia que
- * a Screen "nao se instancia num teste hoje"; ela se instancia.
- *
- * E NENHUMA JANELA ABRE. Era a duvida real, porque o construtor monta duas Stage -
- * TransfersStage (:149) e ConsoleLogStage (:151). Conferido: nenhum dos dois construtores
- * chama show (); o do ConsoleLogStage chama em setConsoleLog (...), que este teste nao
- * alcanca.
- *
- * O QUE CUSTA, e esta escrito aqui porque nao esta em documento nenhum: construir uma Screen
- * TOCA O DIRETORIO PESSOAL de quem roda a suite. A cadeia e Screen -> TransfersStage (:149)
- * -> FilesTab -> new ReporterNode (prefs) -> TreePanel.getTree (path), com
- * Paths.get (System.getProperty ("user.home"), "dm3270", "files") HARD-CODED em
- * ReporterNode:61 - nao vem de preferencia, e portanto o no descartavel deste teste NAO o
- * isola. E o getTree CRIA o diretorio se faltar (TreePanel:52) e o percorre recursivamente
- * (:188). Numa maquina com muitos arquivos baixados esta classe fica lenta.
- *
- * COMO ELE ALCANCA A CLASSE: pela superficie publica, nunca por campo nem reflexao. E a
- * disciplina do OptionStageTest e do PluginsStageDispatchTest - um teste que le os campos
- * vira refem do refactor que deveria vigiar, e o refactor que vem a seguir e justamente a
- * desmontagem deste construtor.
- *
- * O QUE ESTA REDE **NAO** COBRE, e o plano deste passo errou sobre isso. O construtor faz
- * NOVE registros de ouvinte, em :165-177, e o plano dizia que os nove seriam "verificaveis
- * pelo efeito". Medido: OITO nao sao. Os registros acontecem entre objetos que o proprio
- * construtor cria - screenPacker, transfersStage, transferMenu, fieldManager -, e os
- * conjuntos que os guardam sao privados e sem acessor (FieldManager:270,
- * Screen:1060). Alcanca-los exigiria abrir superficie, que e exatamente o que este passo se
- * proibiu de fazer na Screen.
- *
- * O unico observavel e o nono - telnetState.addTelnetStateListener (this) (:177) -, porque o
- * TelnetState e INJETADO e portanto pode ser um gravador. Tambem fica de fora a injecao
- * tardia transfersStage.setTransferManager (:157), pela mesma razao.
- *
- * O PASSO 13 MEDIU A SAIDA E A RECUSOU. As ORIGENS dos eventos - FieldManager, ScreenPacker,
- * TransferManager, TransfersStage - sao classes concretas construidas aqui dentro; torna-las
- * substituiveis exigiria um colaborador de fiacao com uns onze parametros, seis deles
- * Consumer, no lugar de um bloco de treze linhas legivel. Os oito continuam fora da rede, e
- * isso e decisao, nao pendencia.
- */
+// Construir Screen toca ~/dm3270/files via ReporterNode (nao isolado pelo no de Preferences).
 // -----------------------------------------------------------------------------------//
 @ExtendWith (JavaFxToolkit.class)
 @DisplayName ("Screen - o construtor, e a ordem que ele exige")
@@ -103,8 +57,7 @@ class ScreenConstructionTest
   void createCollaborators ()
   // ---------------------------------------------------------------------------------//
   {
-    // As Preferences sao globais por JVM, e o construtor do PluginsStage GRAVA dez posicoes
-    // ja na construcao. Um no descartavel por caso e a disciplina do OptionStageTest:93.
+    // Preferences e global por JVM e PluginsStage escreve na construcao; isola por caso.
     prefs = Preferences.userRoot ().node ("dm3270-test/" + UUID.randomUUID ());
 
     telnetState = new TelnetState ();
@@ -118,18 +71,13 @@ class ScreenConstructionTest
   void removePreferencesNode () throws Exception
   // ---------------------------------------------------------------------------------//
   {
-    // O PluginsStage abre um class loader por JAR. A pasta aqui e vazia, entao nao ha loader
-    // nenhum - mas fechar e a simetria com Console.stop ():294, e evita que isto vire
-    // armadilha se alguem depositar um JAR de fixture na pasta.
+    // Fecha eventual URLClassLoader caso haja JARs na pasta de plugins.
     pluginsStage.closeClassLoader ();
 
     prefs.removeNode ();
     prefs.flush ();
 
-    // O construtor de ScreenDimensions chama BufferAddress.setScreenWidth (columns), que e
-    // estado estatico GLOBAL (relatorio, 5.22). Os casos com 27x132 o deixam em 132, e o
-    // Surefire roda as classes numa JVM so, em ordem nao especificada. Restaurar aqui e o que
-    // impede esta classe de quebrar outra que nao tem nada a ver com ela.
+    // Restaura largura 80 no estado estatico global alterado por ScreenDimensions(27, 132).
     new ScreenDimensions (24, 80);
   }
 
@@ -175,15 +123,7 @@ class ScreenConstructionTest
     assertSame (MODEL_2, screen.getScreenDimensions ());
   }
 
-  /*
-   * Esta e a unica restricao de ORDEM que o construtor tem, e nada no codigo a declara.
-   *
-   * Screen:181 termina com pluginsStage.setScreen (this), e PluginsStage.setScreen:143 chama
-   * de volta screen.getScreenDimensions () - o host consome a tela ainda dentro do construtor
-   * dela. getScreenDimensions () (:399) le o campo currentScreen, que so e atribuido em :178,
-   * tres linhas antes. Inverter as duas linhas devolveria null aqui, e nenhuma outra prova
-   * pegaria isso.
-   */
+  // pluginsStage.setScreen(this) chama getScreenDimensions(); exige currentScreen ja definido.
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("o PluginsStage ve uma tela utilizavel dentro do construtor dela")
@@ -196,13 +136,7 @@ class ScreenConstructionTest
     assertSame (MODEL_2, pluginsStage.dimensionsSeenDuringConstruction);
   }
 
-  /*
-   * O PluginsStage recebido no construtor e o que roda os plugins quando o host termina de
-   * escrever - provado pelo efeito, sem pedir o stage de volta a tela. Um Erase Write com um
-   * campo e o WCC que destrava o teclado satisfaz as duas condicoes do HostWriteCompletion
-   * (ha campo, o teclado esta livre); a pasta de plugins e vazia, entao processPluginAuto ()
-   * devolve null e nada e enviado.
-   */
+  // Campo + WCC de destravamento satisfazem HostWriteCompletion para acionar processPluginAuto.
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("o PluginsStage recebido e o que roda os plugins depois de uma escrita")
@@ -248,19 +182,7 @@ class ScreenConstructionTest
     assertSame (screen, recording.lastListener);
   }
 
-  /*
-   * COM dimensao alternativa a corrente CONTINUA sendo a default, e isso surpreende.
-   *
-   * O construtor escolhe "alternate ?? default" para dimensionar cursor, campos, historico e
-   * o vetor de ScreenPosition (:137-138) - mas termina em setCurrentScreen (DEFAULT) (:178),
-   * e getScreenDimensions () (:399) responde pelo currentScreen, nao pelo campo. Quem le "a
-   * tela foi construida com 27x132" e pergunta as dimensoes recebe 24x80.
-   *
-   * E ESTA CERTO, e o passo 13 mediu antes de corrigir: pelo protocolo 3270 o terminal comeca
-   * na particao de tamanho PADRAO, e so um Erase Write Alternate (WriteCommand:99) o leva a
-   * alternativa. O setCurrentScreen (DEFAULT) do fim do construtor redimensiona cursor, pen,
-   * historico, campos e mensagem para a particao em que o host vai escrever primeiro.
-   */
+  // Protocolo 3270 inicia sempre na particao padrao ate receber Erase Write Alternate.
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("com dimensao alternativa, a corrente AINDA e a default")
@@ -273,22 +195,7 @@ class ScreenConstructionTest
     assertEquals (80, screen.getScreenDimensions ().columns);
   }
 
-  /*
-   * A ASSIMETRIA: duas regras de "qual e a dimensao corrente" dentro do MESMO construtor.
-   *
-   * fontChanged (:732-734) dimensiona o canvas com "alternate ?? default" - 132 colunas -,
-   * enquanto getScreenDimensions () reporta 80. A largura e fontWidth * columns + xOffset * 2,
-   * e o xOffset e sempre 4 (ScreenDimensions:20), entao a diferenca e exatamente
-   * fontWidth * 52.
-   *
-   * NAO E DEFEITO, e o item 23 do BACKLOG-DEFEITOS.md foi reclassificado no passo 13. As duas
-   * respostas seguem contratos diferentes e os dois estao certos: o canvas usa a MAIOR
-   * geometria de proposito ("always use the largest available screen", em fontChanged), para
-   * a janela nao mudar de tamanho a cada troca de particao; o acessor reporta a particao
-   * CORRENTE, que no inicio e a padrao. Alinhar o acessor ao canvas faria um Write antes do
-   * primeiro EW enderecar com 132 colunas; alinhar o canvas ao acessor faria a janela crescer
-   * no EWA. O caso fica, e congela a divisao.
-   */
+  // Canvas usa a maior geometria para evitar resize; acessor segue a particao ativa.
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("ASSIMETRIA: o canvas usa a alternativa, o acessor reporta a default")
@@ -303,15 +210,7 @@ class ScreenConstructionTest
         "o canvas foi dimensionado com 132 colunas, e getScreenDimensions () diz 80");
   }
 
-  /*
-   * A REENTRANCIA DO FontManager, que Screen:720 declara mas nenhum documento registra.
-   *
-   * FontManagerType1 recebe a Screen CONCRETA (:146) e, dentro do proprio construtor, chama
-   * setFont (...) -> screen.fontChanged (...) (:728), que le consolePane e screenPositions -
-   * os dois NULOS naquele instante. Ela so sobrevive por causa das guardas de :740 e :743, e
-   * essas nao estao declaradas em lugar nenhum. Que o tamanho semeado chegue ao acessor prova
-   * que a chamada reentrante aconteceu e completou.
-   */
+  // FontManager chama screen.fontChanged na construcao enquanto screenPositions ainda e null.
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("o FontManager le as preferencias e chama a tela de volta, semiconstruida")
@@ -327,18 +226,7 @@ class ScreenConstructionTest
     assertEquals (20, screen.getFontManager ().getFontSize ());
   }
 
-  /*
-   * O CASO MAIS VALIOSO DESTA CLASSE, e o unico que vigia o refactor que vem a seguir.
-   *
-   * fontChanged termina com eraseScreen () e draw () DENTRO de "if (screenPositions != null)"
-   * (:743), e o vetor so nasce na linha 159 - depois da chamada reentrante da linha 146. Logo
-   * a tela NAO e desenhada durante a construcao.
-   *
-   * Quem for desmontar este construtor no composition root vai querer reordenar as linhas.
-   * Mover a criacao do vetor para antes da fabrica de fonte faria eraseScreen () e draw ()
-   * passarem a rodar na construcao - mudanca de comportamento observavel, e portanto Regra 1.
-   * Nenhuma outra prova do projeto pega isso.
-   */
+  // screenPositions nasce apos FontManager, entao fontChanged reentrante nao dispara draw().
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("a tela NAO e desenhada durante a construcao")
@@ -353,7 +241,6 @@ class ScreenConstructionTest
     assertEquals (List.of (), RecordingScreen.calls,
         "draw () rodou durante a construcao - as linhas 146 e 159 foram reordenadas?");
 
-    // e o gravador funciona: depois da construcao, draw () e alcancavel e registrado
     JavaFxToolkit.onFxThread ( () ->
     {
       screen.draw ();
@@ -380,11 +267,7 @@ class ScreenConstructionTest
     assertEquals (List.of ("open", "close"), datasetStore.calls);
   }
 
-  /*
-   * O gravador do desenho. E estatico porque a lista precisa existir ANTES de super (...)
-   * terminar - um campo de instancia so seria atribuido depois, e o caso perderia justamente
-   * a janela que ele existe para observar. E o idioma do PluginProbe do passo 9.
-   */
+  // Lista estatica porque super() pode chamar draw() antes da inicializacao dos campos.
   // ---------------------------------------------------------------------------------//
   private static final class RecordingScreen extends Screen
   // ---------------------------------------------------------------------------------//
@@ -410,10 +293,6 @@ class ScreenConstructionTest
     }
   }
 
-  /*
-   * Um TelnetState que conta os registros. E subclasse, e nao duble de interface, porque o
-   * tipo e concreto e o construtor da Screen o recebe pronto - o idioma do RecordingCursor.
-   */
   // ---------------------------------------------------------------------------------//
   private static final class RecordingTelnetState extends TelnetState
   // ---------------------------------------------------------------------------------//
@@ -433,10 +312,6 @@ class ScreenConstructionTest
     }
   }
 
-  /*
-   * Um DatasetStore que grava em vez de executar - o idioma do RecordingCursor. O
-   * DatasetStore.NONE nao serviria aqui: ele nao faz nada E nao conta que nao fez.
-   */
   // ---------------------------------------------------------------------------------//
   private static final class RecordingDatasetStore implements DatasetStore
   // ---------------------------------------------------------------------------------//

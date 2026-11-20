@@ -591,7 +591,7 @@ class TransferRecordTest
       assertTrue (sf.toString ().contains ("record    : 77 03 00"), sf.toString ());
     }
 
-    // O campo de entrada vai do terminal ao host: processa-lo nao faz nada, nem usa a tela.
+    // Campo de entrada (terminal -> host), por isso nao atua na tela.
     @Test
     @DisplayName ("um campo de entrada nao faz nada no process")
     void inboundProcessDoesNothing ()

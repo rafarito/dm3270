@@ -31,40 +31,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 
-/*
- * OS QUATRO CAMINHOS FELIZES DO LANCAMENTO, pela primeira vez.
- *
- * Ate o passo 12 a rede do lancamento cobria so os ramos que RECUSAM - as quatro mensagens de
- * erro e a janela que reaparece -, e o cabecalho do ConsoleLaunchErrorsTest dizia por que: os
- * caminhos felizes criam uma Screen concreta, abrem arquivo SQLite no diretorio corrente,
- * mostram janela e abrem socket. Com a decisao fora do Console e atras de uma porta que nao
- * nomeia widget nenhum, eles cabem.
- *
- * NAO HA @ExtendWith (JavaFxToolkit.class), e isso e o ponto do passo inteiro. Esta e a
- * segunda classe do caminho de lancamento a nao precisar de toolkit - a primeira foi o
- * ConsoleModelTest - e a unica que exercita o switch de quatro ramos. Nada aqui abre janela.
- *
- * O QUE ELE PROVA, e o que NAO prova. Prova a DECISAO e a SEQUENCIA: qual ramo, com que
- * argumentos, em que ordem, e o que acontece quando um deles falha. Nao prova EFEITO - que o
- * ConsolePane nasceu, que a janela apareceu, que o socket abriu. Isso continua esperando a
- * Screen concreta sair da assinatura de Console.createScreen, e o que o passo 12 fez foi
- * reduzir o bloqueio a duas instrucoes: "new ConsolePane (screen, ...)" e
- * "new SpyPane (screen, ...)".
- *
- * O REPLAY CARREGA UMA SESSAO DE VERDADE, e nao um duble. Foi medido que isso e fiel: o
- * SessionLoader.load entrega null como SessionDisplay, e o TelnetListener so chama
- * uiThread.execute quando a funcao e TERMINAL - num replay o Executor nunca e invocado durante
- * a carga. Entao "Runnable::run" aqui roda exatamente o mesmo caminho que "Platform::runLater"
- * roda na aplicacao. O arquivo e o mf.txt, o mesmo do golden master, copiado para um @TempDir
- * porque o SessionReader le por Path e porque e assim que a concatenacao crua
- * "pasta + barra + arquivo" do ramo do replay fica exercitada de verdade.
- *
- * E O QUE ESSA SESSAO DEVOLVE FOI MEDIDO, nao suposto: getServerName () e "FanDeZhi" e
- * getScreenDimensions () e NULL - o mf.txt nao tem negociacao telnet nenhuma, so registros de
- * dados, entao nao ha Query Reply de onde tirar geometria. O caso que afirma o null esta
- * abaixo e e deliberado: ele congela que um replay ZERA a dimensao alternativa do lancamento
- * anterior, em vez de herda-la.
- */
+// Replay usa mf.txt real: SessionLoader.load nao aciona uiThread.execute na carga.
 // -----------------------------------------------------------------------------------//
 @DisplayName ("LaunchCoordinator - a decisao do lancamento, sem toolkit")
 class LaunchCoordinatorPathsTest
@@ -92,8 +59,7 @@ class LaunchCoordinatorPathsTest
     logged = new ListAppender<> ();
     logged.start ();
 
-    // O coordenador loga sob o logger do Console de proposito: o logback.xml imprime
-    // %logger{36}, entao o nome do logger e saida observavel.
+    // O coordenador usa o logger de Console porque logback.xml formata %logger{36}.
     consoleLogger = (Logger) LoggerFactory.getLogger (Console.class);
     consoleLogger.addAppender (logged);
   }
@@ -106,9 +72,7 @@ class LaunchCoordinatorPathsTest
     consoleLogger.detachAppender (logged);
     logged.stop ();
 
-    // O construtor de ScreenDimensions chama BufferAddress.setScreenWidth (columns), que e
-    // estado estatico GLOBAL. O Surefire roda as classes numa JVM so, em ordem nao
-    // especificada.
+    // Reseta BufferAddress.screenWidth (estado estatico global alterado por ScreenDimensions).
     new ScreenDimensions (24, 80);
   }
 
@@ -160,11 +124,7 @@ class LaunchCoordinatorPathsTest
   class TheHappyPaths
   // =================================================================================//
   {
-    /*
-     * A ordem aqui e comportamento: o modelo e negociado ANTES de a tela nascer, porque o
-     * setModel escreve as dimensoes alternativas e o createScreen as le. E o connect vem
-     * DEPOIS do painel, porque e o painel que conecta.
-     */
+    // Ordem obrigatoria: setModel grava as dimensoes lidas por createScreen; o painel conecta.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("TERMINAL: negocia o modelo, monta o console e SO ENTAO conecta")
@@ -181,11 +141,8 @@ class LaunchCoordinatorPathsTest
       assertEquals (List.of (), target.alerts);
     }
 
-    /*
-     * O LaunchRequest carrega a REFERENCIA VIVA ao Site, nunca uma copia - os acessores do
-     * SiteForm corrigem o widget quando acham valor invalido, e e o valor corrigido que vai
-     * para o disco. Uma copia em qualquer ponto do caminho mudaria o que fica gravado.
-     */
+    // Passa a referencia viva do SiteForm (sem copia): seus getters corrigem widgets invalidos
+    // antes de o estado ser gravado em disco.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("TERMINAL entrega a MESMA instancia de Site aos dois destinatarios")
@@ -236,12 +193,7 @@ class LaunchCoordinatorPathsTest
       assertSame (client, target.spyClientSite);
     }
 
-    /*
-     * A ponta servidora do modo TEST e o emulador embutido, e nao um site do usuario. O par
-     * "site padrao" e "porta do emulador" e acoplado pelo literal 5555 - a porta da constante
-     * E a porta em que o emulador escuta -, e ate o passo 12 as duas constantes eram privadas
-     * do Console e esse acoplamento nao tinha prova nenhuma.
-     */
+    // Modo TEST acopla o site padrao "mainframe" a porta do emulador embutido (5555).
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("TEST aponta o painel para o emulador embutido, na porta em que ele sobe")
@@ -280,11 +232,7 @@ class LaunchCoordinatorPathsTest
       assertEquals (List.of (), target.alerts);
     }
 
-    /*
-     * A dependencia de ordem que nao aparece em assinatura nenhuma: a janela de replay recebe
-     * a tela que o showConsole acabou de construir, lendo o campo screen do Console. Inverter
-     * as duas entregaria a tela do lancamento ANTERIOR, ou nula.
-     */
+    // showReplay le o campo screen recem-atribuido por showConsole (dependencia implicita).
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("REPLAY monta o console ANTES de abrir a janela de replay")
@@ -301,11 +249,7 @@ class LaunchCoordinatorPathsTest
           "showConsole tem de vir antes de showReplay: " + target.calls);
     }
 
-    /*
-     * O ramo que nenhum documento registrava como exercitavel: a sessao gravada nomeia um
-     * servidor que nao esta na lista de sites do usuario. A tela e montada SEM site - e por
-     * isso sem banco de dados - e o aviso sai sob o logger do Console.
-     */
+    // Sem site na lista, abre a tela sem banco de dados e apenas registra aviso.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("REPLAY sem site correspondente monta a tela sem site, e avisa")
@@ -326,15 +270,8 @@ class LaunchCoordinatorPathsTest
           loggedMessages ());
     }
 
-    /*
-     * MEDIDO, e surpreende: o mf.txt nao tem negociacao telnet nenhuma, so registros de dados,
-     * entao nao ha Query Reply de onde tirar geometria e getScreenDimensions () devolve NULL.
-     * O coordenador repassa o null assim mesmo.
-     *
-     * O efeito e util e vale congelar: um replay ZERA a dimensao alternativa em vez de herdar
-     * a do lancamento anterior. E o oposto do que acontece com um modelo invalido no ramo
-     * TERMINAL, que e a segunda metade do item 1 do BACKLOG-DEFEITOS.md.
-     */
+    // mf.txt nao tem negociacao telnet, entao getScreenDimensions() devolve null.
+    // Repassar null zera a dimensao alternativa anterior em vez de herda-la.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("REPLAY repassa a geometria da sessao, mesmo quando ela nao tem nenhuma")
@@ -384,10 +321,6 @@ class LaunchCoordinatorPathsTest
       assertEquals (List.of ("No server selected"), target.alerts);
     }
 
-    /*
-     * A ordem das duas guardas do SPY e comportamento: com o servidor presente e o cliente
-     * ausente, a mensagem e a do cliente.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("SPY com servidor e sem cliente reclama do CLIENTE")
@@ -414,10 +347,7 @@ class LaunchCoordinatorPathsTest
       assertEquals (List.of ("No client selected"), target.alerts);
     }
 
-    /*
-     * O caminho e montado por CONCATENACAO crua, pasta mais barra mais arquivo, e nao por um
-     * Paths.get de dois segmentos.
-     */
+    // O codigo de producao concatena pasta + "/" + arquivo antes de criar o Path.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("REPLAY com arquivo inexistente mostra o caminho inteiro")
@@ -432,11 +362,6 @@ class LaunchCoordinatorPathsTest
           target.alerts);
     }
 
-    /*
-     * A asserticao mais valiosa deste grupo, e a razao de ser de lista COMPLETA: um lancamento
-     * recusado nao constroi NADA. Qualquer operacao que escapasse para antes da validacao
-     * apareceria aqui e derrubaria o caso.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("um lancamento recusado nao constroi nada")
@@ -472,10 +397,6 @@ class LaunchCoordinatorPathsTest
       assertTrue (target.calls.contains ("showOptions"), target.calls.toString ());
     }
 
-    /*
-     * O curto-circuito do E logico: quando o alerta e dispensado sem confirmar, a janela NAO
-     * volta.
-     */
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("o alerta dispensado NAO reabre a janela de opcoes")
@@ -511,11 +432,7 @@ class LaunchCoordinatorPathsTest
   class TheReplayCatch
   // =================================================================================//
   {
-    /*
-     * O try do ramo do replay vai da carga da sessao ate a janela aparecer, e a mensagem
-     * "Error creating replay window" cobre o caminho inteiro. Estes dois casos sao o que
-     * impede alguem de estreitar esse escopo sem perceber - e ate o passo 12 nao havia nenhum.
-     */
+    // O try do replay cobre da carga ate showReplay; os dois testes preservam esse escopo.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("uma falha ao montar o console vira o alerta do replay")
@@ -552,20 +469,8 @@ class LaunchCoordinatorPathsTest
       assertTrue (target.calls.contains ("showOptions"), target.calls.toString ());
     }
 
-    /*
-     * DEFEITO PRESERVADO, e a rede o achou no primeiro mvn test. E o item 24 do
-     * BACKLOG-DEFEITOS.md.
-     *
-     * Este caso foi escrito afirmando que um arquivo que nao e uma sessao gravada cairia no
-     * catch e viraria "Error creating replay window". ELE FALHOU: nao ha alerta nenhum. O
-     * SessionReader nao valida formato - o readFile so captura IOException, e o laco de parse
-     * simplesmente nao encontra linha que sirva. O resultado e uma sessao VAZIA, com nome de
-     * servidor "Unknown", que o coordenador lanca como qualquer outra: a janela de replay abre,
-     * sem dados e sem aviso.
-     *
-     * Congelado, nao corrigido (Regra 1). O que se afirma aqui e o comportamento REAL, medido:
-     * o lancamento vai ate o fim, em silencio.
-     */
+    // Comportamento preservado: SessionReader ignora linhas invalidas sem lancar excecao,
+    // produzindo uma sessao vazia ("Unknown") e abrindo o replay sem alerta.
     // -------------------------------------------------------------------------------//
     @Test
     @DisplayName ("um arquivo que nao e uma sessao gravada abre um replay VAZIO, em silencio")
@@ -586,10 +491,6 @@ class LaunchCoordinatorPathsTest
     }
   }
 
-  /*
-   * A janela de opcoes some no clique, antes de qualquer validacao, e isso vale para os quatro
-   * ramos. Nenhuma asserticao anterior a este passo pegava uma inversao aqui.
-   */
   // ---------------------------------------------------------------------------------//
   @Test
   @DisplayName ("a janela de opcoes some ANTES de o pedido ser lido, nos quatro ramos")

@@ -616,12 +616,7 @@ class DatabaseTest
       assertEquals (2, Result.values ().length);
     }
 
-    /*
-     * Ciclo C9 da Rodada SOLID 2 (item 7 do backlog): a resposta que o worker escreve nas
-     * requisicoes so e escrita de dentro de database. Um campo publico nao final, ou um
-     * setter publico, reabriria a escrita de fora - e com ela a leitura fora da thread do
-     * worker que o item 7 descreve. O filtro de isSynthetic tira o $jacocoInit.
-     */
+    // Ignora membros sinteticos injetados pelo JaCoCo ($jacocoInit).
     @ParameterizedTest
     @ValueSource (classes = { DatabaseRequest.class, DatasetRequest.class,
                               MemberRequest.class })
@@ -1120,22 +1115,7 @@ class DatabaseTest
                     execute (new DatabaseRequest (null, Command.FIND)).getResult ());
     }
 
-    // -------------------------------------------------------------------------------//
-    // O mapeamento coluna a coluna
-    // -------------------------------------------------------------------------------//
-
-    /*
-     * Comparar so o objeto que volta de um FIND nao prova o mapeamento. Se duas colunas do
-     * mesmo tipo trocassem de lugar na gravacao E na leitura, as duas trocas se
-     * compensariam, o round-trip fecharia certinho e o banco estaria errado. Os dois testes
-     * abaixo abrem o arquivo SQLite e leem as colunas PELO NOME, o que fixa a ordem dos
-     * quinze parametros de INSERT_DATASET e dos dez de INSERT_MEMBER.
-     *
-     * Existem porque a onda 3 tira o DatabaseThread de cima dos campos package-private de
-     * Dataset e Member e move o binding para um mapper. Um indice trocado nessa mudanca
-     * passaria despercebido pela suite que havia antes: findsDataset conferia tres campos
-     * dos quinze, e findsMember conferia so o nome.
-     */
+    // Leitura direta por nome de coluna no SQLite evita que trocas simetricas passem em FIND.
     // -------------------------------------------------------------------------------//
     private Connection openDatabaseFile () throws SQLException
     // -------------------------------------------------------------------------------//
@@ -1167,8 +1147,6 @@ class DatabaseTest
         assertEquals ("3390", rs.getString ("DEVICE"));
         assertEquals ("CATALOG.USER.UCAT", rs.getString ("CATALOG"));
 
-        // os quatro inteiros de espaco sao distintos de proposito: qualquer troca entre
-        // eles muda o valor lido, e nenhuma passa despercebida
         assertEquals (15, rs.getInt ("TRACKS"));
         assertEquals (1, rs.getInt ("CYLINDERS"));
         assertEquals (75, rs.getInt ("PERCENT"));
@@ -1179,9 +1157,7 @@ class DatabaseTest
         assertEquals (80, rs.getInt ("LRECL"));
         assertEquals (27920, rs.getInt ("BLKSIZE"));
 
-        // 2024/01/15 (created) < 2025/06/01 (referred) < 2030/12/31 (expires). A ordem
-        // separa as tres colunas de data sem depender de como o driver converte a data
-        // para o fuso local, que e o unico detalhe que muda de maquina para maquina
+        // Ordem relativa entre as datas evita depender da conversao de fuso horario do driver.
         assertNotNull (rs.getDate ("CREATED"));
         assertTrue (rs.getDate ("CREATED").before (rs.getDate ("REFERRED")),
                     "CREATED deveria ser a mais antiga das tres");
@@ -1216,7 +1192,6 @@ class DatabaseTest
         assertEquals ("IEFBR14", rs.getString ("NAME"));
         assertEquals ("USER01", rs.getString ("ID"));
 
-        // 120, 100, 20, 1 e 5 sao distintos de proposito, pelo mesmo motivo
         assertEquals (120, rs.getInt ("SIZE"));
         assertEquals (100, rs.getInt ("INIT"));
         assertEquals (20, rs.getInt ("MOD"));
@@ -1241,8 +1216,6 @@ class DatabaseTest
       DatasetRequest found = (DatasetRequest) execute (
           new DatasetRequest (null, Command.FIND, "MEU.DATASET"));
 
-      // toString imprime as quinze colunas de uma vez, entao comparar as duas
-      // representacoes cobre a ida e a volta inteiras
       assertEquals (original.toString (), found.getDataset ().toString ());
     }
 
@@ -1309,21 +1282,7 @@ class DatabaseTest
       }
     }
 
-    /*
-     * As decisoes que o UPDATE toma antes de chegar ao SQL, e que nenhum teste via.
-     *
-     * updateDataset e updateMember nao sao gravacao direta: eles procuram o que ja esta la,
-     * perguntam se o novo DIFERE, e so entao fundem e escrevem. Quando nada difere, saem
-     * devolvendo SUCCESS sem tocar no banco e sem marcar databaseUpdated - que e o campo que o
-     * QueuedDatasetStore devolve ao StoreListener no toString da requisicao.
-     *
-     * Result sozinho nao distingue os dois caminhos: os dois dao SUCCESS. Sem estes testes,
-     * uma reorganizacao que trocasse a fusao por uma substituicao, ou que marcasse
-     * databaseUpdated sempre, passaria pela suite inteira.
-     */
-
-    // Um dataset sem datas, de proposito. differsFrom compara data por getTime (), e um
-    // round-trip pelo SQLite passa pela conversao do driver - o que nao interessa aqui.
+    // Sem datas para evitar divergencia de getTime() apos round-trip SQLite em differsFrom.
     private Dataset datasetWithoutDates (String name)
     {
       Dataset dataset = new Dataset (name);
@@ -1376,8 +1335,6 @@ class DatabaseTest
       open ();
       execute (new DatasetRequest (null, Command.ADD, sampleDataset ("MEU.DATASET")));
 
-      // So o espaco vem preenchido. O resto vem zerado ou nulo, e merge ignora o que o outro
-      // nao declara - entao volume, disposicao e catalogo tem de sobreviver na linha.
       Dataset partial = new Dataset ("MEU.DATASET");
       partial.setSpace (99, 9, 9, 99);
 
@@ -1415,7 +1372,6 @@ class DatabaseTest
       member.setID ("USER01");
       execute (new MemberRequest (null, Command.ADD, member));
 
-      // So o tamanho. init, mod, vv, mm e id ficam zerados ou nulos no que chega.
       Member partial = new Member (dataset, "IEFBR14");
       partial.setSize (999);
 
@@ -1454,7 +1410,6 @@ class DatabaseTest
                     execute (new DatasetRequest (null, Command.DELETE, "SYS1.PROCLIB"))
                         .getResult ());
 
-      // A cascata acontece numa transacao propria, com os membros apagados ANTES do dataset.
       try (Connection connection = openDatabaseFile ();
           Statement statement = connection.createStatement ();
           ResultSet rs = statement.executeQuery (
@@ -1477,17 +1432,7 @@ class DatabaseTest
                                                 new Dataset ("NAO.EXISTE"), "*")).getResult ());
     }
 
-    /*
-     * Um defeito preservado de proposito - item do BACKLOG-DEFEITOS.md.
-     *
-     * createMemberList monta "select * from MEMBERS where DATASET='X'" e, quando o nome do
-     * membro tem curinga depois da primeira posicao, concatena "where NAME>=..." - um segundo
-     * where. O SQL e invalido, a SQLException e apanhada, e a requisicao devolve FAILURE.
-     *
-     * Nao e alcancavel pela aplicacao, porque o QueuedDatasetStore nunca emite LIST de membro.
-     * O teste existe para que a decomposicao nao "conserte" isso sem querer ao mover o metodo:
-     * corrigir o where para and e uma decisao do time, num commit fix proprio.
-     */
+    // Fixa bug legado em createMemberList: gera um segundo where (inalcancavel pela aplicacao).
     @Test
     @DisplayName ("um curinga no meio do nome do membro monta SQL invalido e falha")
     @Timeout (30)
@@ -1501,8 +1446,6 @@ class DatabaseTest
       member.setSize (120, 100, 20, 1, 5);
       execute (new MemberRequest (null, Command.ADD, member));
 
-      // Controle: o curinga sozinho fica na posicao zero, o ramo do prefixo nao roda, e a
-      // query sai valida. E o mesmo builder do caso negativo abaixo.
       assertEquals (Result.SUCCESS,
                     execute (new MemberRequest (null, Command.LIST, dataset, "*")).getResult ());
 
